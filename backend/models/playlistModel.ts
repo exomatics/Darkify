@@ -1,43 +1,43 @@
-import Sequelize from 'sequelize'
+import Sequelize from 'sequelize';
 
 module.exports = (sequelize: any) => {
-	const playlistModel = sequelize.define(
-		'playlist',
-		{
-			id: {
-				type: Sequelize.UUID,
-				allowNull: false,
-				primaryKey: true,
-			},
-			track: {
-				type: Sequelize.UUID,
-				unique: true,
-			},
-			name: {
-				type: Sequelize.STRING(100),
-				allowNull: false,
-			},
-			description: {
-				type: Sequelize.STRING(300),
-			},
-			cover_url: {
-				type: Sequelize.TEXT,
-				allowNull: false,
-			},
-			owner: {
-				type: Sequelize.UUID,
-				unique: true,
-			},
-			restrictions: {
-				type: Sequelize.UUID,
-				unique: true,
-			},
-		},
-		{
-			createdAt: false,
+  const playlistModel = sequelize.define(
+    'playlist',
+    {
+      id: {
+        type: Sequelize.UUID,
+        allowNull: false,
+        primaryKey: true,
+      },
+      track: {
+        type: Sequelize.UUID,
+        unique: true,
+      },
+      name: {
+        type: Sequelize.STRING(100),
+        allowNull: false,
+      },
+      description: {
+        type: Sequelize.STRING(300),
+      },
+      cover_url: {
+        type: Sequelize.TEXT,
+        allowNull: false,
+      },
+      owner: {
+        type: Sequelize.UUID,
+        unique: true,
+      },
+      restrictions: {
+        type: Sequelize.UUID,
+        unique: true,
+      },
+    },
+    {
+      createdAt: false,
 
-			updatedAt: false,
-		}
-	)
-	return playlistModel
-}
+      updatedAt: false,
+    },
+  );
+  return playlistModel;
+};

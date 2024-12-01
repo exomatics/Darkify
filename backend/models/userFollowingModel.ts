@@ -1,25 +1,25 @@
-import Sequelize from 'sequelize'
+import Sequelize from 'sequelize';
 
 module.exports = (sequelize: any) => {
-	const userFollowingModel = sequelize.define(
-		'user_following',
-		{
-			id: {
-				type: Sequelize.UUID,
-				allowNull: false,
-				primaryKey: true,
-				unique: 'compositeIndex',
-			},
-			following_id: {
-				type: Sequelize.UUID,
-				unique: 'compositeIndex',
-			},
-		},
-		{
-			createdAt: false,
+  const userFollowingModel = sequelize.define(
+    'user_following',
+    {
+      id: {
+        type: Sequelize.UUID,
+        allowNull: false,
+        primaryKey: true,
+        unique: 'compositeIndex',
+      },
+      following_id: {
+        type: Sequelize.UUID,
+        unique: 'compositeIndex',
+      },
+    },
+    {
+      createdAt: false,
 
-			updatedAt: false,
-		}
-	)
-	return userFollowingModel
-}
+      updatedAt: false,
+    },
+  );
+  return userFollowingModel;
+};
