@@ -20,14 +20,17 @@ import trackModel from '../models/trackModel.ts';
 import userModel from '../models/userModel.ts';
 import userFollowersModel from '../models/userFollowersModel.ts';
 import userFollowingModel from '../models/userFollowingModel.ts';
-const db: any = {};
-db.sequelize = sequelize;
-db.playlistModel = playlistModel(sequelize);
-db.playlistTrackModel = playlistTrackModel(sequelize);
-db.trackModel = trackModel(sequelize);
-db.userModel = userModel(sequelize);
-db.userFollowersModel = userFollowersModel(sequelize);
-db.userFollowingModel = userFollowingModel(sequelize);
+import { Idb } from '../interfaces/dbInterface.ts';
+const db: Idb = {
+  sequelize : sequelize,
+  playlistModel : playlistModel(sequelize),
+  playlistTrackModel : playlistTrackModel(sequelize),
+  trackModel : trackModel(sequelize),
+  userModel : userModel(sequelize),
+  userFollowersModel : userFollowersModel(sequelize),
+  userFollowingModel : userFollowingModel(sequelize),
+};
+
 db.playlistModel.belongsToMany(db.trackModel, {
   through: db.playlistTrackModel,
   foreignKey: 'playlist_id',
