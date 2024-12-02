@@ -6,7 +6,7 @@
   "type": "commonjs",
   "scripts": {
     "dev": "nodemon --exec ts-node app.ts",
-    "lint": "eslint . --ext .ts,.js",
+    "lint": "eslint .",
     "lint:fix": "eslint . --ext .ts,.js --fix",
     "build": "tsc",
     "start": "node dist/app.js"
