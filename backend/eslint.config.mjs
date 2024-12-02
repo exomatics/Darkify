@@ -21,7 +21,6 @@ export default [
       '@typescript-eslint/no-shadow': 'error',
     },
     plugins: {
-      '@typescript-eslint': tseslint,
       import: pluginImport,
     },
   },
