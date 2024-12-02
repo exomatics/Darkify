@@ -9,7 +9,7 @@
     "lint": "eslint . --ext .ts,.js",
     "lint:fix": "eslint . --ext .ts,.js --fix",
     "build": "tsc",
-    "start": "node dist/app.js"
+    "start": "node-ts app.ts"
   },
   "author": "Miroshnichenko Roman <rborisovic74@gmail.com>",
   "license": "MIT",
