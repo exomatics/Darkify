@@ -1,5 +1,4 @@
 module.exports = {
-  plugins: ['prettier-plugin-organize-imports'],
   printWidth: 100,
   tabWidth: 2,
   useTabs: false,
@@ -16,5 +15,4 @@ module.exports = {
   rangeEnd: Infinity,
   importOrderSeparation: true,
   importOrderSortSpecifiers: true,
-  organizeImportsSkipDestructiveCodeActions: true,
 };

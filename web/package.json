@@ -8,7 +8,9 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test:typescript": "tsc --noEmit"
+    "test:typescript": "tsc --noEmit",
+    "prettier:fix": "prettier . --write",
+    "prettier:test": "prettier . --check"
   },
   "dependencies": {
     "prettier-plugin-organize-imports": "^4.1.0",
