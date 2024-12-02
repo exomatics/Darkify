@@ -37,6 +37,7 @@
     "eslint-plugin-import": "^2.31.0",
     "globals": "^15.13.0",
     "nodemo": "^1.0.0",
+    "prettier": "^3.4.1",
     "ts-node": "^10.9.2",
     "typescript-eslint": "^8.16.0"
   }
