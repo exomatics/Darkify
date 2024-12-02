@@ -1,4 +1,4 @@
-name: ESLint Check
+name: Checks
 
 on:
   push:
