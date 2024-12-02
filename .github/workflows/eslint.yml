@@ -20,7 +20,7 @@ jobs:
 
       - name: Install frontend dependencies
         run: |
-          cd frontend
+          cd web
           npm ci
 
       - name: Run ESLint for frontend
