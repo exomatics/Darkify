@@ -25,7 +25,7 @@ jobs:
 
       - name: Run ESLint for frontend
         run: |
-          cd frontend
+          cd web
           npm run lint
 
   lint-backend:
