@@ -8,10 +8,10 @@ services:
       - '3000:3000'
     environment:
       DB_HOST: db
-      DB_PORT: 5432
-      DB_USER: postgres
-      DB_PASSWORD: postgres
-      DB_NAME: darkify
+      POSTGRESPORT: 5432
+      POSTGRESUSER: postgres
+      POSTGRESPASSWORD: postgres
+      POSTGRESDATABASE: darkify
     depends_on:
       - db
 
