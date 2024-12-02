@@ -1,0 +1,51 @@
+name: Prettier
+
+on:
+  push:
+
+jobs:
+  ts-frontend:
+    name: Prettier Frontend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js for frontend
+        uses: actions/setup-node@v3
+        with:
+          node-version: 23
+
+      - name: Install frontend dependencies
+        run: |
+          cd web
+          npm ci
+
+      - name: Run Prettier for frontend
+        run: |
+          cd web
+          npm run prettier:test
+
+  ts-backend:
+    name: Prettier Backend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js for backend
+        uses: actions/setup-node@v3
+        with:
+          node-version: 23
+
+      - name: Install backend dependencies
+        run: |
+          cd backend
+          npm ci
+
+      - name: Run Prettier for backend
+        run: |
+          cd backend
+          npm run prettier:test

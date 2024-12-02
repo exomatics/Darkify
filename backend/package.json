@@ -5,20 +5,22 @@
   "main": "app.ts",
   "type": "commonjs",
   "scripts": {
-    "dev": "nodemon --exec ts-node app.ts",
-    "lint": "eslint . --ext .ts,.js",
+    "dev": "node --watch --env-file=.env -r ts-node/register ./src/app.ts",
+    "lint": "eslint .",
     "lint:fix": "eslint . --ext .ts,.js --fix",
     "build": "tsc",
-    "start": "node-ts app.ts"
+    "start": "node-ts app.ts",
+    "test:typescript": "tsc --noEmit",
+    "prettier:fix": "prettier . --write",
+    "prettier:test": "prettier . --check"
   },
   "author": "Miroshnichenko Roman <rborisovic74@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "dotenv": "^16.4.5",
+    "@types/sequelize": "^4.28.20",
     "express": "^4.19.2",
     "fluent-ffmpeg": "^2.1.3",
     "multer": "^1.4.5-lts.1",
-    "nodemon": "^3.1.7",
     "passport": "^0.7.0",
     "pg": "^8.13.1",
     "pg-hstore": "^2.3.4",
@@ -33,6 +35,7 @@
     "eslint-plugin-import": "^2.31.0",
     "globals": "^15.13.0",
     "nodemo": "^1.0.0",
+    "prettier": "^3.4.1",
     "ts-node": "^10.9.2",
     "typescript-eslint": "^8.16.0"
   }

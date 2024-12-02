@@ -1,7 +1,9 @@
-import express from 'express';
 import trackController from '../controllers/trackController';
-const router = express.Router();
-router.get('/:trackId', async (req, res) => {
+import { Router } from 'express';
+import { ROUTES } from './routes';
+const router = Router();
+
+router.get(ROUTES.TRACKS.GET, async (req, res) => {
   try {
     const response = await trackController.getTrack(req.params.trackId);
     res.json(await response);
