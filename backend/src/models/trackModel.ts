@@ -1,33 +1,31 @@
-import Sequelize from 'sequelize';
+import Sequelize, { DataTypes } from 'sequelize';
 
 export default (sequelize: Sequelize.Sequelize) => {
   const trackModel: Sequelize.ModelStatic<Sequelize.Model> = sequelize.define(
     'track',
     {
       id: {
-        type: Sequelize.UUID,
+        type: DataTypes.UUID,
         allowNull: false,
         primaryKey: true,
       },
       name: {
-        type: Sequelize.STRING(100),
+        type: DataTypes.STRING(100),
         allowNull: false,
       },
       artist: {
-        type: Sequelize.UUID,
+        type: DataTypes.UUID,
       },
       lyrics: {
-        type: Sequelize.TEXT,
+        type: DataTypes.TEXT,
       },
       number_of_play: {
-        type: Sequelize.BIGINT,
+        type: DataTypes.BIGINT,
         allowNull: false,
       },
     },
     {
-      createdAt: false,
-
-      updatedAt: false,
+      timestamps: false,
     },
   );
 

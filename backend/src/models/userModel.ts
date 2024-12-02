@@ -1,48 +1,46 @@
-import Sequelize from 'sequelize';
+import Sequelize, { DataTypes } from 'sequelize';
 
 export default (sequelize: Sequelize.Sequelize) => {
   const userModel: Sequelize.ModelStatic<Sequelize.Model> = sequelize.define(
     'user',
     {
       id: {
-        type: Sequelize.UUID,
+        type: DataTypes.UUID,
         allowNull: false,
         primaryKey: true,
       },
       is_artist: {
-        type: Sequelize.BOOLEAN,
+        type: DataTypes.BOOLEAN,
         allowNull: false,
       },
       name: {
-        type: Sequelize.STRING(25),
+        type: DataTypes.STRING(25),
         allowNull: false,
       },
       email: {
-        type: Sequelize.STRING(254),
+        type: DataTypes.STRING(254),
         allowNull: false,
       },
       avatar_id: {
-        type: Sequelize.UUID,
+        type: DataTypes.UUID,
         allowNull: false,
         unique: true,
       },
       followers_id: {
-        type: Sequelize.UUID,
+        type: DataTypes.UUID,
         unique: true,
       },
       following: {
-        type: Sequelize.UUID,
+        type: DataTypes.UUID,
         unique: true,
       },
       playlist: {
-        type: Sequelize.UUID,
+        type: DataTypes.UUID,
         unique: true,
       },
     },
     {
-      createdAt: false,
-
-      updatedAt: false,
+      timestamps: false,
     },
   );
 
