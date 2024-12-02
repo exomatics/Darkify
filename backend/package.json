@@ -10,7 +10,9 @@
     "lint:fix": "eslint . --ext .ts,.js --fix",
     "build": "tsc",
     "start": "node dist/app.js",
-    "test:typescript": "tsc --noEmit"
+    "test:typescript": "tsc --noEmit",
+    "prettier:fix": "prettier . --write",
+    "prettier:test": "prettier . --check"
   },
   "author": "Miroshnichenko Roman <rborisovic74@gmail.com>",
   "license": "MIT",
