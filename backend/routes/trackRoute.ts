@@ -1,5 +1,5 @@
 import trackController from '../controllers/trackController';
-import { Router } from 'express'
+import { Router } from 'express';
 const router = Router();
 router.get('/:trackId', async (req, res) => {
   try {

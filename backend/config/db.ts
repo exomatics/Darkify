@@ -1,19 +1,14 @@
-import {Sequelize} from 'sequelize';
+import { Sequelize } from 'sequelize';
 import dotenv from 'dotenv';
 dotenv.config();
 const POSTGRESDATABASE = `${process.env.POSTGRESDATABASE}`;
 const POSTGRESUSER = `${process.env.POSTGRESUSER}`;
 const POSTGRESPASSWORD = `${process.env.POSTGRESPASSWORD}`;
 
-const sequelize = new Sequelize(
-  POSTGRESDATABASE,
-  POSTGRESUSER,
-  POSTGRESPASSWORD,
-  {
-    host: 'localhost',
-    dialect: 'postgres',
-  },
-);
+const sequelize = new Sequelize(POSTGRESDATABASE, POSTGRESUSER, POSTGRESPASSWORD, {
+  host: 'localhost',
+  dialect: 'postgres',
+});
 import playlistModel from '../models/playlistModel.ts';
 import playlistTrackModel from '../models/playlistTracksModel.ts';
 import trackModel from '../models/trackModel.ts';
@@ -22,13 +17,13 @@ import userFollowersModel from '../models/userFollowersModel.ts';
 import userFollowingModel from '../models/userFollowingModel.ts';
 import { Idb } from '../interfaces/dbInterface.ts';
 const db: Idb = {
-  sequelize : sequelize,
-  playlistModel : playlistModel(sequelize),
-  playlistTrackModel : playlistTrackModel(sequelize),
-  trackModel : trackModel(sequelize),
-  userModel : userModel(sequelize),
-  userFollowersModel : userFollowersModel(sequelize),
-  userFollowingModel : userFollowingModel(sequelize),
+  sequelize: sequelize,
+  playlistModel: playlistModel(sequelize),
+  playlistTrackModel: playlistTrackModel(sequelize),
+  trackModel: trackModel(sequelize),
+  userModel: userModel(sequelize),
+  userFollowersModel: userFollowersModel(sequelize),
+  userFollowingModel: userFollowingModel(sequelize),
 };
 
 db.playlistModel.belongsToMany(db.trackModel, {
@@ -63,6 +58,6 @@ db.trackModel.belongsTo(db.userModel, { foreignKey: 'artist' });
 // userFollowingModel(sequelize, )
 const sequelizeSync = async () => {
   await sequelize.sync();
-}
+};
 sequelizeSync();
 export default db;
