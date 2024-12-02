@@ -51,7 +51,7 @@ jobs:
           cd backend
           npm run lint
   ts-frontend:
-    name: Lint Frontend
+    name: TS Frontend
     runs-on: ubuntu-latest
 
     steps:
@@ -74,7 +74,7 @@ jobs:
           npm run test:typescript
 
   ts-backend:
-    name: Lint Backend
+    name: TS Backend
     runs-on: ubuntu-latest
 
     steps:
