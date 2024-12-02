@@ -1,7 +1,7 @@
-import Sequelize, { Model, ModelStatic, Sequelize as sequelizeType } from 'sequelize';
+import Sequelize from 'sequelize';
 
-export default (sequelize: sequelizeType) => {
-  const playlistTrackModel: ModelStatic<Model> = sequelize.define(
+export default (sequelize: Sequelize.Sequelize) => {
+  const playlistTrackModel: Sequelize.ModelStatic<Sequelize.Model> = sequelize.define(
     'playlist_track',
     {
       playlist_id: {

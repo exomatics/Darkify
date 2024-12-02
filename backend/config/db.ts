@@ -1,6 +1,4 @@
 import { Sequelize } from 'sequelize';
-import dotenv from 'dotenv';
-dotenv.config();
 const POSTGRESDATABASE = `${process.env.POSTGRESDATABASE}`;
 const POSTGRESUSER = `${process.env.POSTGRESUSER}`;
 const POSTGRESPASSWORD = `${process.env.POSTGRESPASSWORD}`;
