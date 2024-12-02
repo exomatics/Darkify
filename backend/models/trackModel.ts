@@ -1,5 +1,6 @@
-const Sequelize = require('sequelize');
-module.exports = (sequelize: any) => {
+import Sequelize from 'sequelize';
+
+export default (sequelize: any) => {
   const trackModel = sequelize.define(
     'track',
     {
@@ -29,5 +30,6 @@ module.exports = (sequelize: any) => {
       updatedAt: false,
     },
   );
+
   return trackModel;
 };

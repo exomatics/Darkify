@@ -1,6 +1,6 @@
 import Sequelize from 'sequelize';
 
-module.exports = (sequelize: any) => {
+export default (sequelize: any) => {
   const userFollowersModel = sequelize.define(
     'user_follower',
     {

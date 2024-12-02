@@ -1,6 +1,6 @@
 import Sequelize from 'sequelize';
 
-module.exports = (sequelize: any) => {
+export default (sequelize: any) => {
   const userFollowingModel = sequelize.define(
     'user_following',
     {
@@ -21,5 +21,6 @@ module.exports = (sequelize: any) => {
       updatedAt: false,
     },
   );
+
   return userFollowingModel;
 };

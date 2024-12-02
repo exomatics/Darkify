@@ -1,11 +1,10 @@
-import { Sequelize } from 'sequelize';
-import 'dotenv/config';
-console.log(typeof process.env.POSTGRESDATABASE);
+import {Sequelize} from 'sequelize';
+import dotenv from 'dotenv';
+dotenv.config();
 const POSTGRESDATABASE = `${process.env.POSTGRESDATABASE}`;
 const POSTGRESUSER = `${process.env.POSTGRESUSER}`;
 const POSTGRESPASSWORD = `${process.env.POSTGRESPASSWORD}`;
 
-// import 'dotenv/config'
 const sequelize = new Sequelize(
   POSTGRESDATABASE,
   POSTGRESUSER,
@@ -14,16 +13,21 @@ const sequelize = new Sequelize(
     host: 'localhost',
     dialect: 'postgres',
   },
-  // 'postgres://postgres:99353@localhost:5432/darkify'
 );
+import playlistModel from '../models/playlistModel.ts';
+import playlistTrackModel from '../models/playlistTracksModel.ts';
+import trackModel from '../models/trackModel.ts';
+import userModel from '../models/userModel.ts';
+import userFollowersModel from '../models/userFollowersModel.ts';
+import userFollowingModel from '../models/userFollowingModel.ts';
 const db: any = {};
 db.sequelize = sequelize;
-db.playlistModel = require('../models/playlistModel.ts')(sequelize);
-db.playlistTrackModel = require('../models/playlistTracksModel.ts')(sequelize);
-db.trackModel = require('../models/trackModel.ts')(sequelize);
-db.userModel = require('../models/userModel.ts')(sequelize);
-db.userFollowersModel = require('../models/userFollowersModel.ts')(sequelize);
-db.userFollowingModel = require('../models/userFollowingModel.ts')(sequelize);
+db.playlistModel = playlistModel(sequelize);
+db.playlistTrackModel = playlistTrackModel(sequelize);
+db.trackModel = trackModel(sequelize);
+db.userModel = userModel(sequelize);
+db.userFollowersModel = userFollowersModel(sequelize);
+db.userFollowingModel = userFollowingModel(sequelize);
 db.playlistModel.belongsToMany(db.trackModel, {
   through: db.playlistTrackModel,
   foreignKey: 'playlist_id',
@@ -56,6 +60,6 @@ db.trackModel.belongsTo(db.userModel, { foreignKey: 'artist' });
 // userFollowingModel(sequelize, )
 const sequelizeSync = async () => {
   await sequelize.sync();
-};
+}
 sequelizeSync();
 export default db;

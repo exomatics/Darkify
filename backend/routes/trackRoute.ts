@@ -1,6 +1,6 @@
-import express from 'express';
 import trackController from '../controllers/trackController';
-const router = express.Router();
+import { Router } from 'express'
+const router = Router();
 router.get('/:trackId', async (req, res) => {
   try {
     const response = await trackController.getTrack(req.params.trackId);

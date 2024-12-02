@@ -1,6 +1,5 @@
 import Sequelize from 'sequelize';
-
-module.exports = (sequelize: any) => {
+export default (sequelize: any) => {
   const playlistModel = sequelize.define(
     'playlist',
     {
@@ -39,5 +38,6 @@ module.exports = (sequelize: any) => {
       updatedAt: false,
     },
   );
+
   return playlistModel;
 };

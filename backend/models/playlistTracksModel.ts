@@ -1,6 +1,6 @@
 import Sequelize from 'sequelize';
 
-module.exports = (sequelize: any) => {
+export default (sequelize: any) => {
   const playlistTrackModel = sequelize.define(
     'playlist_track',
     {
@@ -23,15 +23,6 @@ module.exports = (sequelize: any) => {
       updatedAt: false,
     },
   );
-  // playlistModel.belongsToMany(trackModel, {
-  // 	through: playlistTrackModel,
-  // 	foreignKey: 'playlist_id',
-  // 	otherKey: 'track_id',
-  // })
-  // trackModel.belongsToMany(playlistModel, {
-  // 	through: playlistTrackModel,
-  // 	foreignKey: 'track_id',
-  // 	otherKey: 'playlist_id',
-  // })
+
   return playlistTrackModel;
 };
