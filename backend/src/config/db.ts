@@ -1,29 +1,29 @@
 import { Sequelize } from 'sequelize';
-import 'dotenv/config';
-console.log(typeof process.env.POSTGRESDATABASE);
 const POSTGRESDATABASE = `${process.env.POSTGRESDATABASE}`;
 const POSTGRESUSER = `${process.env.POSTGRESUSER}`;
 const POSTGRESPASSWORD = `${process.env.POSTGRESPASSWORD}`;
 
-// import 'dotenv/config'
-const sequelize = new Sequelize(
-  POSTGRESDATABASE,
-  POSTGRESUSER,
-  POSTGRESPASSWORD,
-  {
-    host: 'localhost',
-    dialect: 'postgres',
-  },
-  // 'postgres://postgres:99353@localhost:5432/darkify'
-);
-const db: any = {};
-db.sequelize = sequelize;
-db.playlistModel = require('../models/playlistModel.ts')(sequelize);
-db.playlistTrackModel = require('../models/playlistTracksModel.ts')(sequelize);
-db.trackModel = require('../models/trackModel.ts')(sequelize);
-db.userModel = require('../models/userModel.ts')(sequelize);
-db.userFollowersModel = require('../models/userFollowersModel.ts')(sequelize);
-db.userFollowingModel = require('../models/userFollowingModel.ts')(sequelize);
+const sequelize = new Sequelize(POSTGRESDATABASE, POSTGRESUSER, POSTGRESPASSWORD, {
+  host: 'localhost',
+  dialect: 'postgres',
+});
+import playlistModel from '../models/playlistModel.ts';
+import playlistTrackModel from '../models/playlistTracksModel.ts';
+import trackModel from '../models/trackModel.ts';
+import userModel from '../models/userModel.ts';
+import userFollowersModel from '../models/userFollowersModel.ts';
+import userFollowingModel from '../models/userFollowingModel.ts';
+import { Idb } from '../interfaces/dbInterface.ts';
+const db: Idb = {
+  sequelize: sequelize,
+  playlistModel: playlistModel(sequelize),
+  playlistTrackModel: playlistTrackModel(sequelize),
+  trackModel: trackModel(sequelize),
+  userModel: userModel(sequelize),
+  userFollowersModel: userFollowersModel(sequelize),
+  userFollowingModel: userFollowingModel(sequelize),
+};
+
 db.playlistModel.belongsToMany(db.trackModel, {
   through: db.playlistTrackModel,
   foreignKey: 'playlist_id',

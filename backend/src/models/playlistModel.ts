@@ -1,43 +1,41 @@
-import Sequelize from 'sequelize';
-
-module.exports = (sequelize: any) => {
-  const playlistModel = sequelize.define(
+import { Sequelize, DataTypes, Model, ModelStatic } from 'sequelize';
+export default (sequelize: Sequelize) => {
+  const playlistModel: ModelStatic<Model> = sequelize.define(
     'playlist',
     {
       id: {
-        type: Sequelize.UUID,
+        type: DataTypes.UUID,
         allowNull: false,
         primaryKey: true,
       },
       track: {
-        type: Sequelize.UUID,
+        type: DataTypes.UUID,
         unique: true,
       },
       name: {
-        type: Sequelize.STRING(100),
+        type: DataTypes.STRING(100),
         allowNull: false,
       },
       description: {
-        type: Sequelize.STRING(300),
+        type: DataTypes.STRING(300),
       },
       cover_url: {
-        type: Sequelize.TEXT,
+        type: DataTypes.TEXT,
         allowNull: false,
       },
       owner: {
-        type: Sequelize.UUID,
+        type: DataTypes.UUID,
         unique: true,
       },
       restrictions: {
-        type: Sequelize.UUID,
+        type: DataTypes.UUID,
         unique: true,
       },
     },
     {
-      createdAt: false,
-
-      updatedAt: false,
+      timestamps: false,
     },
   );
+
   return playlistModel;
 };
