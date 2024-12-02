@@ -1,7 +1,6 @@
 name: ESLint Check
 
 on:
-  pull_request:
   push:
 
 jobs:
