@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --ext .ts,.js --fix",
     "build": "tsc",
-    "start": "node dist/app.js",
+    "start": "node-ts app.ts",
     "test:typescript": "tsc --noEmit",
     "prettier:fix": "prettier . --write",
     "prettier:test": "prettier . --check"
