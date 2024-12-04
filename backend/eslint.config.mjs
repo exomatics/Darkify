@@ -8,7 +8,7 @@ export default [
   {
     files: ['**/*.{js,mjs,cjs,ts}'],
     rules: {
-      strict: true,
+      strict: 'error',
       'no-unused-vars': 'off',
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       eqeqeq: 'error',
@@ -16,7 +16,6 @@ export default [
       'no-var': 'error',
       'prefer-const': 'error',
       curly: 'error',
-      strict: ['error', 'global'],
       'no-shadow': 'off',
       '@typescript-eslint/no-shadow': 'error',
     },

@@ -1,5 +1,4 @@
 module.exports = {
-  plugins: ['prettier-plugin-organize-imports'],
   printWidth: 100,
   tabWidth: 2,
   useTabs: false,
@@ -9,12 +8,8 @@ module.exports = {
   jsxSingleQuote: false,
   trailingComma: 'all',
   bracketSpacing: true,
-  jsxBracketSameLine: false,
   arrowParens: 'always',
   endOfLine: 'lf',
   rangeStart: 0,
   rangeEnd: Infinity,
-  importOrderSeparation: true,
-  importOrderSortSpecifiers: true,
-  organizeImportsSkipDestructiveCodeActions: true,
 };
