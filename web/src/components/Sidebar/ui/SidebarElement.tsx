@@ -23,6 +23,7 @@ const StyledSidebarElement = styled.div`
   border-radius: 5px;
   cursor: pointer;
   transition: 100ms all;
+  border-radius: 10px;
   .expand {
     margin-left: auto;
     transition: 200ms transform;
@@ -31,7 +32,6 @@ const StyledSidebarElement = styled.div`
     color: ${({ theme }) => theme.colors.fg.secondary};
   }
   &:hover {
-    background: ${({ theme }) => theme.colors.bg.secondary};
     .label {
       color: ${({ theme }) => theme.colors.fg.primary};
     }

@@ -7,7 +7,7 @@ const GlobalStyle = createGlobalStyle`
     box-sizing: border-box;
   }
   html {
-    background-color: ${({ theme }) => theme.colors.bg.primary};
+    background-color: ${({ theme }) => theme.colors.bg.main};
     color: ${({ theme }) => theme.colors.fg.primary};
     font-family: 'Satoshi', sans-serif;
     padding: 7px;

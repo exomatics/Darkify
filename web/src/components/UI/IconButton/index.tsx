@@ -12,6 +12,8 @@ const StyledIconButton = styled.button`
   cursor: pointer;
   svg {
     height: 40%;
+    width: 40%;
+    object-fit: contain;
   }
 `;
 
@@ -26,7 +28,7 @@ export const IconButton = ({
 }) => {
   const IconComponent = Icons.Big[icon];
   return (
-    <StyledIconButton className={className} onClick={onClick}>
+    <StyledIconButton className={`icon-button ${className}`} onClick={onClick}>
       <IconComponent />
     </StyledIconButton>
   );
