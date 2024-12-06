@@ -1,8 +1,8 @@
-import { IUser } from './userInterface';
+import type { IUser } from './user-interface';
 export interface Itrack {
   id: string;
   name: string;
-  artist: IUser['id'][];
+  artist: Array<IUser['id']>;
   lyrics: string;
   numberOfPlay: number;
 }

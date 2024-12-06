@@ -1,6 +1,8 @@
-import { Sequelize, DataTypes, Model, ModelStatic } from 'sequelize';
+import { DataTypes } from 'sequelize';
 
-export default (sequelize: Sequelize) => {
+import type { Sequelize, Model, ModelStatic } from 'sequelize';
+
+const sequelizeModel = (sequelize: Sequelize) => {
   const userFollowingModel: ModelStatic<Model> = sequelize.define(
     'user_following',
     {
@@ -22,3 +24,5 @@ export default (sequelize: Sequelize) => {
 
   return userFollowingModel;
 };
+
+export default sequelizeModel;

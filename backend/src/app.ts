@@ -1,8 +1,13 @@
 import express from 'express';
-import userRouter from './routes/userRoute.ts';
-import trackRouter from './routes/trackRoute.ts';
+
+import logger from './config/logger';
+import trackRouter from './routes/track-route';
+import userRouter from './routes/user-route';
+const tracksRouteURL = '/api/tracks';
+const userRouteURL = '/api/users';
 const app = express();
+app.disable('x-powered-by');
 app.use(express.json());
-app.use('/api/tracks', trackRouter);
-app.use('/api/users', userRouter);
-app.listen(3000, () => console.log('server is running'));
+app.use(tracksRouteURL, trackRouter);
+app.use(userRouteURL, userRouter);
+app.listen(3000, () => logger.info('server is running'));
