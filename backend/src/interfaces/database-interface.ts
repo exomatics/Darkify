@@ -1,5 +1,4 @@
-import { Model, ModelStatic } from 'sequelize';
-import { Sequelize } from 'sequelize';
+import type { Model, ModelStatic, Sequelize } from 'sequelize';
 export interface Idb {
   sequelize: Sequelize;
   playlistModel: ModelStatic<Model>;

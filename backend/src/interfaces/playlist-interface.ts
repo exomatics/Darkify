@@ -1,8 +1,8 @@
-import { Itrack } from './trackInterface';
-import { IUser } from './userInterface';
+import type { Itrack } from './track-interface';
+import type { IUser } from './user-interface';
 export interface IPlaylist {
   id: string;
-  tracks: Itrack['id'][];
+  tracks: Array<Itrack['id']>;
   name: string;
   description: string;
   coverUrl: string;

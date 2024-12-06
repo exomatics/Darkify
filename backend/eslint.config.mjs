@@ -1,12 +1,12 @@
-import globals from 'globals';
 import pluginJs from '@eslint/js';
-import pluginImport from 'eslint-plugin-import';
-import unusedImports from 'eslint-plugin-unused-imports';
 import github from 'eslint-plugin-github';
-import sonarjs from 'eslint-plugin-sonarjs';
-import eslintPluginUnicorn from 'eslint-plugin-unicorn';
+import pluginImport from 'eslint-plugin-import';
 import noLoopsPlugin from 'eslint-plugin-no-loops';
 import pluginSecurity from 'eslint-plugin-security';
+import sonarjs from 'eslint-plugin-sonarjs';
+import eslintPluginUnicorn from 'eslint-plugin-unicorn';
+import unusedImports from 'eslint-plugin-unused-imports';
+import globals from 'globals';
 
 /** @type {import('eslint').Linter.Config[]} */
 export default [
@@ -91,7 +91,7 @@ export default [
     },
   },
 
-  { files: ['**/*.js'], languageOptions: { sourceType: 'commonjs' } },
+  { files: ['**/*.js'], languageOptions: { sourceType: 'module' } },
   { languageOptions: { globals: globals.node } },
   pluginJs.configs.recommended,
 ];
