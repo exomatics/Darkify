@@ -16,6 +16,7 @@ export const theme: DefaultTheme = {
       primary: '#111111',
       secondary: '#202020',
       main: '#060606',
+      playbar: '#333842',
       light: {
         main: '#F0F0F0',
       },

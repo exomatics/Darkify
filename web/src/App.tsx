@@ -1,9 +1,11 @@
 import { ThemeProvider } from 'styled-components';
 import { theme } from './styles/theme';
 import GlobalStyle from './styles/global';
-import { Layout, PageLayout } from './styles/layout';
+import { Layout, MainContent } from './styles/layout';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
+import { Playbar } from './components/Playbar';
+import { FriendsActivity } from './components/FriendsActivity';
 
 function App() {
   return (
@@ -12,7 +14,9 @@ function App() {
       <Layout>
         <Header />
         <Sidebar />
-        <PageLayout></PageLayout>
+        <MainContent></MainContent>
+        <Playbar />
+        <FriendsActivity />
       </Layout>
     </ThemeProvider>
   );

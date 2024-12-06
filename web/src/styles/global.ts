@@ -12,6 +12,10 @@ const GlobalStyle = createGlobalStyle`
     font-family: 'Satoshi', sans-serif;
     padding: 7px;
   }
+  img {
+    max-width: 100%;
+    max-height: 100%;
+  }
 `;
 
 export default GlobalStyle;

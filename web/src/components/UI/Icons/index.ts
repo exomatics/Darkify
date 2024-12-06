@@ -20,9 +20,22 @@ import Notifications from './assets/big/notifications.svg?react';
 import Lock from './assets/big/lock.svg?react';
 import Friends from './assets/big/friends.svg?react';
 import Settings from './assets/big/settings.svg?react';
+import Play from './assets/big/play.svg?react';
+import Pause from './assets/big/pause.svg?react';
+import Next from './assets/big/next.svg?react';
+import Prev from './assets/big/prev.svg?react';
+import Shuffle from './assets/big/shuffle.svg?react';
+import Loop from './assets/big/loop.svg?react';
+import Sound from './assets/big/sound.svg?react';
+import AddToPlaylist from './assets/big/add-to-playlist.svg?react';
+import Lyrics from './assets/big/lyrics.svg?react';
+import Queue from './assets/big/queue.svg?react';
 
 export const Icons = {
   Big: {
+    Queue,
+    Lyrics,
+    AddToPlaylist,
     Library,
     Pin,
     Playlist,
@@ -45,6 +58,13 @@ export const Icons = {
     Lock,
     Friends,
     Settings,
+    Play,
+    Pause,
+    Next,
+    Prev,
+    Shuffle,
+    Loop,
+    Sound,
   },
 };
 
