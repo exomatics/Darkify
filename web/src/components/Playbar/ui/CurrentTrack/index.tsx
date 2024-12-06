@@ -8,6 +8,8 @@ const StyledCurrentTrack = styled.div`
   .info {
     display: flex;
     flex-direction: column;
+    line-height: 1;
+    justify-content: space-between;
   }
   .track-title {
     color: ${({ theme }) => theme.colors.fg.primary};

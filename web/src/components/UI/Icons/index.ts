@@ -30,9 +30,13 @@ import Sound from './assets/big/sound.svg?react';
 import AddToPlaylist from './assets/big/add-to-playlist.svg?react';
 import Lyrics from './assets/big/lyrics.svg?react';
 import Queue from './assets/big/queue.svg?react';
+import AddFriend from './assets/big/add-friend.svg?react';
+import Close from './assets/big/close.svg?react';
+import Playing from './assets/big/playing.svg?react';
 
 export const Icons = {
   Big: {
+    Close,
     Queue,
     Lyrics,
     AddToPlaylist,
@@ -65,6 +69,8 @@ export const Icons = {
     Shuffle,
     Loop,
     Sound,
+    AddFriend,
+    Playing,
   },
 };
 
