@@ -7,7 +7,7 @@ const router = Router();
 
 router.get(ROUTES.TRACKS.GET, async (request, response) => {
   try {
-    const databaseResponse = await trackController.getTrack(request.params.trackId);
+    const databaseResponse = await trackController.getTrackInfo(request.params.trackId);
     response.json(await databaseResponse);
   } catch {
     response.json('internal error');

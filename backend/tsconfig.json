@@ -3,7 +3,7 @@
     "lib": ["es2023"],
     "module": "Node16",
     "noEmit": true,
-    "target": "es2022",    
+    "target": "es2022",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
