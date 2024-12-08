@@ -1,13 +1,13 @@
 import { Sequelize } from 'sequelize';
 
-import playlistModel from '../models/playlist-model';
-import playlistTrackModel from '../models/playlist-tracks-model';
-import trackModel from '../models/track-model';
-import userFollowersModel from '../models/user-followers-model';
-import userFollowingModel from '../models/user-following-model';
-import userModel from '../models/user-model';
+import playlistModel from '../models/playlist-model.ts';
+import playlistTrackModel from '../models/playlist-tracks-model.ts';
+import trackModel from '../models/track-model.ts';
+import userFollowersModel from '../models/user-followers-model.ts';
+import userFollowingModel from '../models/user-following-model.ts';
+import userModel from '../models/user-model.ts';
 
-import type { Idb } from '../interfaces/database-interface';
+import type { Idb } from '../interfaces/database-interface.ts';
 const POSTGRESDATABASE = `${process.env.POSTGRESDATABASE}`;
 const POSTGRESUSER = `${process.env.POSTGRESUSER}`;
 const POSTGRESPASSWORD = `${process.env.POSTGRESPASSWORD}`;
@@ -15,6 +15,7 @@ const POSTGRESPASSWORD = `${process.env.POSTGRESPASSWORD}`;
 const sequelize = new Sequelize(POSTGRESDATABASE, POSTGRESUSER, POSTGRESPASSWORD, {
   host: 'localhost',
   dialect: 'postgres',
+  logging: false,
 });
 const database: Idb = {
   sequelize,
@@ -56,8 +57,8 @@ database.trackModel.belongsTo(database.userModel, { foreignKey: 'artist' });
 // userModel(sequelize, )
 // userFollowersModel(sequelize, )
 // userFollowingModel(sequelize, )
-const sequelizeSync = async () => {
+const sequelizeSync = async (sequelize: Sequelize) => {
   await sequelize.sync();
 };
-sequelizeSync();
+sequelizeSync(sequelize);
 export default database;

@@ -1,8 +1,8 @@
 import { Router } from 'express';
 
-import trackController from '../controllers/track-controller';
+import trackController from '../controllers/track-controller.ts';
 
-import { ROUTES } from './routes';
+import { ROUTES } from './routes.ts';
 const router = Router();
 
 router.get(ROUTES.TRACKS.GET, async (request, response) => {

@@ -1,4 +1,4 @@
-import type { IPlaylist } from './playlist-interface';
+import type { IPlaylist } from './playlist-interface.ts';
 export interface IUser {
   id: string;
   name: string;

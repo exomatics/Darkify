@@ -18,6 +18,7 @@ export default [
   {
     files: ['**/*.{js,mjs,cjs,ts}'],
     rules: {
+      'importPlugin/extensions': 'off',
       strict: 'error',
       'no-unused-vars': 'off',
       'unused-imports/no-unused-imports': 'error',

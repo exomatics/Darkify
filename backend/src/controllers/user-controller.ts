@@ -1,4 +1,4 @@
-import database from '../config/database';
+import database from '../config/database.ts';
 
 export default {
   async getUserInfo(userId: string) {
