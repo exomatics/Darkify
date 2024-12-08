@@ -6,6 +6,7 @@ import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
 import { Playbar } from './components/Playbar';
 import { FriendsActivity } from './components/FriendsActivity';
+import { Card } from './components/UI/Card';
 
 function App() {
   return (
@@ -14,7 +15,15 @@ function App() {
       <Layout>
         <Header />
         <Sidebar />
-        <MainContent></MainContent>
+        <MainContent>
+          <div style={{ display: 'flex', gap: '11px' }}>
+            <Card />
+            <Card />
+            <Card />
+            <Card />
+            <Card />
+          </div>
+        </MainContent>
         <Playbar />
         <FriendsActivity />
       </Layout>

@@ -16,4 +16,5 @@ export const MainContent = styled.div`
   border: 1px solid ${({ theme }) => theme.colors.bg.secondary};
   margin-top: 5px;
   border-radius: 10px;
+  padding: 20px;
 `;
