@@ -15,13 +15,22 @@ const sequelizeModel = (sequelize: Sequelize) => {
         type: DataTypes.BOOLEAN,
         allowNull: false,
       },
-      name: {
+      hash: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      salt: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      username: {
         type: DataTypes.STRING(25),
         allowNull: false,
       },
       email: {
         type: DataTypes.STRING(254),
         allowNull: false,
+        unique: true,
       },
       avatar_id: {
         type: DataTypes.UUID,
@@ -32,7 +41,7 @@ const sequelizeModel = (sequelize: Sequelize) => {
         type: DataTypes.UUID,
         unique: true,
       },
-      following: {
+      following_id: {
         type: DataTypes.UUID,
         unique: true,
       },
