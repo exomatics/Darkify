@@ -1,6 +1,7 @@
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
+import { CardGridElementType } from '../CardsGrid/types';
 
-export const StyledCard = styled.div`
+export const StyledCard = styled.div<{ $type?: CardGridElementType }>`
   max-width: 170px;
   display: flex;
   flex-direction: column;
@@ -29,6 +30,13 @@ export const StyledCard = styled.div`
     display: flex;
     justify-content: space-between;
     align-items: center;
+    max-width: 170px;
+  }
+  .title {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    max-width: 130px;
   }
   .number {
     color: #95e6d3;
@@ -38,4 +46,24 @@ export const StyledCard = styled.div`
     line-height: 1;
     margin-top: 8px;
   }
+  ${({ $type }) =>
+    $type === CardGridElementType.Artist &&
+    css`
+      .cover img {
+        border-radius: 100%;
+      }
+      .content {
+        background: transparent;
+        margin-top: 0;
+      }
+      .number {
+        display: none;
+      }
+      .description {
+        display: none;
+      }
+      .backdrop {
+        display: none;
+      }
+    `}
 `;

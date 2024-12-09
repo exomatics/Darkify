@@ -16,6 +16,19 @@ const GlobalStyle = createGlobalStyle`
     max-width: 100%;
     max-height: 100%;
   }
+
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: ${({ theme }) => theme.colors.bg.secondary};
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: transparent;
+}
 `;
 
 export default GlobalStyle;

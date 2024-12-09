@@ -33,9 +33,13 @@ import Queue from './assets/big/queue.svg?react';
 import AddFriend from './assets/big/add-friend.svg?react';
 import Close from './assets/big/close.svg?react';
 import Playing from './assets/big/playing.svg?react';
+import ArrowRight from './assets/big/arrow-right.svg?react';
+import ArrowLeft from './assets/big/arrow-left.svg?react';
 
 export const Icons = {
   Big: {
+    ArrowLeft,
+    ArrowRight,
     Close,
     Queue,
     Lyrics,
