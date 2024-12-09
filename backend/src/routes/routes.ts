@@ -19,7 +19,8 @@ export const ROUTES = Object.freeze({
   },
   USERS: {
     GET: `${API_BASE}/users/:userId`,
-    CREATE: `${API_BASE}/users`,
+    POST_REGISTER: `${API_BASE}/users/register`,
+    POST_LOGIN: `${API_BASE}/users/login`,
   },
   PLAYLISTS: {
     GET: `${API_BASE}/playlist:playlistId`,

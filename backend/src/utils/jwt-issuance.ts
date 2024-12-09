@@ -3,16 +3,15 @@ import path from 'node:path';
 
 import jsonwebtoken from 'jsonwebtoken';
 
-const pathToKey = path.join('./', '..', 'config', 'id_rsa_priv.pem');
+const pathToKey = path.join('src', 'config', 'id_rsa_priv.pem');
 const PRIV_KEY = fs.readFileSync(pathToKey, 'utf8');
 
-function issueJWT(user: { id: string }) {
-  const id = user.id;
-
+function issueJWT(user: { id: string; hash: string }) {
   const expiresIn = '30d';
 
   const payload = {
-    sub: id,
+    id: user.id,
+    hash: user.hash,
     iat: Date.now(),
   };
 

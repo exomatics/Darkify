@@ -1,8 +1,7 @@
-import type { IUser } from './user-interface.ts';
 export interface Itrack {
   id: string;
   name: string;
-  artist: Array<IUser['id']>;
+  artist: string;
   lyrics: string;
   numberOfPlay: number;
 }

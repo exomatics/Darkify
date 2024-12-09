@@ -9,7 +9,7 @@ import type { PassportStatic } from 'passport';
 
 const jwtStrategy = passportJwt.Strategy;
 const jwtExtract = passportJwt.ExtractJwt;
-const pathToKey = path.join('./', 'src', 'config');
+const pathToKey = path.join('src', 'config');
 const PUB_KEY = fs.readFileSync(path.join(pathToKey, 'id_rsa_pub.pem'), 'utf8');
 const options = {
   jwtFromRequest: jwtExtract.fromAuthHeaderAsBearerToken(),
@@ -18,7 +18,8 @@ const options = {
 };
 const strategy = new jwtStrategy(options, async (payload, done) => {
   try {
-    const user = await database.userModel.findByPk(payload.sub);
+    const user = await database.userModel.findByPk(payload.id);
+    //passportjs требует null для работы
     // eslint-disable-next-line unicorn/no-null
     return user ? done(null, user) : done(null, false);
   } catch {

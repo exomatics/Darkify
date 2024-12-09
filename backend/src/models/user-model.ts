@@ -23,7 +23,7 @@ const sequelizeModel = (sequelize: Sequelize) => {
         type: DataTypes.STRING,
         allowNull: false,
       },
-      name: {
+      username: {
         type: DataTypes.STRING(25),
         allowNull: false,
       },
@@ -40,7 +40,7 @@ const sequelizeModel = (sequelize: Sequelize) => {
         type: DataTypes.UUID,
         unique: true,
       },
-      following: {
+      following_id: {
         type: DataTypes.UUID,
         unique: true,
       },
