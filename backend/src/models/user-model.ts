@@ -30,6 +30,7 @@ const sequelizeModel = (sequelize: Sequelize) => {
       email: {
         type: DataTypes.STRING(254),
         allowNull: false,
+        unique: true,
       },
       avatar_id: {
         type: DataTypes.UUID,

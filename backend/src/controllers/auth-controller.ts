@@ -3,11 +3,12 @@
 import crypto from 'node:crypto';
 
 import database from '../config/database.ts';
-import issueJWT from '../utils/jwt-issuance.ts';
+import { issueAccessToken, issueRefreshToken } from '../utils/jwt-issuance.ts';
 import generatePassword from '../utils/password-generation.ts';
 import verificatePassword from '../utils/password-verification.ts';
 
 import type { IUser } from '../interfaces/user-interface.ts';
+
 export default {
   async registerUser(userInfo: IUser) {
     try {
@@ -37,22 +38,57 @@ export default {
         // eslint-disable-next-line unicorn/no-null
         playlist: null,
       });
-      return issueJWT({ id: newUser.dataValues.id, hash: newUser.dataValues.hash });
+      const accessToken = issueAccessToken({
+        id: newUser.dataValues.id,
+        hash: newUser.dataValues.hash,
+      });
+      const refreshToken = issueRefreshToken({
+        id: newUser.dataValues.id,
+        hash: newUser.dataValues.hash,
+      });
+
+      return {
+        accessToken,
+        refreshToken,
+      };
     } catch {
-      return new Error('internal Error');
+      return new Error('internal error');
     }
   },
-  async authenticateUser(UserInfo: { id: string; hash: string; password: string }) {
+  async sendNewAccessTokenToUser(userInfo: { id: string; hash: string }) {
+    const user = await database.userModel.findByPk(userInfo.id);
+    if (user === null) {
+      return;
+    }
+    if (userInfo.hash === user.dataValues.hash) {
+      return { accesToken: issueAccessToken({ id: userInfo.id, hash: user.dataValues.hash }) };
+    }
+  },
+  async authenticateUser(userInfo: { id: string; hash: string; password: string }) {
     try {
-      const user = await database.userModel.findByPk(UserInfo.id);
+      const user = await database.userModel.findByPk(userInfo.id);
 
       if (user === null) {
         return;
       }
 
-      const isValid = verificatePassword(UserInfo.password, UserInfo.hash, user.dataValues.salt);
-
-      return isValid ? issueJWT({ id: user.dataValues.id, hash: user.dataValues.hash }) : false;
+      const isValid = verificatePassword(
+        userInfo.password,
+        user.dataValues.hash,
+        user.dataValues.salt,
+      );
+      if (!isValid) {
+        return false;
+      }
+      const accessToken = issueAccessToken({ id: user.dataValues.id, hash: user.dataValues.hash });
+      const refreshToken = issueRefreshToken({
+        id: user.dataValues.id,
+        hash: user.dataValues.hash,
+      });
+      return {
+        accessToken,
+        refreshToken,
+      };
     } catch {
       return new Error('internal Error');
     }
