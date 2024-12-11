@@ -1,14 +1,13 @@
 {
   "compilerOptions": {
     "lib": ["es2023"],
-    "module": "ES2022",
+    "module": "Node16",
     "noEmit": true,
     "target": "es2022",
-
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "moduleResolution": "bundler",
+    "moduleResolution": "node16",
     "allowImportingTsExtensions": true
   }
 }

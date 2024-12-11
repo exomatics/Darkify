@@ -1,10 +1,10 @@
-import database from '../config/database';
+import database from '../config/database.ts';
 
 export default {
   async getUserInfo(userId: string) {
     const fullUserInfo = await database.userModel.findByPk(userId);
     if (fullUserInfo === null) {
-      return { Error: 'User with this id does not exist', Code: 404 };
+      return new Error('User with this id does not exist');
     }
     const requiredUserInfo = {
       name: fullUserInfo.dataValues.name,
