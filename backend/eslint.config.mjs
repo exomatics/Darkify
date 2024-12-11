@@ -7,7 +7,6 @@ import sonarjs from 'eslint-plugin-sonarjs';
 import eslintPluginUnicorn from 'eslint-plugin-unicorn';
 import unusedImports from 'eslint-plugin-unused-imports';
 import globals from 'globals';
-
 /** @type {import('eslint').Linter.Config[]} */
 export default [
   github.getFlatConfigs().recommended,
@@ -21,6 +20,8 @@ export default [
       'importPlugin/extensions': 'off',
       strict: 'error',
       'no-unused-vars': 'off',
+      'unicorn/no-null': 'off',
+      'security/detect-non-literal-fs-filename': 'off',
       'unused-imports/no-unused-imports': 'error',
       'unused-imports/no-unused-vars': [
         'warn',
@@ -93,6 +94,10 @@ export default [
   },
 
   { files: ['**/*.js'], languageOptions: { sourceType: 'module' } },
-  { languageOptions: { globals: { ...globals.node } } },
+  {
+    languageOptions: {
+      globals: { ...globals.node },
+    },
+  },
   pluginJs.configs.recommended,
 ];

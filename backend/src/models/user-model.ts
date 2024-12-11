@@ -23,9 +23,14 @@ const sequelizeModel = (sequelize: Sequelize) => {
         type: DataTypes.STRING,
         allowNull: false,
       },
+      visible_username: {
+        type: DataTypes.STRING(25),
+        allowNull: false,
+      },
       username: {
         type: DataTypes.STRING(25),
         allowNull: false,
+        unique: true,
       },
       email: {
         type: DataTypes.STRING(254),

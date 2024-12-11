@@ -3,44 +3,44 @@ import path from 'node:path';
 
 import jsonwebtoken from 'jsonwebtoken';
 
+import { ACCESS_TOKEN_EXPIRE_DATE, REFRESH_TOKEN_EXPIRE_DATE } from '../config/config.ts';
+
 const pathToKey = path.join('src', 'config', 'id_rsa_priv.pem');
 const PRIV_KEY = fs.readFileSync(pathToKey, 'utf8');
-
-function issueAccessToken(user: { id: string; hash: string }) {
-  const expiresIn = '14d';
-
-  const payload = {
-    id: user.id,
-    hash: user.hash,
-    iat: Date.now(),
-  };
-
-  const signedToken = jsonwebtoken.sign(payload, PRIV_KEY, {
-    expiresIn,
-    algorithm: 'RS256',
-  });
-
-  return {
-    token: `Bearer ${signedToken}`,
-    expires: expiresIn,
-  };
+interface IuserInfo {
+  id: string;
+  hash: string;
 }
-function issueRefreshToken(user: { id: string; hash: string }) {
-  const expiresIn = '1y';
-
+function issueToken(userInfo: { id: string; hash?: string }, expiresIn: string) {
   const payload = {
-    id: user.id,
-    iat: Date.now(),
+    id: userInfo.id,
+    hash: userInfo.hash,
   };
 
   const signedToken = jsonwebtoken.sign(payload, PRIV_KEY, {
     expiresIn,
     algorithm: 'RS256',
   });
-
+  if (userInfo.hash) {
+    return {
+      token: `Bearer ${signedToken}`,
+      expires: expiresIn,
+    };
+  }
   return {
     token: `${signedToken}`,
     expires: expiresIn,
   };
 }
-export { issueAccessToken, issueRefreshToken };
+function issueAccessToken(userInfo: { id: string; hash: string }) {
+  return issueToken(userInfo, ACCESS_TOKEN_EXPIRE_DATE);
+}
+function issueRefreshToken(userInfo: { id: string; hash?: string }) {
+  return issueToken({ id: userInfo.id }, REFRESH_TOKEN_EXPIRE_DATE);
+}
+function issueBothTokens(userInfo: IuserInfo) {
+  const accessTokenObject = issueAccessToken(userInfo);
+  const refreshTokenObject = issueRefreshToken(userInfo);
+  return { accessToken: accessTokenObject, refreshToken: refreshTokenObject };
+}
+export { issueAccessToken, issueRefreshToken, issueBothTokens };

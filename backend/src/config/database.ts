@@ -13,9 +13,13 @@ import type { Idb } from '../interfaces/database-interface.ts';
 const POSTGRESDATABASE = `${process.env.POSTGRESDATABASE}`;
 const POSTGRESUSER = `${process.env.POSTGRESUSER}`;
 const POSTGRESPASSWORD = `${process.env.POSTGRESPASSWORD}`;
-
+const POSTGRESPORT = `${process.env.POSTGRESPORT}`;
+if (!POSTGRESUSER) {
+  throw new Error('Environment variables are empty. Configure .env file according to .env.example');
+}
 const sequelize: Sequelize = new Sequelize(POSTGRESDATABASE, POSTGRESUSER, POSTGRESPASSWORD, {
   host: 'localhost',
+  port: +POSTGRESPORT,
   dialect: 'postgres',
   logging: false,
 });
@@ -53,12 +57,7 @@ database.playlistModel.belongsTo(database.userModel, { foreignKey: 'owner' });
 // Связь между User и Track
 database.userModel.hasMany(database.trackModel, { foreignKey: 'artist' });
 database.trackModel.belongsTo(database.userModel, { foreignKey: 'artist' });
-// playlistModel(sequelize, )
-// playlistTrackModel(sequelize, )
-// trackModel(sequelize, )
-// userModel(sequelize, )
-// userFollowersModel(sequelize, )
-// userFollowingModel(sequelize, )
+
 const sequelizeSync = async (sequelizeConfig: Sequelize) => {
   await sequelizeConfig.sync();
   logger.info('database sync!');

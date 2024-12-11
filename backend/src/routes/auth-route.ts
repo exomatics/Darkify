@@ -33,7 +33,9 @@ router.post(ROUTES.USERS.POST_LOGIN, async function (request, responce) {
   try {
     const loginInfo = await authController.authenticateUser(request.body);
     if (loginInfo === undefined) {
-      responce.status(404).json({ status: 'Error', message: 'user with this Id does not exist' });
+      responce
+        .status(404)
+        .json({ status: 'Error', message: 'user with this username or email does not exist' });
       return;
     } else if (loginInfo === false) {
       responce.status(400).json({ status: 'Error', message: 'wrong password!' });
@@ -53,8 +55,12 @@ router.post(ROUTES.USERS.POST_LOGIN, async function (request, responce) {
 router.post(ROUTES.USERS.POST_REGISTER, async function (request, responce) {
   try {
     const issuedJwt = await authController.registerUser(request.body);
-
+    if (issuedJwt instanceof Error && issuedJwt.message === 'user with this email already exists') {
+      responce.status(400).json({ status: 'Error', message: issuedJwt.message });
+      return;
+    }
     responce.status(200).json({
+      status: 'Success',
       ...issuedJwt,
     });
   } catch {

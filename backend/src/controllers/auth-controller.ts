@@ -1,9 +1,8 @@
-//postgreSQl требует null для строк с null
-
 import crypto from 'node:crypto';
 
 import database from '../config/database.ts';
-import { issueAccessToken, issueRefreshToken } from '../utils/jwt-issuance.ts';
+import logger from '../config/logger.ts';
+import { issueAccessToken, issueBothTokens } from '../utils/jwt-issuance.ts';
 import generatePassword from '../utils/password-generation.ts';
 import verificatePassword from '../utils/password-verification.ts';
 
@@ -12,46 +11,48 @@ import type { IUser } from '../interfaces/user-interface.ts';
 export default {
   async registerUser(userInfo: IUser) {
     try {
-      const saltHash = generatePassword(userInfo.password);
-      const salt = saltHash.salt;
-      const hash = saltHash.hash;
+      const { salt, hash } = generatePassword(userInfo.password);
+      const isEmailExist = await database.userModel.findOne({
+        where: {
+          email: userInfo.email,
+        },
+      });
+      if (isEmailExist !== null) {
+        return new Error('user with this email already exists');
+      }
       const newUser = await database.userModel.create({
         id: crypto.randomUUID(),
+
         is_artist: false,
 
         hash,
 
         salt,
 
+        visible_username: userInfo.username,
+
         username: userInfo.username,
 
         email: userInfo.email,
 
         avatar_id: crypto.randomUUID(),
-        //postgreSQl требует null для строк с null
-        // eslint-disable-next-line unicorn/no-null
+
         followers_id: null,
-        // eslint-disable-next-line unicorn/no-null
+
         following_id: null,
         //maybe liked songs
-
-        // eslint-disable-next-line unicorn/no-null
         playlist: null,
       });
-      const accessToken = issueAccessToken({
+      const tokens = issueBothTokens({
         id: newUser.dataValues.id,
         hash: newUser.dataValues.hash,
       });
-      const refreshToken = issueRefreshToken({
-        id: newUser.dataValues.id,
-        hash: newUser.dataValues.hash,
-      });
-
+      logger.info(tokens);
       return {
-        accessToken,
-        refreshToken,
+        ...tokens,
       };
     } catch {
+      logger.error('registerUser internal error');
       return new Error('internal error');
     }
   },
@@ -64,11 +65,20 @@ export default {
       return { accesToken: issueAccessToken({ id: userInfo.id, hash: user.dataValues.hash }) };
     }
   },
-  async authenticateUser(userInfo: { id: string; hash: string; password: string }) {
+  async authenticateUser(userInfo: { username: string; email: string; password: string }) {
     try {
-      const user = await database.userModel.findByPk(userInfo.id);
+      let user;
+      if (userInfo.username) {
+        user = await database.userModel.findOne({
+          where: { username: userInfo.username },
+        });
+      } else if (userInfo.email && !userInfo.username) {
+        user = await database.userModel.findOne({
+          where: { email: userInfo.email },
+        });
+      }
 
-      if (user === null) {
+      if (user == null) {
         return;
       }
 
@@ -80,17 +90,16 @@ export default {
       if (!isValid) {
         return false;
       }
-      const accessToken = issueAccessToken({ id: user.dataValues.id, hash: user.dataValues.hash });
-      const refreshToken = issueRefreshToken({
+      const tokens = issueBothTokens({
         id: user.dataValues.id,
         hash: user.dataValues.hash,
       });
       return {
-        accessToken,
-        refreshToken,
+        ...tokens,
       };
     } catch {
-      return new Error('internal Error');
+      logger.error('authenticateUser internal error');
+      throw new Error('internal Error');
     }
   },
 };
