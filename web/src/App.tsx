@@ -12,6 +12,7 @@ import {
   CardGridType,
   CardsGridElement,
 } from './components/UI/CardsGrid/types';
+import { DashboardFilterButtons } from './components/DashboardFilterButtons';
 
 const mockDashboardElements: CardsGridElement[] = [
   {
@@ -94,6 +95,7 @@ function App() {
         <Header />
         <Sidebar />
         <MainContent>
+          <DashboardFilterButtons />
           <CardsGrid elements={mockDashboardElements} title="Made For You" />
           <CardsGrid
             type={CardGridType.Grid}

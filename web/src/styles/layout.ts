@@ -20,5 +20,5 @@ export const MainContent = styled.div`
   overflow-x: auto;
   display: flex;
   flex-direction: column;
-  gap: 50px;
+  gap: 35px;
 `;
