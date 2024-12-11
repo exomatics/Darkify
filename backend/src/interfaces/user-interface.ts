@@ -1,12 +1,13 @@
-import type { IPlaylist } from './playlist-interface';
 export interface IUser {
   id: string;
-  name: string;
-  avatarUrl: string;
+  username: string;
+  avatarId: string;
   isArtist: boolean;
-  followers: Array<IUser['id']>;
-  following: Array<IUser['id']>;
-  playlists: Array<IPlaylist['id']>;
+  followersId: string;
+  followingId: string;
+  playlists: string;
+  hash: string;
+  salt: string;
   email: string;
   password: string;
 }
