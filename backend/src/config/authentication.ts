@@ -21,7 +21,7 @@ try {
 }
 const tokenConfig = {
   secretOrKey: PUB_KEY,
-  algoritms: ['R256'],
+  algoritms: ['RS256'],
 };
 const accessTokenOptions = {
   jwtFromRequest: jwtExtract.fromAuthHeaderAsBearerToken(),
