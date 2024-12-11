@@ -6,7 +6,7 @@ import passportJwt from 'passport-jwt';
 import database from './database.ts';
 
 import type { PassportStatic } from 'passport';
-import type { StrategyOptionsWithSecret, StrategyOptions } from 'passport-jwt';
+import type { StrategyOptionsWithSecret } from 'passport-jwt';
 
 const jwtStrategy = passportJwt.Strategy;
 const jwtExtract = passportJwt.ExtractJwt;
@@ -19,11 +19,16 @@ try {
     'Error occured while reading public key. Make sure you generated key pair with npm run generateKeys',
   );
 }
-const tokenConfig: StrategyOptions = {
+
+if (!PUB_KEY) {
+  throw new Error('PUB_KEY not found');
+}
+
+const tokenConfig: Pick<StrategyOptionsWithSecret, 'secretOrKey' | 'algorithms'> = {
   secretOrKey: PUB_KEY,
   algorithms: ['RS256'],
 };
-const accessTokenOptions = {
+const accessTokenOptions: StrategyOptionsWithSecret = {
   ...tokenConfig,
   jwtFromRequest: jwtExtract.fromAuthHeaderAsBearerToken(),
 };
