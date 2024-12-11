@@ -1,13 +1,13 @@
 import { Sequelize } from 'sequelize';
 
-import playlistModel from '../models/playlist-model';
-import playlistTrackModel from '../models/playlist-tracks-model';
-import trackModel from '../models/track-model';
-import userFollowersModel from '../models/user-followers-model';
-import userFollowingModel from '../models/user-following-model';
-import userModel from '../models/user-model';
+import playlistModel from '../models/playlist-model.ts';
+import playlistTrackModel from '../models/playlist-tracks-model.ts';
+import trackModel from '../models/track-model.ts';
+import userFollowersModel from '../models/user-followers-model.ts';
+import userFollowingModel from '../models/user-following-model.ts';
+import userModel from '../models/user-model.ts';
 
-import type { Idb } from '../interfaces/database-interface';
+import type { Idb } from '../interfaces/database-interface.ts';
 const POSTGRESDATABASE = `${process.env.POSTGRESDATABASE}`;
 const POSTGRESUSER = `${process.env.POSTGRESUSER}`;
 const POSTGRESPASSWORD = `${process.env.POSTGRESPASSWORD}`;

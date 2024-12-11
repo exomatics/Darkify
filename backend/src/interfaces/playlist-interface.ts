@@ -1,5 +1,5 @@
-import type { Itrack } from './track-interface';
-import type { IUser } from './user-interface';
+import type { Itrack } from './track-interface.ts';
+import type { IUser } from './user-interface.ts';
 export interface IPlaylist {
   id: string;
   tracks: Array<Itrack['id']>;

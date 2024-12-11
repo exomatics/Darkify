@@ -5,8 +5,8 @@
   "main": "app.ts",
   "type": "module",
   "scripts": {
-    "dev": "node --watch --env-file=.env -r ts-node/register ./src/app.ts",
-    "lint": "eslint . --fix",
+    "dev": "node --watch --env-file=.env --loader ts-node/esm --no-warnings=ExperimentalWarning ./src/app.ts",
+    "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "build": "tsc",
     "start": "node-ts app.ts",
@@ -26,7 +26,8 @@
     "pg-hstore": "^2.3.4",
     "sequelize": "^6.37.3",
     "uuid": "^11.0.3",
-    "winston": "^3.17.0"
+    "winston": "^3.17.0",
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.16.0",
@@ -41,7 +42,6 @@
     "eslint-plugin-unicorn": "^56.0.1",
     "eslint-plugin-unused-imports": "^4.1.4",
     "globals": "^15.13.0",
-    "nodemo": "^1.0.0",
     "prettier": "^3.4.1",
     "ts-node": "^10.9.2",
     "typescript-eslint": "^8.17.0"
