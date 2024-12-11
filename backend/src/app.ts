@@ -6,6 +6,7 @@ import logger from './config/logger.ts';
 import authRouter from './routes/auth-route.ts';
 import trackRouter from './routes/track-route.ts';
 import userRouter from './routes/user-route.ts';
+
 const PORT = process.env.PORT;
 const app = express();
 app.disable('x-powered-by');

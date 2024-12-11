@@ -1,4 +1,4 @@
-import pluginJs from '@eslint/js';
+import eslint from '@eslint/js';
 import github from 'eslint-plugin-github';
 import pluginImport from 'eslint-plugin-import';
 import noLoopsPlugin from 'eslint-plugin-no-loops';
@@ -6,22 +6,33 @@ import pluginSecurity from 'eslint-plugin-security';
 import sonarjs from 'eslint-plugin-sonarjs';
 import eslintPluginUnicorn from 'eslint-plugin-unicorn';
 import unusedImports from 'eslint-plugin-unused-imports';
+import tseslint from 'typescript-eslint';
 import globals from 'globals';
-/** @type {import('eslint').Linter.Config[]} */
-export default [
+
+export default tseslint.config(
+  eslint.configs.recommended,
+  tseslint.configs.strictTypeChecked,
+  tseslint.configs.strict,
+  tseslint.configs.stylisticTypeChecked,
   github.getFlatConfigs().recommended,
   pluginSecurity.configs.recommended,
-  sonarjs.configs.recommended,
   eslintPluginUnicorn.configs['flat/recommended'],
-  ...github.getFlatConfigs().typescript,
+  sonarjs.configs.recommended,
   {
-    files: ['**/*.{js,mjs,cjs,ts}'],
+    plugins: {
+      import: pluginImport,
+      'unused-imports': unusedImports,
+      'no-loops': noLoopsPlugin,
+    },
+  },
+  {
     rules: {
       'importPlugin/extensions': 'off',
       strict: 'error',
       'no-unused-vars': 'off',
       'unicorn/no-null': 'off',
       'security/detect-non-literal-fs-filename': 'off',
+      '@typescript-eslint/no-explicit-any': 'error',
       'unused-imports/no-unused-imports': 'error',
       'unused-imports/no-unused-vars': [
         'warn',
@@ -79,25 +90,31 @@ export default [
         },
       ],
     },
-    plugins: {
-      import: pluginImport,
-      'unused-imports': unusedImports,
-      'no-loops': noLoopsPlugin,
-    },
+  },
+  {
+    ignores: ['eslint.config.mjs', 'prettier.config.js'],
+  },
+  {
+    files: ['./src/**/*.ts'],
     settings: {
+      node: true,
       'import/resolver': {
         node: {
-          extensions: ['.js', '.ts', '.jsx', '.tsx', '.json'],
+          extensions: ['.ts', '.jsx', '.tsx', '.json'],
         },
       },
     },
   },
-
-  { files: ['**/*.js'], languageOptions: { sourceType: 'module' } },
   {
     languageOptions: {
-      globals: { ...globals.node },
+      parserOptions: {
+        projectService: true,
+        project: './tsconfig.json',
+        tsconfigRootDir: import.meta.dirname,
+      },
+      globals: {
+        ...globals.node,
+      },
     },
   },
-  pluginJs.configs.recommended,
-];
+);
