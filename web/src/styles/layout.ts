@@ -8,7 +8,8 @@ export const Layout = styled.div`
     'header header header'
     'sidebar content right-sidebar'
     'sidebar playbar playbar';
-  height: 98dvh;
+  height: 100dvh;
+  padding: 7px;
 `;
 
 export const MainContent = styled.div`

@@ -13,6 +13,7 @@ import {
   CardsGridElement,
 } from './components/UI/CardsGrid/types';
 import { DashboardFilterButtons } from './components/DashboardFilterButtons';
+import { Auth } from './pages/Auth';
 
 const mockDashboardElements: CardsGridElement[] = [
   {
@@ -87,27 +88,32 @@ const mockDashboardElements: CardsGridElement[] = [
   },
 ];
 
+const isAuthorized = false;
+
 function App() {
   return (
     <ThemeProvider theme={theme}>
       <GlobalStyle />
-      <Layout>
-        <Header />
-        <Sidebar />
-        <MainContent>
-          <DashboardFilterButtons />
-          <CardsGrid elements={mockDashboardElements} title="Made For You" />
-          <CardsGrid
-            type={CardGridType.Grid}
-            elements={mockDashboardElements}
-            title="Your Playlists"
-          />
-          <CardsGrid elements={mockDashboardElements} title="New releases for you" />
-          <CardsGrid elements={mockDashboardElements} title="Discover picks for you" />
-        </MainContent>
-        <Playbar />
-        <FriendsActivity />
-      </Layout>
+      {!isAuthorized && <Auth />}
+      {isAuthorized && (
+        <Layout>
+          <Header />
+          <Sidebar />
+          <MainContent>
+            <DashboardFilterButtons />
+            <CardsGrid elements={mockDashboardElements} title="Made For You" />
+            <CardsGrid
+              type={CardGridType.Grid}
+              elements={mockDashboardElements}
+              title="Your Playlists"
+            />
+            <CardsGrid elements={mockDashboardElements} title="New releases for you" />
+            <CardsGrid elements={mockDashboardElements} title="Discover picks for you" />
+          </MainContent>
+          <Playbar />
+          <FriendsActivity />
+        </Layout>
+      )}
     </ThemeProvider>
   );
 }
