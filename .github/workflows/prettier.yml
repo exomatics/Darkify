@@ -25,11 +25,6 @@ jobs:
           cd web
           yarn install
 
-      - name: Verify Prettier is installed
-        run: |
-          cd web
-          yarn prettier --version
-
       - name: Run Prettier for frontend
         run: |
           cd web
