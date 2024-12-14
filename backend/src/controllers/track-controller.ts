@@ -1,11 +1,14 @@
-import database from '../config/database';
+import database from '../config/database.ts';
+
+import type { Itrack } from '../interfaces/track-interface.ts';
 
 export default {
-  async getTrack(trackId: string) {
+  async getTrackInfo(trackId: string) {
     const trackInfo = await database.trackModel.findByPk(trackId);
     if (trackInfo === null) {
       return { Error: 'Track with this id does not exist', Code: 404 };
     }
-    return trackInfo.dataValues;
+    const requiredTrackInfo: Itrack = { ...trackInfo.dataValues };
+    return requiredTrackInfo;
   },
 };

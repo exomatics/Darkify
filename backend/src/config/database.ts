@@ -1,20 +1,30 @@
 import { Sequelize } from 'sequelize';
 
-import playlistModel from '../models/playlist-model';
-import playlistTrackModel from '../models/playlist-tracks-model';
-import trackModel from '../models/track-model';
-import userFollowersModel from '../models/user-followers-model';
-import userFollowingModel from '../models/user-following-model';
-import userModel from '../models/user-model';
+import { playlistModel } from '../models/playlist-model.ts';
+import { playlistTrackModel } from '../models/playlist-tracks-model.ts';
+import { trackModel } from '../models/track-model.ts';
+import { userFollowersModel } from '../models/user-followers-model.ts';
+import { userFollowingModel } from '../models/user-following-model.ts';
+import { userModel } from '../models/user-model.ts';
 
-import type { Idb } from '../interfaces/database-interface';
-const POSTGRESDATABASE = `${process.env.POSTGRESDATABASE}`;
-const POSTGRESUSER = `${process.env.POSTGRESUSER}`;
-const POSTGRESPASSWORD = `${process.env.POSTGRESPASSWORD}`;
+import logger from './logger.ts';
 
-const sequelize = new Sequelize(POSTGRESDATABASE, POSTGRESUSER, POSTGRESPASSWORD, {
+import type { Idb } from '../interfaces/database-interface.ts';
+
+const POSTGRESDATABASE = process.env.POSTGRESDATABASE;
+const POSTGRESUSER = process.env.POSTGRESUSER;
+const POSTGRESPASSWORD = process.env.POSTGRESPASSWORD;
+const POSTGRESPORT = process.env.POSTGRESPORT;
+
+if (!POSTGRESUSER || !POSTGRESDATABASE || !POSTGRESPASSWORD || !POSTGRESPORT) {
+  throw new Error('Environment variables are empty. Configure .env file according to .env.example');
+}
+
+const sequelize: Sequelize = new Sequelize(POSTGRESDATABASE, POSTGRESUSER, POSTGRESPASSWORD, {
   host: 'localhost',
+  port: +POSTGRESPORT,
   dialect: 'postgres',
+  logging: false,
 });
 const database: Idb = {
   sequelize,
@@ -50,14 +60,10 @@ database.playlistModel.belongsTo(database.userModel, { foreignKey: 'owner' });
 // Связь между User и Track
 database.userModel.hasMany(database.trackModel, { foreignKey: 'artist' });
 database.trackModel.belongsTo(database.userModel, { foreignKey: 'artist' });
-// playlistModel(sequelize, )
-// playlistTrackModel(sequelize, )
-// trackModel(sequelize, )
-// userModel(sequelize, )
-// userFollowersModel(sequelize, )
-// userFollowingModel(sequelize, )
-const sequelizeSync = async () => {
-  await sequelize.sync();
+
+const sequelizeSync = async (sequelizeConfig: Sequelize) => {
+  await sequelizeConfig.sync();
+  logger.info('database sync!');
 };
-sequelizeSync();
+void sequelizeSync(sequelize);
 export default database;
