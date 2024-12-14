@@ -1,8 +1,21 @@
-import { DataTypes } from 'sequelize';
+import { DataTypes, Model } from 'sequelize';
 
-import type { Sequelize, Model, ModelStatic } from 'sequelize';
-const sequelizeModel = (sequelize: Sequelize) => {
-  const playlistModel: ModelStatic<Model> = sequelize.define(
+import type { InferAttributes, InferCreationAttributes, Sequelize } from 'sequelize';
+
+class PlaylistModel extends Model<
+  InferAttributes<PlaylistModel>,
+  InferCreationAttributes<PlaylistModel>
+> {
+  declare id: string;
+  declare track: string;
+  declare name: string;
+  declare description: string;
+  declare cover_url: string;
+  declare owner: string;
+  declare restrictions: string;
+}
+const playlistModel = (sequelize: Sequelize) => {
+  return sequelize.define<PlaylistModel>(
     'playlist',
     {
       id: {
@@ -38,8 +51,6 @@ const sequelizeModel = (sequelize: Sequelize) => {
       timestamps: false,
     },
   );
-
-  return playlistModel;
 };
 
-export default sequelizeModel;
+export { playlistModel, PlaylistModel };

@@ -31,6 +31,7 @@ export default tseslint.config(
       strict: 'error',
       'no-unused-vars': 'off',
       'unicorn/no-null': 'off',
+      camelcase: 'off',
       'security/detect-non-literal-fs-filename': 'off',
       '@typescript-eslint/no-explicit-any': 'error',
       'unused-imports/no-unused-imports': 'error',

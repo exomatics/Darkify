@@ -6,7 +6,7 @@ import passportJwt from 'passport-jwt';
 import database from './database.ts';
 
 import type { PassportStatic } from 'passport';
-import type { StrategyOptionsWithSecret } from 'passport-jwt';
+import type { WithSecretOrKey } from 'passport-jwt';
 
 const jwtStrategy = passportJwt.Strategy;
 const jwtExtract = passportJwt.ExtractJwt;
@@ -24,11 +24,11 @@ if (!PUB_KEY) {
   throw new Error('PUB_KEY not found');
 }
 
-const tokenConfig: Pick<StrategyOptionsWithSecret, 'secretOrKey' | 'algorithms'> = {
+const tokenConfig: Pick<WithSecretOrKey, 'algorithms' | 'secretOrKey'> = {
   secretOrKey: PUB_KEY,
   algorithms: ['RS256'],
 };
-const accessTokenOptions: StrategyOptionsWithSecret = {
+const accessTokenOptions: WithSecretOrKey = {
   ...tokenConfig,
   jwtFromRequest: jwtExtract.fromAuthHeaderAsBearerToken(),
 };
@@ -36,15 +36,20 @@ const refreshTokenOptions = {
   ...tokenConfig,
   jwtFromRequest: jwtExtract.fromHeader('refresh_token'),
 };
-const createStrategy = (options: StrategyOptionsWithSecret) =>
-  new jwtStrategy(options, async (payload, done) => {
-    try {
+const createStrategy = (options: WithSecretOrKey) => {
+  return new jwtStrategy(options, (payload: { id: string; hash?: string }, done) => {
+    void (async () => {
       const user = await database.userModel.findByPk(payload.id);
-      return user ? done(null, user) : done(null, false);
-    } catch (error) {
-      return done(error);
-    }
+      if (user?.dataValues) {
+        done(null, user);
+      } else if (user == null) {
+        done(null, false);
+      } else {
+        done(new Error('JwtStrategy error'), false);
+      }
+    })();
   });
+};
 const accessTokenStrategy = createStrategy(accessTokenOptions);
 const refreshTokenStrategy = createStrategy(refreshTokenOptions);
 const passportConfiguration = (passport: PassportStatic) => {

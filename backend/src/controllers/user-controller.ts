@@ -7,10 +7,11 @@ export default {
       return { Error: 'User with this id does not exist', Code: 404 };
     }
     const requiredUserInfo = {
-      name: fullUserInfo.dataValues.name,
-      avatar_id: fullUserInfo.dataValues.avatar_id,
-      followers_id: fullUserInfo.dataValues.followers_id,
-      following: fullUserInfo.dataValues.following,
+      username: fullUserInfo.username,
+      visible_username: fullUserInfo.visible_username,
+      avatar_id: fullUserInfo.avatar_id,
+      followers_id: fullUserInfo.followers_id,
+      following: fullUserInfo.following_id,
     };
     return requiredUserInfo;
   },

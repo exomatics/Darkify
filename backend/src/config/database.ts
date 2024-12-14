@@ -1,11 +1,11 @@
 import { Sequelize } from 'sequelize';
 
-import playlistModel from '../models/playlist-model.ts';
-import playlistTrackModel from '../models/playlist-tracks-model.ts';
-import trackModel from '../models/track-model.ts';
-import userFollowersModel from '../models/user-followers-model.ts';
-import userFollowingModel from '../models/user-following-model.ts';
-import userModel from '../models/user-model.ts';
+import { playlistModel } from '../models/playlist-model.ts';
+import { playlistTrackModel } from '../models/playlist-tracks-model.ts';
+import { trackModel } from '../models/track-model.ts';
+import { userFollowersModel } from '../models/user-followers-model.ts';
+import { userFollowingModel } from '../models/user-following-model.ts';
+import { userModel } from '../models/user-model.ts';
 
 import logger from './logger.ts';
 
@@ -65,5 +65,5 @@ const sequelizeSync = async (sequelizeConfig: Sequelize) => {
   await sequelizeConfig.sync();
   logger.info('database sync!');
 };
-sequelizeSync(sequelize);
+void sequelizeSync(sequelize);
 export default database;

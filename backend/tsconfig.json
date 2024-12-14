@@ -9,9 +9,7 @@
     "skipLibCheck": true,
     "moduleResolution": "node16",
     "allowImportingTsExtensions": true,
-    "noImplicitAny": true,
+    "noImplicitAny": true
   },
-  "include": [
-    "./src/**/*"
-  ]
+  "include": ["./src/**/*"]
 }

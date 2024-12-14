@@ -29,9 +29,9 @@ export default {
 
         salt,
 
-        visible_username: userInfo.username,
+        visible_username: crypto.randomBytes(4).toString('hex'),
 
-        username: userInfo.username,
+        username: crypto.randomBytes(4).toString('hex'),
 
         email: userInfo.email,
 
@@ -44,10 +44,9 @@ export default {
         playlist: null,
       });
       const tokens = issueBothTokens({
-        id: newUser.dataValues.id,
-        hash: newUser.dataValues.hash,
+        id: newUser.id,
+        hash: newUser.hash,
       });
-      logger.info(tokens);
       return {
         ...tokens,
       };
@@ -61,8 +60,8 @@ export default {
     if (user === null) {
       return;
     }
-    if (userInfo.hash === user.dataValues.hash) {
-      return { accesToken: issueAccessToken({ id: userInfo.id, hash: user.dataValues.hash }) };
+    if (userInfo.hash === user.hash) {
+      return { accesToken: issueAccessToken({ id: userInfo.id, hash: user.hash }) };
     }
   },
   async authenticateUser(userInfo: { username: string; email: string; password: string }) {
@@ -77,22 +76,17 @@ export default {
           where: { email: userInfo.email },
         });
       }
-
       if (user == null) {
         return;
       }
 
-      const isValid = verificatePassword(
-        userInfo.password,
-        user.dataValues.hash,
-        user.dataValues.salt,
-      );
+      const isValid = verificatePassword(userInfo.password, user.hash, user.salt);
       if (!isValid) {
         return false;
       }
       const tokens = issueBothTokens({
-        id: user.dataValues.id,
-        hash: user.dataValues.hash,
+        id: user.id,
+        hash: user.hash,
       });
       return {
         ...tokens,

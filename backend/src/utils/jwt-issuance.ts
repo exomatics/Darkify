@@ -7,10 +7,7 @@ import { ACCESS_TOKEN_EXPIRE_DATE, REFRESH_TOKEN_EXPIRE_DATE } from '../config/c
 
 const pathToKey = path.join('src', 'config', 'id_rsa_priv.pem');
 const PRIV_KEY = fs.readFileSync(pathToKey, 'utf8');
-interface IuserInfo {
-  id: string;
-  hash: string;
-}
+
 function issueToken(userInfo: { id: string; hash?: string }, expiresIn: string) {
   const payload = {
     id: userInfo.id,
@@ -28,7 +25,7 @@ function issueToken(userInfo: { id: string; hash?: string }, expiresIn: string) 
     };
   }
   return {
-    token: `${signedToken}`,
+    token: signedToken,
     expires: expiresIn,
   };
 }
@@ -38,7 +35,7 @@ function issueAccessToken(userInfo: { id: string; hash: string }) {
 function issueRefreshToken(userInfo: { id: string; hash?: string }) {
   return issueToken({ id: userInfo.id }, REFRESH_TOKEN_EXPIRE_DATE);
 }
-function issueBothTokens(userInfo: IuserInfo) {
+function issueBothTokens(userInfo: { id: string; hash: string }) {
   const accessTokenObject = issueAccessToken(userInfo);
   const refreshTokenObject = issueRefreshToken(userInfo);
   return { accessToken: accessTokenObject, refreshToken: refreshTokenObject };

@@ -16,4 +16,4 @@ app.use(passport.initialize());
 app.use('/', trackRouter);
 app.use('/', userRouter);
 app.use('/', authRouter);
-app.listen(PORT || 3000, () => logger.info('server is running'));
+app.listen(PORT ?? 3000, () => logger.info('server is running'));
