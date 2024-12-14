@@ -1,9 +1,17 @@
-import { DataTypes } from 'sequelize';
+import { DataTypes, Model } from 'sequelize';
 
-import type { Sequelize, Model, ModelStatic } from 'sequelize';
+import type { InferAttributes, InferCreationAttributes, Sequelize } from 'sequelize';
 
-const sequelizeModel = (sequelize: Sequelize) => {
-  const userFollowingModel: ModelStatic<Model> = sequelize.define(
+class UserFollowingModel extends Model<
+  InferAttributes<UserFollowingModel>,
+  InferCreationAttributes<UserFollowingModel>
+> {
+  declare id: string;
+  declare following_id: string | null;
+}
+
+const userFollowingModel = (sequelize: Sequelize) => {
+  return sequelize.define<UserFollowingModel>(
     'user_following',
     {
       id: {
@@ -21,8 +29,6 @@ const sequelizeModel = (sequelize: Sequelize) => {
       timestamps: false,
     },
   );
-
-  return userFollowingModel;
 };
 
-export default sequelizeModel;
+export { userFollowingModel, UserFollowingModel };

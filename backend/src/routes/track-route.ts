@@ -10,7 +10,7 @@ router.get(ROUTES.TRACKS.GET, async (request, response) => {
   try {
     const validation = uuidSchema.safeParse(request.params.trackId);
     if (!validation.success) {
-      response.status(400).json({ status: 'Error', message: validation.error?.issues });
+      response.status(400).json({ status: 'Error', message: validation.error.issues });
     }
     const databaseResponse = await trackController.getTrackInfo(request.params.trackId);
     if (

@@ -1,9 +1,16 @@
-import { DataTypes } from 'sequelize';
+import { DataTypes, Model } from 'sequelize';
 
-import type { Sequelize, Model, ModelStatic } from 'sequelize';
+import type { InferAttributes, InferCreationAttributes, Sequelize } from 'sequelize';
 
-const sequelizeModel = (sequelize: Sequelize) => {
-  const trackModel: ModelStatic<Model> = sequelize.define(
+class TrackModel extends Model<InferAttributes<TrackModel>, InferCreationAttributes<TrackModel>> {
+  declare id: string;
+  declare name: string;
+  declare artist: string;
+  declare lyrics: string | null;
+  declare number_of_play: number;
+}
+const trackModel = (sequelize: Sequelize) => {
+  return sequelize.define<TrackModel>(
     'track',
     {
       id: {
@@ -17,6 +24,7 @@ const sequelizeModel = (sequelize: Sequelize) => {
       },
       artist: {
         type: DataTypes.UUID,
+        allowNull: false,
       },
       lyrics: {
         type: DataTypes.TEXT,
@@ -30,8 +38,6 @@ const sequelizeModel = (sequelize: Sequelize) => {
       timestamps: false,
     },
   );
-
-  return trackModel;
 };
 
-export default sequelizeModel;
+export { trackModel, TrackModel };
