@@ -17,15 +17,18 @@ jobs:
         with:
           node-version: 23
 
+      - name: Install Yarn
+        run: npm install --global yarn
+
       - name: Install frontend dependencies
         run: |
           cd web
-          npm ci
+          yarn install
 
       - name: Run Prettier for frontend
         run: |
           cd web
-          npm run prettier:test
+          yarn run prettier:test
 
   ts-backend:
     name: Prettier Backend
