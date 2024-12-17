@@ -4,7 +4,7 @@ export default {
   async getUserInfo(userId: string) {
     const fullUserInfo = await database.userModel.findByPk(userId);
     if (fullUserInfo === null) {
-      return { Error: 'User with this id does not exist', Code: 404 };
+      return new Error('User with this id does not exist');
     }
     const requiredUserInfo = {
       username: fullUserInfo.username,

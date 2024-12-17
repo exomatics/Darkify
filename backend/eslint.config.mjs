@@ -29,6 +29,7 @@ export default tseslint.config(
     rules: {
       'importPlugin/extensions': 'off',
       strict: 'error',
+      'importPlugin/extensions': 'off',
       'no-unused-vars': 'off',
       'unicorn/no-null': 'off',
       camelcase: 'off',
