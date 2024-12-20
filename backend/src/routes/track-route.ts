@@ -1,16 +1,17 @@
 import { Router } from 'express';
 
 import trackController from '../controllers/track-controller.ts';
-import uuidSchema from '../validator.ts';
+import { uuidScheme } from '../validator.ts';
 
 import { ROUTES } from './routes.ts';
 const router = Router();
 
 router.get(ROUTES.TRACKS.GET, async (request, response) => {
   try {
-    const validation = uuidSchema.safeParse(request.params.trackId);
+    const validation = uuidScheme.safeParse(request.params.trackId);
     if (!validation.success) {
       response.status(400).json({ status: 'Error', message: validation.error.issues });
+      return;
     }
     const databaseResponse = await trackController.getTrackInfo(request.params.trackId);
     if (

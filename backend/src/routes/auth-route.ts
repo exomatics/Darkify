@@ -2,22 +2,12 @@ import { Router } from 'express';
 import passport from 'passport';
 
 import authController from '../controllers/auth-controller.ts';
+import { registerScheme, refreshTokenScheme, loginScheme } from '../validator.ts';
 
 import { ROUTES } from './routes.ts';
 
-import type { IUser } from '../interfaces/user-interface.ts';
 import type { Request, RequestHandler, Response } from 'express';
 import type { ParamsDictionary } from 'express-serve-static-core';
-interface ILoginRequestBody {
-  username: string;
-  email: string;
-  password: string;
-}
-interface IIssueAccessTokenRequestBody {
-  id: string;
-  hash: string;
-}
-
 // function refreshTokenAuthentication(request: Request, response: Response, next: NextFunction) {
 //   passport.authenticate(
 //     'refresh-token',
@@ -40,10 +30,15 @@ router.post(
   ROUTES.USERS.POST_ISSUE_ACCESS_TOKEN,
   passport.authenticate('refresh-token', { session: false }) as RequestHandler,
   async function (
-    request: Request<ParamsDictionary, unknown, IIssueAccessTokenRequestBody>,
+    request: Request<ParamsDictionary, unknown, { id: string; hash: string }>,
     response: Response,
   ) {
     try {
+      const validation = refreshTokenScheme.safeParse(request.body);
+      if (!validation.success) {
+        response.status(400).json({ status: 'Error', message: validation.error.issues });
+        return;
+      }
       const newAccessToken = await authController.sendNewAccessTokenToUser(request.body);
 
       if (newAccessToken === undefined) {
@@ -57,7 +52,6 @@ router.post(
       });
       return;
     } catch {
-      //until validatiom it means validation error too. In other words 400
       response.status(500).json({ status: 'Error', message: 'internal error' });
       return;
     }
@@ -66,15 +60,23 @@ router.post(
 router.post(
   ROUTES.USERS.POST_LOGIN,
   async function (
-    request: Request<ParamsDictionary, unknown, ILoginRequestBody>,
+    request: Request<
+      ParamsDictionary,
+      unknown,
+      { username: string; email: string; password: string }
+    >,
     response: Response,
   ) {
     try {
-      const userInfo: { username: string; email: string; password: string } = request.body;
-      const loginInfo = await authController.authenticateUser(userInfo);
+      const validation = loginScheme.safeParse(request.body);
+      if (!validation.success) {
+        response.status(400).json({ status: 'Error', message: validation.error.issues });
+        return;
+      }
+      const loginInfo = await authController.authenticateUser(request.body);
       if (loginInfo === undefined) {
         response
-          .status(404)
+          .status(400)
           .json({ status: 'Error', message: 'user with this username or email does not exist' });
         return;
       } else if (loginInfo === false) {
@@ -86,7 +88,6 @@ router.post(
         ...loginInfo,
       });
     } catch {
-      //until validatiom it means validation error too. In other words 400
       response.status(500).json({ status: 'Error', message: 'internal error' });
       return;
     }
@@ -95,8 +96,23 @@ router.post(
 
 router.post(
   ROUTES.USERS.POST_REGISTER,
-  async function (request: Request<ParamsDictionary, unknown, IUser>, response: Response) {
+  async function (
+    request: Request<
+      ParamsDictionary,
+      unknown,
+      {
+        password: string;
+        email: string;
+      }
+    >,
+    response: Response,
+  ) {
     try {
+      const validation = registerScheme.safeParse(request.body);
+      if (!validation.success) {
+        response.status(400).json({ status: 'Error', message: validation.error.issues });
+        return;
+      }
       const issuedJwt = await authController.registerUser(request.body);
       if (
         issuedJwt instanceof Error &&
@@ -110,7 +126,6 @@ router.post(
         ...issuedJwt,
       });
     } catch (error) {
-      //until validatiom it means validation error too. In other words 400
       response.json({
         Error: 'internal error 2',
         message: error instanceof Error ? error.stack : '',

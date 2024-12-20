@@ -1,7 +1,7 @@
 import { Router } from 'express';
 
 import userController from '../controllers/user-controller.ts';
-import uuidSchema from '../validator.ts';
+import { uuidScheme } from '../validator.ts';
 
 import { ROUTES } from './routes.ts';
 
@@ -10,7 +10,7 @@ const router = Router();
 
 router.get(ROUTES.USERS.GET, async (request: Request, response: Response) => {
   try {
-    const validation = uuidSchema.safeParse(request.params.userId);
+    const validation = uuidScheme.safeParse(request.params.userId);
     if (!validation.success) {
       response.status(400).json({ status: 'Error', message: validation.error.issues });
       return;
