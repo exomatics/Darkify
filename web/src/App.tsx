@@ -109,6 +109,8 @@ function App() {
             />
             <CardsGrid elements={mockDashboardElements} title="New releases for you" />
             <CardsGrid elements={mockDashboardElements} title="Discover picks for you" />
+            <CardsGrid elements={mockDashboardElements} title="Your top genres" />
+            <CardsGrid elements={mockDashboardElements} title="Your top artists" />
           </MainContent>
           <Playbar />
           <FriendsActivity />

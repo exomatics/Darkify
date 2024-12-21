@@ -3,6 +3,7 @@ import { defineConfig } from 'vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import svgr from 'vite-plugin-svgr';
 import { VitePWA } from 'vite-plugin-pwa';
+import { TanStackRouterVite } from '@tanstack/router-plugin/vite';
 
 export default defineConfig({
   base: '/',
@@ -10,6 +11,7 @@ export default defineConfig({
     react(),
     tsconfigPaths(),
     svgr(),
+    TanStackRouterVite(),
     VitePWA({
       registerType: 'autoUpdate',
       manifest: {
