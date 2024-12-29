@@ -9,12 +9,12 @@ export const Header = () => {
     <StyledHeader>
       <LibraryButton />
       <div className="primary-buttons">
-        <BigHeaderButton icon="Home" activeIcon="HomeFilled" label="Home" active />
+        <BigHeaderButton to="/home" icon="Home" activeIcon="HomeFilled" label="Home" />
         <BigHeaderButton
+          to="/discover"
           icon="Discover"
           activeIcon="DiscoverFilled"
           label="Discover"
-          active={false}
         />
       </div>
       <HeaderSearch />
