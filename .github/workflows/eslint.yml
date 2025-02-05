@@ -42,13 +42,16 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 23
+          
+      - name: pnpm Install
+        run: npm install -g pnpm@latest-10
 
       - name: Install backend dependencies
         run: |
           cd backend
-          npm ci
+          pnpm install
 
       - name: Run ESLint for backend
         run: |
           cd backend
-          npm run lint
+          pnpm run lint
