@@ -2,6 +2,10 @@ import { Router } from 'express';
 import passport from 'passport';
 
 import authController from '../controllers/auth-controller.ts';
+import NotFoundError from '../errors/not-found-error.ts';
+import OperationalError from '../errors/operational-error.ts';
+import ValidationError from '../errors/validation-error.ts';
+import asyncHandler from '../middleware/async-handler.ts';
 
 import { ROUTES } from './routes.ts';
 
@@ -39,29 +43,23 @@ const router = Router();
 router.post(
   ROUTES.USERS.POST_ISSUE_ACCESS_TOKEN,
   passport.authenticate('refresh-token', { session: false }) as RequestHandler,
-  async function (
-    request: Request<ParamsDictionary, unknown, IIssueAccessTokenRequestBody>,
-    response: Response,
-  ) {
-    try {
+  asyncHandler(
+    async (
+      request: Request<ParamsDictionary, unknown, IIssueAccessTokenRequestBody>,
+      response: Response,
+    ) => {
       const newAccessToken = await authController.sendNewAccessTokenToUser(request.body);
 
       if (newAccessToken === undefined) {
-        response.status(400).json({ status: 'Error', message: 'user with this Id does not exist' });
-        return;
+        throw new NotFoundError('user with this Id does not exist');
       }
       response.status(200).json({
         status: 'Success',
         message: 'new access token has been successfully issued',
         accessToken: newAccessToken,
       });
-      return;
-    } catch {
-      //until validatiom it means validation error too. In other words 400
-      response.status(500).json({ status: 'Error', message: 'internal error' });
-      return;
-    }
-  },
+    },
+  ),
 );
 router.post(
   ROUTES.USERS.POST_LOGIN,
@@ -69,54 +67,31 @@ router.post(
     request: Request<ParamsDictionary, unknown, ILoginRequestBody>,
     response: Response,
   ) {
-    try {
-      const userInfo: { username: string; email: string; password: string } = request.body;
-      const loginInfo = await authController.authenticateUser(userInfo);
-      if (loginInfo === undefined) {
-        response
-          .status(404)
-          .json({ status: 'Error', message: 'user with this username or email does not exist' });
-        return;
-      } else if (loginInfo === false) {
-        response.status(400).json({ status: 'Error', message: 'wrong password!' });
-        return;
-      }
-      response.status(200).json({
-        status: 'Success',
-        ...loginInfo,
-      });
-    } catch {
-      //until validatiom it means validation error too. In other words 400
-      response.status(500).json({ status: 'Error', message: 'internal error' });
-      return;
+    const userInfo: { username: string; email: string; password: string } = request.body;
+    const loginInfo = await authController.authenticateUser(userInfo);
+    if (loginInfo === undefined) {
+      throw new NotFoundError('user with this username or email does not exist');
+    } else if (loginInfo === false) {
+      throw new ValidationError('wrong password!');
     }
+    response.status(200).json({
+      status: 'Success',
+      ...loginInfo,
+    });
   },
 );
 
 router.post(
   ROUTES.USERS.POST_REGISTER,
   async function (request: Request<ParamsDictionary, unknown, IUser>, response: Response) {
-    try {
-      const issuedJwt = await authController.registerUser(request.body);
-      if (
-        issuedJwt instanceof Error &&
-        issuedJwt.message === 'user with this email already exists'
-      ) {
-        response.status(400).json({ status: 'Error', message: issuedJwt.stack });
-        return;
-      }
-      response.status(200).json({
-        status: 'Success',
-        ...issuedJwt,
-      });
-    } catch (error) {
-      //until validatiom it means validation error too. In other words 400
-      response.json({
-        Error: 'internal error 2',
-        message: error instanceof Error ? error.stack : '',
-      });
-      return;
+    const issuedJwt = await authController.registerUser(request.body);
+    if (issuedJwt instanceof OperationalError) {
+      throw issuedJwt;
     }
+    response.status(200).json({
+      status: 'Success',
+      ...issuedJwt,
+    });
   },
 );
 export default router;
