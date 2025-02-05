@@ -43,12 +43,15 @@ jobs:
         with:
           node-version: 23
 
+      - name: pnpm Install
+        run: npm install -g pnpm@latest-10
+
       - name: Install backend dependencies
         run: |
           cd backend
-          npm ci
+          pnpm install
 
       - name: Run Prettier for backend
         run: |
           cd backend
-          npm run prettier:test
+          pnpm run prettier:test
