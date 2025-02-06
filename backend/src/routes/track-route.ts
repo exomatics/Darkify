@@ -1,16 +1,23 @@
 import { Router } from 'express';
 
 import trackController from '../controllers/track-controller.ts';
+import OperationalError from '../errors/operational-error.ts';
+import asyncHandler from '../middleware/async-handler.ts';
 
 import { ROUTES } from './routes.ts';
+
+import type { Request, Response } from 'express';
+
 const router = Router();
 
-router.get(ROUTES.TRACKS.GET, async (request, response) => {
-  try {
+router.get(
+  ROUTES.TRACKS.GET,
+  asyncHandler(async (request: Request, response: Response) => {
     const databaseResponse = await trackController.getTrackInfo(request.params.trackId);
-    response.json(databaseResponse);
-  } catch {
-    response.json('internal error');
-  }
-});
+    if (databaseResponse instanceof OperationalError) {
+      throw databaseResponse;
+    }
+    response.status(200).json(databaseResponse);
+  }),
+);
 export default router;
