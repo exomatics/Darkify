@@ -12,6 +12,7 @@ const StyledSearch = styled.div<{ $active: boolean }>`
   padding-right: 21px;
   border-radius: 10px;
   transition: 300ms background;
+  margin-left: 10px;
 
   .icon {
     width: 22px;
@@ -92,8 +93,6 @@ export const HeaderSearch = () => {
       input?.removeEventListener('focus', onBlur);
     };
   }, []);
-
-  console.log(active);
 
   return (
     <StyledSearch $active={active} onClick={() => inputRef?.current?.focus()}>

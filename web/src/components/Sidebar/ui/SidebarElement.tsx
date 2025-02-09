@@ -4,6 +4,7 @@ import { TextSub } from '../../UI/Text';
 import React, { useState } from 'react';
 import { IconButton } from '../../UI/IconButton';
 import { SidebarElementDataBase } from '..';
+import { NavLink } from 'react-router';
 
 const SidebarElementContainer = styled.div`
   .expanded-list {
@@ -15,7 +16,7 @@ const SidebarElementContainer = styled.div`
   }
 `;
 
-const StyledSidebarElement = styled.div`
+const StyledSidebarElement = styled(NavLink)`
   height: 40px;
   display: flex;
   align-items: center;
@@ -24,6 +25,7 @@ const StyledSidebarElement = styled.div`
   cursor: pointer;
   transition: 100ms all;
   border-radius: 10px;
+  text-decoration: none;
   .expand {
     margin-left: auto;
     transition: 200ms transform;
@@ -31,7 +33,8 @@ const StyledSidebarElement = styled.div`
   .label {
     color: ${({ theme }) => theme.colors.fg.secondary};
   }
-  &:hover {
+  &:hover,
+  &.active {
     .label {
       color: ${({ theme }) => theme.colors.fg.primary};
     }
@@ -40,6 +43,9 @@ const StyledSidebarElement = styled.div`
     svg circle {
       stroke: ${({ theme }) => theme.colors.fg.primary} !important;
     }
+  }
+  &.active {
+    background-color: #202020;
   }
 `;
 
@@ -56,11 +62,13 @@ export const SidebarElement = ({
   children,
   expandable,
   expandedElements,
+  to,
 }: {
   icon: keyof typeof Icons.Big;
   children: React.ReactNode;
   expandable?: boolean;
   expandedElements?: SidebarElementDataBase[];
+  to: string;
 }) => {
   const IconComponent = Icons.Big[icon];
   const [expanded, setIsExpanded] = useState(false);
@@ -73,7 +81,7 @@ export const SidebarElement = ({
 
   return (
     <SidebarElementContainer>
-      <StyledSidebarElement onClick={handleClick}>
+      <StyledSidebarElement to={to} onClick={handleClick}>
         <IconComponent />
         <TextSub className="label">{children}</TextSub>
         {expandable && (
@@ -90,7 +98,10 @@ export const SidebarElement = ({
           {expandedElements?.map((element) => {
             const Icon = Icons.Big[element.icon];
             return (
-              <InnerStyledSidebarElement onClick={handleClick}>
+              <InnerStyledSidebarElement
+                to={element.to ?? '/fjsdkjfklsdjfkl'}
+                onClick={handleClick}
+              >
                 <Icon className="icon" />
                 <TextSub className="label">{element.label}</TextSub>
               </InnerStyledSidebarElement>
