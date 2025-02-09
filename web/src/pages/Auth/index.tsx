@@ -1,10 +1,12 @@
 import { StyledAuth } from './styles';
 import LogoIcon from './assets/logo.svg?react';
-import { Button, Input } from '@headlessui/react';
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../features/auth/authService';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
+import { Button } from '@/components/UI/button';
+import { Input } from '@/components/UI/input';
+import { Label } from '@/components/UI/label';
 
 export const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -33,26 +35,20 @@ export const Auth = () => {
         {isLogin && (
           <>
             <form className="form" onSubmit={handleSubmit(handleLogin)}>
-              <div className="input">
-                <label htmlFor="email">Email or username</label>
-                <Input
-                  id="email"
-                  placeholder="Email or username"
-                  {...register('emailOrUsername')}
-                />
+              <div className="grid w-full max-w-lg items-center gap-1.5">
+                <Label htmlFor="email">Email</Label>
+                <Input className="bg-transparent" type="email" id="email" placeholder="Email" />
               </div>
-              <div className="input">
-                <label htmlFor="password">Password</label>
+              <div className="grid w-full max-w-lg items-center gap-1.5">
+                <Label htmlFor="password">Password</Label>
                 <Input
+                  className="bg-transparent"
                   type="password"
                   id="password"
                   placeholder="Password"
-                  {...register('password')}
                 />
               </div>
-              <Button type="submit" className="button">
-                Login
-              </Button>
+              <Button variant="default">Button</Button>
             </form>
             <p className="subtext">
               Don't have an account? <a onClick={() => setIsLogin(!isLogin)}>Sign up for Darkify</a>
@@ -64,13 +60,13 @@ export const Auth = () => {
             <form className="form">
               <div className="input">
                 <label htmlFor="email">Email</label>
-                <Input id="email" name="email" placeholder="Email" />
+                {/* <Input id="email" name="email" placeholder="Email" /> */}
               </div>
               <div className="input">
                 <label htmlFor="password">Password</label>
-                <Input type="password" id="password" name="password" placeholder="Password" />
+                {/* <Input type="password" id="password" name="password" placeholder="Password" /> */}
               </div>
-              <Button className="button">Register</Button>
+              <Button>Register</Button>
             </form>
             <p className="subtext">
               Already have an account? <a onClick={() => setIsLogin(!isLogin)}>Log in to Darkify</a>

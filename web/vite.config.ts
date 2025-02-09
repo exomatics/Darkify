@@ -3,6 +3,7 @@ import { defineConfig } from 'vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import svgr from 'vite-plugin-svgr';
 import { VitePWA } from 'vite-plugin-pwa';
+import path from 'path';
 
 export default defineConfig({
   base: '/',
@@ -50,6 +51,11 @@ export default defineConfig({
     include: ['react', 'react-dom'],
     esbuildOptions: {
       target: 'es2020',
+    },
+  },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
     },
   },
 });
