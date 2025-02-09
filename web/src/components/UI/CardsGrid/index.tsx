@@ -2,7 +2,7 @@ import { StyledCardsGrid } from './styles';
 import { Card } from '../Card';
 import { Swiper, SwiperRef, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
 import { TextH3 } from '../Text';
 import { IconButton } from '../IconButton';
 import { CardGridType, CardsGridElement } from './types';
@@ -20,7 +20,7 @@ export const CardsGrid = ({
 
   const handleSlide = (direction: 'prev' | 'next') => {
     if (!swiperRef.current?.swiper) return;
-    direction === 'prev' 
+    return direction === 'prev'
       ? swiperRef.current.swiper.slidePrev()
       : swiperRef.current.swiper.slideNext();
   };
@@ -38,11 +38,7 @@ export const CardsGrid = ({
   const renderGridContent = () => (
     <div className="grid">
       {elements.map((element, index) => (
-        <Card 
-          key={`${element.title}-${index}`}
-          type={element.type} 
-          title={element.title} 
-        />
+        <Card key={`${element.title}-${index}`} type={element.type} title={element.title} />
       ))}
     </div>
   );
@@ -53,16 +49,8 @@ export const CardsGrid = ({
         <TextH3>{title}</TextH3>
         {type === CardGridType.Slider && (
           <div className="right">
-            <IconButton 
-              iconScale={1.4} 
-              icon="ArrowLeft" 
-              onClick={() => handleSlide('prev')} 
-            />
-            <IconButton 
-              iconScale={1.4} 
-              icon="ArrowRight" 
-              onClick={() => handleSlide('next')} 
-            />
+            <IconButton iconScale={1.4} icon="ArrowLeft" onClick={() => handleSlide('prev')} />
+            <IconButton iconScale={1.4} icon="ArrowRight" onClick={() => handleSlide('next')} />
           </div>
         )}
       </div>

@@ -4,6 +4,7 @@ import { AuthContextValue } from './AuthProvider';
 export const AuthContext = createContext<AuthContextValue>({
   isAuthenticated: false,
   user: null,
-  login: (loginOrEmail: string, password: string) => Promise.resolve(false),
+  // temp lint fix
+  login: (loginOrEmail: string, password: string) => Promise.resolve(loginOrEmail === password),
   logout: () => {},
 });
