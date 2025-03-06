@@ -30,8 +30,8 @@ jobs:
           cd web
           yarn run test:typescript
 
-  ts-backend:
-    name: TS Backend
+ ts-backend:
+    name: Prettier Backend
     runs-on: ubuntu-latest
 
     steps:
@@ -43,12 +43,14 @@ jobs:
         with:
           node-version: 23
 
+      - name: pnpm Install
+        run: npm install -g pnpm@latest-10
+
       - name: Install backend dependencies
         run: |
           cd backend
-          npm ci
-
-      - name: Run TS for backend
+          pnpm install
+      - name: Run Prettier for backend
         run: |
           cd backend
-          npm run test:typescript
+          pnpm run prettier:test

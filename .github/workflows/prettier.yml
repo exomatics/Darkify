@@ -30,7 +30,39 @@ jobs:
           cd web
           yarn run prettier:test
 
-  ts-backend:
+name: Prettier
+
+on:
+  push:
+
+jobs:
+  ts-frontend:
+    name: Prettier Frontend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js for frontend
+        uses: actions/setup-node@v3
+        with:
+          node-version: 23
+
+      - name: Install Yarn
+        run: npm install --global yarn
+
+      - name: Install frontend dependencies
+        run: |
+          cd web
+          yarn install
+
+      - name: Run Prettier for frontend
+        run: |
+          cd web
+          yarn run prettier:test
+
+ts-backend:
     name: Prettier Backend
     runs-on: ubuntu-latest
 
@@ -43,12 +75,14 @@ jobs:
         with:
           node-version: 23
 
+      - name: pnpm Install
+        run: npm install -g pnpm@latest-10
+
       - name: Install backend dependencies
         run: |
           cd backend
-          npm ci
-
+          pnpm install
       - name: Run Prettier for backend
         run: |
           cd backend
-          npm run prettier:test
+          pnpm run prettier:test
