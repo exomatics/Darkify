@@ -5,6 +5,7 @@ import { SidebarElement } from './ui/SidebarElement';
 export type SidebarElementDataBase = {
   label: string;
   icon: keyof typeof Icons.Big;
+  to?: string;
 };
 
 type SidebarElementDataWithChildren = SidebarElementDataBase & {
@@ -24,6 +25,7 @@ const sidebarElements: SidebarElementData[] = [
     label: 'Pins',
     icon: 'Pin',
     expandable: true,
+    to: '/',
     children: [
       {
         icon: 'Playlist',
@@ -47,6 +49,7 @@ const sidebarElements: SidebarElementData[] = [
     label: 'Playlists',
     icon: 'Playlist',
     expandable: true,
+    to: '/playlists',
     children: [
       {
         icon: 'Playlist',
@@ -73,6 +76,7 @@ const sidebarElements: SidebarElementData[] = [
   {
     label: 'Liked Songs',
     icon: 'Like',
+    to: '/liked',
   },
   {
     label: 'Saves',
@@ -105,6 +109,7 @@ export const Sidebar = () => {
     <StyledSidebar>
       {sidebarElements.map((element) => (
         <SidebarElement
+          to={element.to ?? '/afsdjlkfjsdkl'}
           key={element.label}
           icon={element.icon}
           expandable={element.expandable}

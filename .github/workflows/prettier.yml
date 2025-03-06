@@ -78,6 +78,9 @@ ts-backend:
       - name: pnpm Install
         run: npm install -g pnpm@latest-10
 
+      - name: pnpm Install
+        run: npm install -g pnpm@latest-10
+
       - name: Install backend dependencies
         run: |
           cd backend
@@ -85,4 +88,6 @@ ts-backend:
       - name: Run Prettier for backend
         run: |
           cd backend
+          pnpm run prettier:test
+
           pnpm run prettier:test

@@ -1,6 +1,7 @@
-import styled, { css } from 'styled-components';
+import { NavLink } from 'react-router';
+import styled from 'styled-components';
 
-export const StyledBigHeaderButton = styled.button<{ $active: boolean }>`
+export const StyledBigHeaderButton = styled(NavLink)`
   height: 46px;
   padding-left: 21px;
   padding-right: 100px;
@@ -11,8 +12,13 @@ export const StyledBigHeaderButton = styled.button<{ $active: boolean }>`
   cursor: pointer;
   border-radius: 10px;
   gap: 18px;
-  .icon {
+  text-decoration: none;
+  .icon,
+  .icon-active {
     width: 26px;
+  }
+  .icon-active {
+    display: none;
   }
   .label {
     color: ${({ theme }) => theme.colors.fg.secondary};
@@ -35,19 +41,22 @@ export const StyledBigHeaderButton = styled.button<{ $active: boolean }>`
       stroke: ${({ theme }) => theme.colors.fg.primary} !important;
     }
   }
-  ${({ $active }) =>
-    $active &&
-    css`
-        background-color: ${({ theme }) => theme.colors.bg.primary};
-        .label {
-          color: ${({ theme }) => theme.colors.fg.primary};
-        }
-        svg path,
-        svg rect,
-        svg circle {
-          stroke: ${({ theme }) => theme.colors.fg.primary} !important;
-          fill: ${({ theme }) => theme.colors.fg.primary} !important;
-        }
-      }
-    `}
+  &.active {
+    background-color: ${({ theme }) => theme.colors.bg.primary};
+    .label {
+      color: ${({ theme }) => theme.colors.fg.primary};
+    }
+    svg path,
+    svg rect,
+    svg circle {
+      stroke: ${({ theme }) => theme.colors.fg.primary} !important;
+      fill: ${({ theme }) => theme.colors.fg.primary} !important;
+    }
+    .icon {
+      display: none;
+    }
+    .icon-active {
+      display: block;
+    }
+  }
 `;

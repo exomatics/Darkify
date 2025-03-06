@@ -2,8 +2,9 @@ import styled from 'styled-components';
 import { Icons } from '../../../UI/Icons';
 import { TextSub } from '../../../UI/Text';
 import { IconButton } from '../../../UI/IconButton';
+import { NavLink } from 'react-router';
 
-const StyledLibraryButton = styled.button`
+const StyledLibraryButton = styled(NavLink)`
   height: 54px;
   display: flex;
   padding: 15px 23px;
@@ -13,6 +14,8 @@ const StyledLibraryButton = styled.button`
   width: 248px;
   background: transparent;
   border: none;
+  text-decoration: none;
+
   .label {
     color: ${({ theme }) => theme.colors.fg.secondary};
     opacity: 0.3;
@@ -54,11 +57,24 @@ const StyledLibraryButton = styled.button`
       opacity: 1;
     }
   }
+  &.active {
+    .library-icon {
+      svg path,
+      svg rect,
+      svg circle {
+        stroke: ${({ theme }) => theme.colors.fg.primary};
+      }
+    }
+    .label {
+      opacity: 1;
+      color: ${({ theme }) => theme.colors.fg.primary};
+    }
+  }
 `;
 
 export const LibraryButton = () => {
   return (
-    <StyledLibraryButton>
+    <StyledLibraryButton to="/library">
       <div className="library-icon">
         <Icons.Big.Library />
       </div>
