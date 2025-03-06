@@ -11,5 +11,9 @@
     "allowImportingTsExtensions": true,
     "noImplicitAny": true
   },
+  "ts-node": {
+    "transpileOnly": true,
+    "logError": true
+  },
   "include": ["./src/**/*"]
 }

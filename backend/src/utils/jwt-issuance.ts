@@ -9,10 +9,14 @@ const pathToKey = path.join('src', 'config', 'id_rsa_priv.pem');
 const PRIV_KEY = fs.readFileSync(pathToKey, 'utf8');
 
 function issueToken(userInfo: { id: string; hash?: string }, expiresIn: string) {
-  const payload = {
-    id: userInfo.id,
-    hash: userInfo.hash,
-  };
+  const payload = userInfo.hash
+    ? {
+        userId: userInfo.id,
+        hash: userInfo.hash,
+      }
+    : {
+        userId: userInfo.id,
+      };
 
   const signedToken = jsonwebtoken.sign(payload, PRIV_KEY, {
     expiresIn,

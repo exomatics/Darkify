@@ -18,10 +18,13 @@ export const ROUTES = Object.freeze({
     UPDATE: `${API_BASE}/tracks/:trackId`,
   },
   USERS: {
-    GET: `${API_BASE}/users/:userId`,
+    GET_USER_INFO: `${API_BASE}/users/`,
+    GET_PLAYLISTS: `${API_BASE}/users/library`,
     POST_REGISTER: `${API_BASE}/users/register`,
     POST_LOGIN: `${API_BASE}/users/login`,
     POST_ISSUE_ACCESS_TOKEN: `${API_BASE}/users/refresh-token`,
+    PUT_USER_INFO: `${API_BASE}/users/`,
+    DELETE_USER: `${API_BASE}/users`,
   },
   PLAYLISTS: {
     GET: `${API_BASE}/playlist:playlistId`,

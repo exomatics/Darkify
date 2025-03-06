@@ -1,6 +1,7 @@
 export interface IUser {
-  id: string;
+  userId: string;
   username: string;
+  visibleUsername: string;
   avatarId: string;
   isArtist: boolean;
   followersId: string;

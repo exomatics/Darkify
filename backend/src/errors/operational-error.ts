@@ -9,7 +9,6 @@ class OperationalError extends Error {
     this.name = name;
     this.statusCode = statusCode;
     // this.isOperational = isOperational;
-
     Error.captureStackTrace(this);
   }
 }
