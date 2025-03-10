@@ -6,7 +6,7 @@ import jsonwebtoken from 'jsonwebtoken';
 import { ACCESS_TOKEN_EXPIRE_DATE, REFRESH_TOKEN_EXPIRE_DATE } from '../config/config.ts';
 
 const pathToKey = path.join('src', 'config', 'id_rsa_priv.pem');
-const PRIV_KEY = fs.readFileSync(pathToKey, 'utf8');
+const PRIV_KEY: jsonwebtoken.PrivateKey = fs.readFileSync(pathToKey, 'utf8');
 
 function issueToken(userInfo: { id: string; hash?: string }, expiresIn: string) {
   const payload = {
@@ -17,7 +17,7 @@ function issueToken(userInfo: { id: string; hash?: string }, expiresIn: string) 
   const signedToken = jsonwebtoken.sign(payload, PRIV_KEY, {
     expiresIn,
     algorithm: 'RS256',
-  });
+  } as jsonwebtoken.SignOptions);
   if (userInfo.hash) {
     return {
       token: `Bearer ${signedToken}`,
