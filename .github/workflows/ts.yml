@@ -24,20 +24,18 @@ jobs:
         run: |
           cd web
           yarn install
-
       - name: Run TS for frontend
         run: |
           cd web
           yarn run test:typescript
-
- ts-backend:
-    name: Prettier Backend
+  ts-backend:
+    name: TS Backend
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      
+
       - name: Set up Node.js for backend
         uses: actions/setup-node@v3
         with:
@@ -50,7 +48,8 @@ jobs:
         run: |
           cd backend
           pnpm install
-      - name: Run Prettier for backend
+
+      - name: Run TS for backend
         run: |
           cd backend
-          pnpm run prettier:test
+          npm run test:typescript
