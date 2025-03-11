@@ -17,15 +17,18 @@ jobs:
         with:
           node-version: 23
 
+      - name: Install Yarn
+        run: npm install --global yarn
+
       - name: Install frontend dependencies
         run: |
           cd web
-          npm ci
+          yarn install
 
       - name: Run TS for frontend
         run: |
           cd web
-          npm run test:typescript
+          yarn run test:typescript
 
   ts-backend:
     name: TS Backend
