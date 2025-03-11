@@ -46,9 +46,6 @@ jobs:
       - name: pnpm Install
         run: npm install -g pnpm@latest-10
 
-      - name: pnpm Install
-        run: npm install -g pnpm@latest-10
-
       - name: Install backend dependencies
         run: |
           cd backend

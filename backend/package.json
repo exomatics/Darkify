@@ -18,6 +18,7 @@
   "author": "Miroshnichenko Roman <rborisovic74@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "@types/express-serve-static-core": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.7",
     "@types/passport-strategy": "^0.2.38",
     "@types/sequelize": "^4.28.20",
