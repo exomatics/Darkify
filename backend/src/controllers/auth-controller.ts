@@ -6,10 +6,8 @@ import { issueAccessToken, issueBothTokens } from '../utils/jwt-issuance.ts';
 import generatePassword from '../utils/password-generation.ts';
 import verificatePassword from '../utils/password-verification.ts';
 
-import type { IUser } from '../interfaces/user-interface.ts';
-
 export default {
-  async registerUser(userInfo: IUser) {
+  async registerUser(userInfo: { password: string; email: string }) {
     try {
       const { salt, hash } = generatePassword(userInfo.password);
       const isEmailExist = await database.userModel.findOne({
