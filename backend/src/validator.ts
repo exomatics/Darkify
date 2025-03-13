@@ -20,10 +20,17 @@ const passwordScheme = z
   .string()
   .min(8)
   .max(20)
-  .refine((password) => /[A-Z]/.test(password), '1')
-  .refine((password) => /[a-z]/.test(password), '2')
-  .refine((password) => /\d/.test(password), '3')
-  .refine((password) => /[!@#$%^&*]/.test(password), '4');
+  // eslint-disable-next-line i18n-text/no-en
+  .refine((password) => /[A-Z]/.test(password), 'Password has no capital letters')
+  // eslint-disable-next-line i18n-text/no-en
+  .refine((password) => /[a-z]/.test(password), 'Password has no non-capital letters')
+  // eslint-disable-next-line i18n-text/no-en
+  .refine((password) => /\d/.test(password), 'Password must not contain spaces')
+  .refine(
+    (password) => /[!@#$%^&*]/.test(password),
+    // eslint-disable-next-line i18n-text/no-en
+    'Password must have at least on special symbol !@#$%^&*',
+  );
 const loginScheme = z
   .object({
     username: usernameScheme.optional(),
