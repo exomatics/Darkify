@@ -12,6 +12,7 @@ import { ROUTES } from './routes.ts';
 
 import type { Request, RequestHandler, Response } from 'express';
 import type { ParamsDictionary } from 'express-serve-static-core';
+
 // function refreshTokenAuthentication(request: Request, response: Response, next: NextFunction) {
 //   passport.authenticate(
 //     'refresh-token',
@@ -40,8 +41,7 @@ router.post(
     ) => {
       const validation = refreshTokenScheme.safeParse(request.body);
       if (!validation.success) {
-        response.status(400).json({ status: 'Error', message: validation.error.issues });
-        return;
+        throw new ValidationError(validation.error.message);
       }
       const newAccessToken = await authController.sendNewAccessTokenToUser(request.body);
 
@@ -68,8 +68,9 @@ router.post(
       response: Response,
     ) => {
       const validation = loginScheme.safeParse(request.body);
+
       if (!validation.success) {
-        throw new ValidationError();
+        throw new ValidationError(validation.error.message);
       }
 
       const userInfo: { username: string; email: string; password: string } = request.body;
@@ -103,8 +104,7 @@ router.post(
     ) => {
       const validation = registerScheme.safeParse(request.body);
       if (!validation.success) {
-        response.status(400).json({ status: 'Error', message: validation.error.issues });
-        return;
+        throw new ValidationError(validation.error.message);
       }
       const issuedJwt = await authController.registerUser(request.body);
       if (issuedJwt instanceof OperationalError) {

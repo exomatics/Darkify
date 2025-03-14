@@ -8,7 +8,7 @@ export default {
     //перенести в валидацию
     const trackInfo = await database.trackModel.findByPk(trackId);
     if (trackInfo === null) {
-      return new NotFoundError('Track with this id does not exist');
+      throw new NotFoundError('Track with this id does not exist');
     }
     /////
     const requiredTrackInfo: Itrack = { ...trackInfo.dataValues };
