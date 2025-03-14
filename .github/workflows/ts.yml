@@ -24,12 +24,10 @@ jobs:
         run: |
           cd web
           yarn install
-
       - name: Run TS for frontend
         run: |
           cd web
           yarn run test:typescript
-
   ts-backend:
     name: TS Backend
     runs-on: ubuntu-latest
@@ -37,20 +35,20 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      
+
       - name: Set up Node.js for backend
         uses: actions/setup-node@v3
         with:
           node-version: 23
-          
+
       - name: pnpm Install
         run: npm install -g pnpm@latest-10
-      
+
       - name: Install backend dependencies
         run: |
           cd backend
           pnpm install
-          
+
       - name: Run TS for backend
         run: |
           cd backend

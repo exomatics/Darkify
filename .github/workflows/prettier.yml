@@ -50,7 +50,6 @@ jobs:
         run: |
           cd backend
           pnpm install
-
       - name: Run Prettier for backend
         run: |
           cd backend

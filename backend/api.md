@@ -54,23 +54,22 @@
 
 - **POST** `/api/users/register` -> Register new user
 - **POST** `/api/users/login` -> User login
-- **GET** `/api/users/{userId}` -> Name, Avatar, Followers.length, Following.length
-- **PUT** `/api/users/{userId}` -> Update user details
-- **GET** `/api/users/{userId}/library` -> User.Playlists
+- **GET** `/api/users/` -> Name, Avatar, Followers.length, Following.length
+- **PUT** `/api/users/` -> Update user details
+- **GET** `/api/users/library` -> User.Playlists
 
 ## Playlist:
 
-- **GET** `/api/playlist/{playlistId}` -> Playlist
+- **GET** `/api/playlist/{playlistId}/tracks` -> Playlist
 - **POST** `/api/playlist` -> Create playlist
 - **PUT** `/api/playlist` -> Update playlist
 - **DELETE** `/api/playlist/{playlistId}` -> Delete playlist
-- **GET** `/api/playlist/{playlistId}/tracks` -> Track[]
 - **POST** `/api/playlist/{playlistId}/tracks` -> Add track to playlist
 - **DELETE** `/api/playlist/{playlistId}/tracks/{trackId}` -> Delete track from playlist
 
 ## Dashboard:
 
-- **GET** `/api/search` (searchFilter: string, offset: number) -> { - tracks: TrackItem[] (Omit<Lyrics>) - playlist: PlaylistItem[]
+- **GET** `/api/search` (searchFilter: string, offset: number, count: number) -> { - tracks: TrackItem[] (Omit<Lyrics>) - playlist: PlaylistItem[]
   }
 - **GET** `/api/dashboard` -> { - tracks: TrackItem[] (Omit<Lyrics>) - playlist: PlaylistItem[] - users: User[] (if artist)
   }
