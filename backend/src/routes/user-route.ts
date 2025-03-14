@@ -29,34 +29,15 @@ router.get(
     const payloadObject: IJwtPayload = JSON.parse(decodedJwtPayload) as IJwtPayload;
     const validation = uuidScheme.safeParse(payloadObject.userId);
     if (!validation.success) {
-      throw new ValidationError();
+      throw new ValidationError(validation.error.message);
     }
-    const databaseResponse = await userController.getUserInfo(payloadObject.userId.trim());
-    if (databaseResponse instanceof OperationalError) {
-      throw databaseResponse;
-    }
-    response.json(databaseResponse);
-  }),
-);
-router.get(
-  ROUTES.USERS.GET_PLAYLISTS,
-  passport.authenticate('access-token', { session: false }) as RequestHandler,
-  asyncHandler(async (request: Request, response: Response) => {
-    if (!request.headers.authorization) {
-      throw new ValidationError('jwt is gone');
-    }
-    const jwt = request.headers.authorization;
-    const jwtPayload = jwt.split('.')[1];
-    const decodedJwtPayload = decodeBase64Url(jwtPayload);
-    const payloadObject: IJwtPayload = JSON.parse(decodedJwtPayload) as IJwtPayload;
-    const validation = uuidScheme.safeParse(payloadObject.userId);
-    if (!validation.success) {
-      throw new ValidationError();
-    }
-
-    const databaseResponse = await userController.getUserPlaylists(payloadObject.userId.trim());
-    if (databaseResponse instanceof OperationalError) {
-      throw databaseResponse;
+    const databaseResponse = await userController.getUserInfo(request.params.userId.trim());
+    if (
+      databaseResponse instanceof Error &&
+      databaseResponse.message === 'User with this id does not exist'
+    ) {
+      response.status(400).json({ status: 'Error', message: databaseResponse.message });
+      return;
     }
     response.json(databaseResponse);
   }),
