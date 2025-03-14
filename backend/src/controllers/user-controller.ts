@@ -6,7 +6,7 @@ export default {
     //перенести в валидацию
     const fullUserInfo = await database.userModel.findByPk(userId);
     if (fullUserInfo === null) {
-      return new NotFoundError('User with this id does not exist');
+      throw new NotFoundError('User with this id does not exist');
     }
     ////
     const requiredUserInfo = {
