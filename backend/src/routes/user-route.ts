@@ -102,7 +102,6 @@ router.delete(
   ROUTES.USERS.DELETE_USER,
   passport.authenticate('access-token', { session: false }) as RequestHandler,
   asyncHandler(async (request: Request, response: Response) => {
-    //userId validation doesn't needed? get,update,delete by id only from jwt or not?
     if (!request.headers.authorization) {
       throw new ValidationError('jwt is gone');
     }
@@ -116,8 +115,6 @@ router.delete(
     }
 
     await userController.deleteUser(payloadObject.userId);
-    //access token or not or not only it
-    //is it really stored in cookies? or headers or some other shit?
     response.clearCookie('Authorization');
     response.clearCookie('refresh-token');
     response.json({ message: 'user succesfully deleted' });
