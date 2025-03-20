@@ -9,13 +9,6 @@ import authRouter from './routes/auth-route.ts';
 import trackRouter from './routes/track-route.ts';
 import userRouter from './routes/user-route.ts';
 
-import type { IJwtPayload } from './interfaces/access-token-payload.ts';
-declare module 'Express' {
-  interface Request {
-    jwtPayload: IJwtPayload;
-  }
-}
-
 const PORT = process.env.PORT;
 const app = express();
 app.disable('x-powered-by');
