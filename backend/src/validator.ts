@@ -4,6 +4,10 @@ import database from './config/database.ts';
 import NotFoundError from './errors/not-found-error.ts';
 
 const uuidScheme = z.string().uuid();
+
+function requireAtLeastOneCheck(object: Record<string | number | symbol, unknown>) {
+  Object.values(object).some((value) => value !== undefined);
+}
 const hashScheme = z
   .string()
   .regex(/^(0x|0h)?[0-9A-F]+$/i)
@@ -12,9 +16,10 @@ const usernameScheme = z.string().max(25);
 const emailScheme = z.string().email();
 const userIdScheme = uuidScheme.refine(async (userId) => {
   const fullUserInfo = await database.userModel.findByPk(userId);
-  if (fullUserInfo === null) {
-    return new NotFoundError('User with this id does not exist');
+  if (!fullUserInfo) {
+    throw new NotFoundError('User with this id does not exist');
   }
+  return true;
 });
 const passwordScheme = z
   .string()
@@ -37,9 +42,10 @@ const loginScheme = z
     password: passwordScheme,
     email: emailScheme.optional(),
   })
-  //отключено до рефакторинга ошибок
-  // eslint-disable-next-line i18n-text/no-en
-  .refine((data) => data.email ?? data.username, 'Either email or username need to be filled in.');
+  .refine(({ username, email }) => {
+    requireAtLeastOneCheck({ username, email });
+    // eslint-disable-next-line i18n-text/no-en
+  }, 'Either email or username need to be filled in');
 const refreshTokenScheme = z.object({
   id: uuidScheme,
   hash: hashScheme,
@@ -48,19 +54,19 @@ const registerScheme = z.object({
   password: passwordScheme,
   email: emailScheme,
 });
+const userFollowScheme = z.object({
+  userId: uuidScheme,
+  followId: uuidScheme,
+});
+const playlistFollowScheme = z.object({
+  userId: uuidScheme,
+  playlistId: uuidScheme,
+});
 
-const isArtistScheme = z.boolean();
-const followersIdScheme = z.array(uuidScheme);
-const followingIdScheme = z.array(uuidScheme);
-const playlistsScheme = z.array(uuidScheme);
 const visibleUsernameScheme = z.string();
 
 const updateUserScheme = z.object({
   userId: uuidScheme,
-  isArtist: isArtistScheme,
-  followersId: followersIdScheme,
-  followingId: followingIdScheme,
-  playlists: playlistsScheme,
   visibleUsername: visibleUsernameScheme,
 });
 
@@ -71,4 +77,6 @@ export {
   registerScheme,
   updateUserScheme,
   userIdScheme,
+  userFollowScheme,
+  playlistFollowScheme,
 };

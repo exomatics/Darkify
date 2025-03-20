@@ -4,9 +4,17 @@ import passport from 'passport';
 import passportConfiguration from './config/authentication.ts';
 import logger from './config/logger.ts';
 import errorHandler from './middleware/error-handler.ts';
+import { jwtProcess } from './middleware/jwt-processing.ts';
 import authRouter from './routes/auth-route.ts';
 import trackRouter from './routes/track-route.ts';
 import userRouter from './routes/user-route.ts';
+
+import type { IJwtPayload } from './interfaces/access-token-payload.ts';
+declare module 'Express' {
+  interface Request {
+    jwtPayload: IJwtPayload;
+  }
+}
 
 const PORT = process.env.PORT;
 const app = express();
@@ -14,6 +22,7 @@ app.disable('x-powered-by');
 app.use(express.json());
 passportConfiguration(passport);
 app.use(passport.initialize());
+app.use(jwtProcess);
 app.use('/', trackRouter);
 app.use('/', userRouter);
 app.use('/', authRouter);

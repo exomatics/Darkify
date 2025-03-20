@@ -8,14 +8,14 @@ import { ACCESS_TOKEN_EXPIRE_DATE, REFRESH_TOKEN_EXPIRE_DATE } from '../config/c
 const pathToKey = path.join('src', 'config', 'id_rsa_priv.pem');
 const PRIV_KEY: jsonwebtoken.PrivateKey = fs.readFileSync(pathToKey, 'utf8');
 
-function issueToken(userInfo: { id: string; hash?: string }, expiresIn: string) {
+function issueToken(userInfo: { userId: string; hash?: string }, expiresIn: string) {
   const payload = userInfo.hash
     ? {
-        userId: userInfo.id,
+        userId: userInfo.userId,
         hash: userInfo.hash,
       }
     : {
-        userId: userInfo.id,
+        userId: userInfo.userId,
       };
 
   const signedToken = jsonwebtoken.sign(payload, PRIV_KEY, {
@@ -33,13 +33,14 @@ function issueToken(userInfo: { id: string; hash?: string }, expiresIn: string) 
     expires: expiresIn,
   };
 }
-function issueAccessToken(userInfo: { id: string; hash: string }) {
+
+function issueAccessToken(userInfo: { userId: string; hash: string }) {
   return issueToken(userInfo, ACCESS_TOKEN_EXPIRE_DATE);
 }
-function issueRefreshToken(userInfo: { id: string; hash?: string }) {
-  return issueToken({ id: userInfo.id }, REFRESH_TOKEN_EXPIRE_DATE);
+function issueRefreshToken(userInfo: { userId: string; hash?: string }) {
+  return issueToken({ userId: userInfo.userId }, REFRESH_TOKEN_EXPIRE_DATE);
 }
-function issueBothTokens(userInfo: { id: string; hash: string }) {
+function issueBothTokens(userInfo: { userId: string; hash: string }) {
   const accessTokenObject = issueAccessToken(userInfo);
   const refreshTokenObject = issueRefreshToken(userInfo);
   return { accessToken: accessTokenObject, refreshToken: refreshTokenObject };

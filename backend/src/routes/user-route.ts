@@ -2,15 +2,18 @@ import { Router } from 'express';
 import passport from 'passport';
 
 import userController from '../controllers/user-controller.ts';
-import OperationalError from '../errors/operational-error.ts';
 import ValidationError from '../errors/validation-error.ts';
 import asyncHandler from '../middleware/async-handler.ts';
-import { decodeBase64Url } from '../utils/utils.ts';
-import { uuidScheme, updateUserScheme } from '../validator.ts';
+import {
+  uuidScheme,
+  updateUserScheme,
+  userFollowScheme,
+  playlistFollowScheme,
+} from '../validator.ts';
 
 import { ROUTES } from './routes.ts';
 
-import type { IJwtPayload } from '../interfaces/access-token-payload.ts';
+import type { IUser } from '../interfaces/user-interface.ts';
 import type { Request, RequestHandler, Response } from 'express';
 import type { ParamsDictionary } from 'express-serve-static-core';
 
@@ -20,104 +23,122 @@ router.get(
   ROUTES.USERS.GET_USER_INFO,
   passport.authenticate('access-token', { session: false }) as RequestHandler,
   asyncHandler(async (request: Request, response: Response) => {
-    if (!request.headers.authorization) {
-      throw new ValidationError('jwt is gone');
-    }
-    const jwt = request.headers.authorization;
-    const jwtPayload = jwt.split('.')[1];
-    const decodedJwtPayload = decodeBase64Url(jwtPayload);
-    const payloadObject: IJwtPayload = JSON.parse(decodedJwtPayload) as IJwtPayload;
-    const validation = uuidScheme.safeParse(payloadObject.userId);
+    const validation = uuidScheme.safeParse(request.jwtPayload.userId);
     if (!validation.success) {
-      throw new ValidationError(validation.error.message);
+      throw new ValidationError(JSON.stringify(validation.error.flatten()));
     }
-    const databaseResponse = await userController.getUserInfo(request.params.userId.trim());
-    if (
-      databaseResponse instanceof Error &&
-      databaseResponse.message === 'User with this id does not exist'
-    ) {
-      response.status(400).json({ status: 'Error', message: databaseResponse.message });
-      return;
-    }
+    const databaseResponse = await userController.getUserInfo(validation.data.trim());
     response.json(databaseResponse);
   }),
 );
+router.get(
+  ROUTES.USERS.GET_USER_FOLLOWING,
+  passport.authenticate('access-token', { session: false }) as RequestHandler,
+  asyncHandler(async (request: Request, response: Response) => {
+    const validation = uuidScheme.safeParse(request.jwtPayload.userId);
+    if (!validation.success) {
+      throw new ValidationError(JSON.stringify(validation.error.flatten()));
+    }
+    const databaseResponse = await userController.getUserFollowing(validation.data.trim());
+    response.json(databaseResponse);
+  }),
+);
+
 router.put(
   ROUTES.USERS.PUT_USER_INFO,
   passport.authenticate('access-token', { session: false }) as RequestHandler,
   asyncHandler(
     async (
-      request: Request<
-        ParamsDictionary,
-        unknown,
-        {
-          isArtist: boolean;
-          followersId: string;
-          followingId: string;
-          playlists: string;
-          visibleUsername: string;
-        }
-      >,
+      request: Request<ParamsDictionary, unknown, Pick<IUser, 'visibleUsername'>>,
       response: Response,
     ) => {
-      if (!request.headers.authorization) {
-        throw new ValidationError('jwt is gone');
-      }
-      const jwt = request.headers.authorization;
-      const jwtPayload = jwt.split('.')[1];
-      const decodedJwtPayload = decodeBase64Url(jwtPayload);
-      const payloadObject: IJwtPayload = JSON.parse(decodedJwtPayload) as IJwtPayload;
       const validation = updateUserScheme.safeParse({
-        userId: payloadObject.userId,
+        userId: request.jwtPayload.userId,
         ...request.body,
       });
       if (!validation.success) {
-        throw new ValidationError();
+        throw new ValidationError(JSON.stringify(validation.error.flatten()));
       }
-
-      const requestData: {
-        userId: string;
-        isArtist: boolean;
-        followersId: string;
-        followingId: string;
-        playlists: string;
-        visibleUsername: string;
-      } = {
-        userId: payloadObject.userId,
-        isArtist: request.body.isArtist,
-        followersId: request.body.followersId,
-        followingId: request.body.followingId,
-        playlists: request.body.playlists,
-        visibleUsername: request.body.visibleUsername,
-      };
-      const databaseResponse = await userController.updateUserInfo(requestData);
-      if (databaseResponse instanceof OperationalError) {
-        throw databaseResponse;
-      }
-      response.json(databaseResponse);
+      const databaseResponse = await userController.updateUserInfo(validation.data.userId, {
+        visibleUsername: validation.data.visibleUsername,
+      });
+      response.status(200).json(databaseResponse);
     },
   ),
+);
+router.post(
+  ROUTES.USERS.POST_FOLLOW_USER,
+  passport.authenticate('access-token', { session: false }) as RequestHandler,
+  asyncHandler(async (request: Request, response: Response) => {
+    const validation = userFollowScheme.safeParse({
+      userId: request.jwtPayload.userId,
+      followId: request.params.followUserId,
+    });
+    if (!validation.success) {
+      throw new ValidationError(JSON.stringify(validation.error.flatten()));
+    }
+    await userController.followUser(validation.data.userId, validation.data.followId);
+    response.status(200);
+  }),
+);
+router.post(
+  ROUTES.USERS.POST_UNFOLLOW_USER,
+  passport.authenticate('access-token', { session: false }) as RequestHandler,
+  asyncHandler(async (request: Request, response: Response) => {
+    const validation = userFollowScheme.safeParse({
+      userId: request.jwtPayload.userId,
+      followId: request.params.unfollowUserId,
+    });
+    if (!validation.success) {
+      throw new ValidationError(JSON.stringify(validation.error.flatten()));
+    }
+    await userController.unfollowUser(validation.data.userId, validation.data.followId);
+    response.status(200);
+  }),
+);
+router.post(
+  ROUTES.USERS.POST_FOLLOW_PLAYLIST,
+  passport.authenticate('access-token', { session: false }) as RequestHandler,
+  asyncHandler(async (request: Request, response: Response) => {
+    const validation = playlistFollowScheme.safeParse({
+      userId: request.jwtPayload.userId,
+      playlistId: request.params.followUserId,
+    });
+    if (!validation.success) {
+      throw new ValidationError(JSON.stringify(validation.error.flatten()));
+    }
+    await userController.followPlaylist(validation.data.userId, validation.data.playlistId);
+    response.status(200);
+  }),
+);
+router.post(
+  ROUTES.USERS.POST_UNFOLLOW_PLAYLIST,
+  passport.authenticate('access-token', { session: false }) as RequestHandler,
+  asyncHandler(async (request: Request, response: Response) => {
+    const validation = playlistFollowScheme.safeParse({
+      userId: request.jwtPayload.userId,
+      playlistId: request.params.followUserId,
+    });
+    if (!validation.success) {
+      throw new ValidationError(JSON.stringify(validation.error.flatten()));
+    }
+    await userController.unfollowPlaylist(validation.data.userId, validation.data.playlistId);
+    response.status(200);
+  }),
 );
 router.delete(
   ROUTES.USERS.DELETE_USER,
   passport.authenticate('access-token', { session: false }) as RequestHandler,
   asyncHandler(async (request: Request, response: Response) => {
-    if (!request.headers.authorization) {
-      throw new ValidationError('jwt is gone');
-    }
-    const jwt = request.headers.authorization;
-    const jwtPayload = jwt.split('.')[1];
-    const decodedJwtPayload = decodeBase64Url(jwtPayload);
-    const payloadObject: IJwtPayload = JSON.parse(decodedJwtPayload) as IJwtPayload;
-    const validation = uuidScheme.safeParse(payloadObject.userId);
+    const validation = uuidScheme.safeParse(request.jwtPayload.userId);
     if (!validation.success) {
-      throw new ValidationError();
+      throw new ValidationError(JSON.stringify(validation.error.flatten()));
     }
 
-    await userController.deleteUser(payloadObject.userId);
+    await userController.deleteUser(validation.data);
     response.clearCookie('Authorization');
     response.clearCookie('refresh-token');
-    response.json({ message: 'user succesfully deleted' });
+    response.status(200);
   }),
 );
 

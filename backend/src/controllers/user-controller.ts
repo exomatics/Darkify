@@ -1,60 +1,57 @@
-import database from '../config/database.ts';
-import NotFoundError from '../errors/not-found-error.ts';
+import { DEFAULT_LIMIT, DEFAULT_OFFSET } from '../config/config.ts';
+import user from '../models/lib/user.ts';
+
+import type { IUser } from '../interfaces/user-interface.ts';
 
 export default {
   async getUserInfo(userId: string) {
-    //перенести в валидацию
-    const fullUserInfo = await database.userModel.findByPk(userId);
-    if (fullUserInfo === null) {
-      throw new NotFoundError('User with this id does not exist');
-    }
-    ////
+    const userRecord = await user.getUserById(userId);
+    const numberOfFollowers = await user.getUserFollowersNumber(userId);
+
     const requiredUserInfo = {
-      username: fullUserInfo.username,
-      visible_username: fullUserInfo.visible_username,
-      avatar_id: fullUserInfo.avatar_id,
-      followers_id: fullUserInfo.followers_id,
-      following: fullUserInfo.following_id,
+      visible_username: userRecord.visible_username,
+      avatar_id: userRecord.avatar_id,
+      followers: numberOfFollowers,
     };
     return requiredUserInfo;
   },
-  async getUserPlaylists(userId: string) {
-    const fullUserInfo = await database.userModel.findByPk(userId);
-    if (fullUserInfo === null) {
-      return new NotFoundError('User with this id does not exist');
-    }
-    const requiredUserInfo = {
-      playlists: fullUserInfo.playlist,
+  async getUserFollowing(
+    userId: string,
+    limit: number = DEFAULT_LIMIT,
+    offset: number = DEFAULT_OFFSET,
+  ) {
+    const { rows, count } = await user.getUserFollowing(userId, limit, offset);
+
+    return {
+      limit,
+      next: offset + rows.length + 1 <= count ? offset + rows.length : null,
+      offset,
+      total: rows,
+      items: count,
     };
-    return requiredUserInfo;
   },
-  /// asyncHandler on authorization
-  async updateUserInfo(userInfo: {
-    userId: string;
-    isArtist: boolean;
-    followersId: string;
-    followingId: string;
-    playlists: string;
-    visibleUsername: string;
-  }) {
-    const fullUserInfo = await database.userModel.findByPk(userInfo.userId);
-    if (fullUserInfo === null) {
-      return new NotFoundError('User with this id does not exist');
-    }
-    await fullUserInfo.update({
-      is_artist: userInfo.isArtist,
-      followers_id: userInfo.followersId,
-      following_id: userInfo.followingId,
-      playlist: userInfo.playlists,
-      visible_username: userInfo.visibleUsername,
-    });
+  async updateUserInfo(userId: string, userInfo: Pick<IUser, 'visibleUsername'>) {
+    const databaseResponse = await user.updateUserInfo(userId, userInfo);
+    return databaseResponse;
+  },
+  async followUser(userId: string, followId: string) {
+    const databaseResponse = await user.followUser(userId, followId);
+    return databaseResponse;
+  },
+  async unfollowUser(userId: string, unfollowId: string) {
+    const databaseResponse = await user.unfollowUser(userId, unfollowId);
+    return databaseResponse;
+  },
+  async followPlaylist(userId: string, playlistId: string) {
+    const databaseResponse = await user.followPlaylist(userId, playlistId);
+    return databaseResponse;
+  },
+  async unfollowPlaylist(userId: string, playlistId: string) {
+    const databaseResponse = await user.unfollowPlaylist(userId, playlistId);
+    return databaseResponse;
   },
   async deleteUser(userId: string) {
-    const user = await database.userModel.findByPk(userId);
-    if (user === null) {
-      return new NotFoundError('User with this id does not exist');
-    }
-    await user.destroy();
+    const databaseResponse = user.deleteUser(userId);
+    return databaseResponse;
   },
 };
-//implement updateUserAvatar, updateUserEmail

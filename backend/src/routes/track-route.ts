@@ -16,9 +16,9 @@ router.get(
   asyncHandler(async (request: Request, response: Response) => {
     const validation = uuidScheme.safeParse(request.params.trackId);
     if (!validation.success) {
-      throw new ValidationError(validation.error.message);
+      throw new ValidationError(JSON.stringify(validation.error.flatten()));
     }
-    const databaseResponse = await trackController.getTrackInfo(request.params.trackId);
+    const databaseResponse = await trackController.getTrackInfo(validation.data);
     response.status(200).json(databaseResponse);
   }),
 );

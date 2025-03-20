@@ -1,89 +1,20 @@
-import crypto from 'node:crypto';
+import user from '../models/lib/user.ts';
 
-import database from '../config/database.ts';
-import ValidationError from '../errors/validation-error.ts';
-import { issueAccessToken, issueBothTokens } from '../utils/jwt-issuance.ts';
-import generatePassword from '../utils/password-generation.ts';
-import verificatePassword from '../utils/password-verification.ts';
+import type { IUser } from '../interfaces/user-interface.ts';
 
 export default {
   async registerUser(userInfo: { password: string; email: string }) {
-    //перенести в валидацию
-    const { salt, hash } = generatePassword(userInfo.password);
-    const isEmailExist = await database.userModel.findOne({
-      where: {
-        email: userInfo.email,
-      },
-    });
-    if (isEmailExist !== null) {
-      return new ValidationError('user with this email already exists');
-    }
-    ////
-    const newUser = await database.userModel.create({
-      id: crypto.randomUUID(),
-
-      is_artist: false,
-
-      hash,
-
-      salt,
-
-      visible_username: crypto.randomBytes(4).toString('hex'),
-
-      username: crypto.randomBytes(4).toString('hex'),
-
-      email: userInfo.email,
-
-      avatar_id: crypto.randomUUID(),
-
-      followers_id: null,
-
-      following_id: null,
-      //maybe liked songs
-      playlist: null,
-    });
-    const tokens = issueBothTokens({
-      id: newUser.id,
-      hash: newUser.hash,
-    });
+    const tokens = await user.registerUser(userInfo);
     return {
       ...tokens,
     };
   },
-  async sendNewAccessTokenToUser(userInfo: { id: string; hash: string }) {
-    const user = await database.userModel.findByPk(userInfo.id);
-    if (user === null) {
-      return;
-    }
-    if (userInfo.hash === user.hash) {
-      return { accesToken: issueAccessToken({ id: userInfo.id, hash: user.hash }) };
-    }
+  async sendNewAccessTokenToUser(userInfo: { userId: string; hash: string }) {
+    const databaseResponse = await user.sendNewAccessTokenToUser(userInfo);
+    return databaseResponse;
   },
-  async authenticateUser(userInfo: { username: string; email: string; password: string }) {
-    let user;
-    if (userInfo.username) {
-      user = await database.userModel.findOne({
-        where: { username: userInfo.username },
-      });
-    } else if (userInfo.email && !userInfo.username) {
-      user = await database.userModel.findOne({
-        where: { email: userInfo.email },
-      });
-    }
-    if (user == null) {
-      return;
-    }
-
-    const isValid = verificatePassword(userInfo.password, user.hash, user.salt);
-    if (!isValid) {
-      return false;
-    }
-    const tokens = issueBothTokens({
-      id: user.id,
-      hash: user.hash,
-    });
-    return {
-      ...tokens,
-    };
+  async authenticateUser(userInfo: Pick<IUser, 'username' | 'email' | 'password'>) {
+    const tokens = await user.authenticateUser(userInfo);
+    return tokens;
   },
 };
