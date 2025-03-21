@@ -18,8 +18,11 @@ export const ROUTES = Object.freeze({
     UPDATE: `${API_BASE}/tracks/:trackId`,
   },
   USERS: {
-    GET_USER_INFO: `${API_BASE}/users/`,
-    GET_USER_FOLLOWING: `${API_BASE}/users/following`,
+    GET_ME: `${API_BASE}/users/me`,
+    PUT_ME: `${API_BASE}/users/me`,
+    DELETE_ME: `${API_BASE}/users/me`,
+    GET_ME_FOLLOWING: `${API_BASE}/users/following`,
+    GET_USER: `${API_BASE}/users/:userId`, // IMPLEMENT
     POST_REGISTER: `${API_BASE}/users/register`,
     POST_LOGIN: `${API_BASE}/users/login`,
     POST_ISSUE_ACCESS_TOKEN: `${API_BASE}/users/refresh-token`,
@@ -27,8 +30,6 @@ export const ROUTES = Object.freeze({
     POST_UNFOLLOW_USER: `${API_BASE}/users/unfollow/user/:unfollowUserId`,
     POST_FOLLOW_PLAYLIST: `${API_BASE}/users/follow/playlist/:followPlaylistId`,
     POST_UNFOLLOW_PLAYLIST: `${API_BASE}/users/unfollow/playlist/:unfollowPlaylistId`,
-    PUT_USER_INFO: `${API_BASE}/users/`,
-    DELETE_USER: `${API_BASE}/users`,
   },
   PLAYLISTS: {
     GET: `${API_BASE}/playlist:playlistId`,

@@ -7,7 +7,7 @@ import NotFoundError from '../../errors/not-found-error.ts';
 import ValidationError from '../../errors/validation-error.ts';
 import { issueAccessToken, issueBothTokens } from '../../utils/jwt-issuance.ts';
 import generatePassword from '../../utils/password-generation.ts';
-import verificatePassword from '../../utils/password-verification.ts';
+import verifyPassword from '../../utils/password-verification.ts';
 
 import type { IUser } from '../../interfaces/user-interface.ts';
 import type { UserFollowingModel } from '../user-following.ts';
@@ -163,27 +163,23 @@ const user = {
     if (await this.isEmailExist(userInfo.email)) {
       throw new ValidationError(errorMessages.user.EmailAlreadyExists);
     }
+
     const newUser = await database.userModel.create({
       id: crypto.randomUUID(),
-
       is_artist: false,
-
       hash,
-
       salt,
-
       visible_username: crypto.randomBytes(4).toString('hex'),
-
       username: crypto.randomBytes(4).toString('hex'),
-
       email: userInfo.email,
-
       avatar_id: crypto.randomUUID(),
     });
+
     const tokens = issueBothTokens({
       userId: newUser.id,
       hash: newUser.hash,
     });
+
     return {
       ...tokens,
     };
@@ -191,17 +187,13 @@ const user = {
   async sendNewAccessTokenToUser(userInfo: { userId: string; hash: string }) {
     const userRecord = await this.getUserById(userInfo.userId);
     if (userInfo.hash === userRecord.hash) {
-      return { accesToken: issueAccessToken({ userId: userInfo.userId, hash: userRecord.hash }) };
+      return { accessToken: issueAccessToken({ userId: userInfo.userId, hash: userRecord.hash }) };
     }
   },
   async authenticateUser(userInfo: Pick<IUser, 'username' | 'email' | 'password'>) {
     const userRecord = await this.getUserByEmailOrUsername(userInfo);
 
-    const isCorrectPassword = verificatePassword(
-      userInfo.password,
-      userRecord.hash,
-      userRecord.salt,
-    );
+    const isCorrectPassword = verifyPassword(userInfo.password, userRecord.hash, userRecord.salt);
     if (!isCorrectPassword) {
       throw new ValidationError(errorMessages.user.WrongPassword);
     }
