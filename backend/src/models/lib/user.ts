@@ -1,26 +1,44 @@
 import crypto from 'node:crypto';
 
-import { DEFAULT_LIMIT, DEFAULT_OFFSET } from '../../config/config.ts';
+import { Op } from 'sequelize';
+
+import { DEFAULT_LIMIT, DEFAULT_OFFSET, STATIC_DIRECTORY_PATH } from '../../config/config.ts';
 import database from '../../config/database.ts';
 import { errorMessages } from '../../errors/error-messages.ts';
-import NotFoundError from '../../errors/not-found-error.ts';
-import ValidationError from '../../errors/validation-error.ts';
 import { issueAccessToken, issueBothTokens } from '../../utils/jwt-issuance.ts';
 import generatePassword from '../../utils/password-generation.ts';
 import verifyPassword from '../../utils/password-verification.ts';
 
-import type { IUser } from '../../interfaces/user-interface.ts';
-import type { UserFollowingModel } from '../user-following.ts';
-import type { InferAttributes, InferCreationAttributes, Model } from 'sequelize';
+import { File } from './file-management.ts';
 
-const user = {
-  async getUserById(userId: string) {
+import type { IUser } from '../../interfaces/user-interface.ts';
+import type { PlaylistModel } from '../playlist.ts';
+import type { UserFollowingModel } from '../user-following.ts';
+import type { UserModel } from '../user.ts';
+import type { InferAttributes, InferCreationAttributes, Model } from 'sequelize';
+type Result<TOk = void, TError extends string = string> =
+  | { success: true; data: TOk }
+  | { success: false; reason: TError };
+interface ResultUserData {
+  id: string;
+  visible_username: string;
+  avatar_url: string;
+}
+class User {
+  async getUserById(
+    userId: string,
+  ): Promise<
+    Result<
+      UserModel,
+      typeof errorMessages.user.NotExistsById | typeof errorMessages.user.NotFollowsAnyone
+    >
+  > {
     const userRecord = await database.userModel.findByPk(userId);
     if (!userRecord) {
-      throw new NotFoundError(errorMessages.user.NotExistsById);
+      return { success: false, reason: errorMessages.user.NotExistsById };
     }
-    return userRecord;
-  },
+    return { success: true, data: userRecord };
+  }
   async isEmailExist(email: string) {
     const userRecord = await database.userModel.findOne({
       where: {
@@ -28,8 +46,16 @@ const user = {
       },
     });
     return !!userRecord;
-  },
-  async getUserByEmailOrUsername(userInfo: Pick<IUser, 'username' | 'email' | 'password'>) {
+  }
+  async getUserByEmailOrUsername(
+    userInfo: Pick<IUser, 'username' | 'email' | 'password'>,
+  ): Promise<
+    Result<
+      UserModel,
+      | typeof errorMessages.user.NotExistsByUsernameOrEmail
+      | typeof errorMessages.user.AlreadyFollowsPlaylist
+    >
+  > {
     let userRecord;
     if (userInfo.username) {
       userRecord = await database.userModel.findOne({
@@ -41,68 +67,117 @@ const user = {
       });
     }
     if (!userRecord) {
-      throw new ValidationError(errorMessages.user.NotExistsByUsernameOrEmail);
+      return { success: false, reason: errorMessages.user.NotExistsByUsernameOrEmail };
     }
-    return userRecord;
-  },
-  async getUserFollowersNumber(userId: string) {
-    await this.getUserById(userId);
+    return { success: true, data: userRecord };
+  }
+  async getUserFollowersNumber(
+    userId: string,
+  ): Promise<Result<number, typeof errorMessages.user.NotExistsById>> {
+    const userRecord = await this.getUserById(userId);
+    if (!userRecord.success) {
+      return { success: false, reason: errorMessages.user.NotExistsById };
+    }
     const numberOfFollowers = await database.userFollowersModel.count({
       where: { user_id: userId },
     });
-    return numberOfFollowers;
-  },
+    return { success: true, data: numberOfFollowers };
+  }
   async getUserFollowing(
     userId: string,
     limit: number = DEFAULT_LIMIT,
     offset: number = DEFAULT_OFFSET,
-  ) {
-    await this.getUserById(userId);
-
+  ): Promise<
+    Result<
+      { rows: UserModel[]; count: number },
+      typeof errorMessages.user.NotExistsById | typeof errorMessages.user.NotFollowsAnyone
+    >
+  > {
+    const userRecord = await this.getUserById(userId);
+    if (!userRecord.success) {
+      return { success: false, reason: errorMessages.user.NotExistsById };
+    }
     const userFollowingRecords = await database.userFollowingModel.findAndCountAll({
+      attributes: ['following_id'],
       where: { user_id: userId },
       offset,
       limit,
     });
-    const userFollowingData = userFollowingRecords.rows.map(
-      (
-        userFollowingRecord: Model<
-          InferAttributes<UserFollowingModel>,
-          InferCreationAttributes<UserFollowingModel>
-        >,
-      ) => {
-        return userFollowingRecord.dataValues.following_id;
-      },
-    );
-    if (!userFollowingData[0]) {
-      throw new NotFoundError(errorMessages.user.NotFollowsAnyone);
-    }
-
-    return { rows: userFollowingData, count: userFollowingRecords.count };
-  },
-  async updateUserInfo(userId: string, userInfo: Pick<IUser, 'visibleUsername'>) {
-    const userRecord = await this.getUserById(userId);
-    await userRecord.update({
-      visible_username: userInfo.visibleUsername ?? userRecord.visible_username,
+    const userFollowingData = userFollowingRecords.rows
+      .map(
+        (
+          userFollowingRecord: Model<
+            InferAttributes<UserFollowingModel>,
+            InferCreationAttributes<UserFollowingModel>
+          >,
+        ) => {
+          return userFollowingRecord.dataValues.following_id;
+        },
+      )
+      .filter((value) => value !== null);
+    const followingUsers = await database.userModel.findAll({
+      attributes: ['id', 'visible_username', 'avatar_url'],
+      where: { id: { [Op.in]: userFollowingData } },
     });
-    return userRecord;
-  },
-  async followUser(userId: string, followId: string) {
-    await this.getUserById(userId);
-
+    if (!userFollowingData[0]) {
+      return { success: false, reason: errorMessages.user.NotFollowsAnyone };
+    }
+    return { success: true, data: { rows: followingUsers, count: userFollowingRecords.count } };
+  }
+  async updateUserInfo(
+    userId: string,
+    userInfo: Pick<IUser, 'visibleUsername'>,
+  ): Promise<Result<ResultUserData, typeof errorMessages.user.NotExistsById>> {
+    const userRecord = await this.getUserById(userId);
+    if (!userRecord.success) {
+      return { success: false, reason: errorMessages.user.NotExistsById };
+    }
+    await userRecord.data.update({
+      visible_username: userInfo.visibleUsername ?? userRecord.data.visible_username,
+    });
+    return {
+      success: true,
+      data: {
+        id: userRecord.data.id,
+        visible_username: userRecord.data.visible_username,
+        avatar_url: `${STATIC_DIRECTORY_PATH}/${userRecord.data.avatar_url}.jpg`,
+      },
+    };
+  }
+  async followUser(
+    userId: string,
+    followId: string,
+  ): Promise<
+    Result<
+      null,
+      | typeof errorMessages.user.NotExistsById
+      | typeof errorMessages.user.AlreadyFollowsUser
+      | typeof errorMessages.user.CanNotFollowYourself
+    >
+  > {
+    const userRecord = await this.getUserById(userId);
+    if (!userRecord.success) {
+      return { success: false, reason: errorMessages.user.NotExistsById };
+    }
     const userFollowingRecord = await database.userFollowingModel.findOne({
       where: { user_id: userId, following_id: followId },
     });
     if (userFollowingRecord) {
-      throw new ValidationError(errorMessages.user.AlreadyFollowsUser);
+      return { success: false, reason: errorMessages.user.AlreadyFollowsUser };
+    }
+    if (userId === followId) {
+      return { success: false, reason: errorMessages.user.CanNotFollowYourself };
     }
 
     await database.userFollowingModel.create({ user_id: userId, following_id: followId });
     await database.userFollowersModel.create({ followers_id: userId, user_id: followId });
 
-    return true;
-  },
-  async unfollowUser(userId: string, unfollowId: string) {
+    return { success: true, data: null };
+  }
+  async unfollowUser(
+    userId: string,
+    unfollowId: string,
+  ): Promise<Result<null, typeof errorMessages.user.NotFollowsUser>> {
     const userFollowingRecord = await database.userFollowingModel.findOne({
       where: { user_id: userId, following_id: unfollowId },
     });
@@ -111,57 +186,89 @@ const user = {
     });
 
     if (!userFollowingRecord || !userFollowersRecord) {
-      throw new NotFoundError(errorMessages.user.NotFollowsUser);
+      return { success: false, reason: errorMessages.user.NotFollowsUser };
     }
 
     await userFollowingRecord.destroy();
     await userFollowersRecord.destroy();
 
-    return true;
-  },
-  async isPlaylistExist(playlistId: string) {
+    return { success: true, data: null };
+  }
+  async isPlaylistExist(
+    playlistId: string,
+  ): Promise<Result<PlaylistModel, typeof errorMessages.playlist.NotExistsById>> {
     const playlistRecord = await database.playlistModel.findByPk(playlistId);
-    return !!playlistRecord;
-  },
-  async followPlaylist(userId: string, playlistId: string) {
-    const isPlaylistExist = await this.isPlaylistExist(playlistId);
-    if (!isPlaylistExist) {
-      throw new NotFoundError(errorMessages.playlist.NotExistsById);
+    if (!playlistRecord) {
+      return { success: false, reason: errorMessages.playlist.NotExistsById };
+    }
+    return { success: true, data: playlistRecord };
+  }
+  async followPlaylist(
+    userId: string,
+    playlistId: string,
+  ): Promise<
+    Result<
+      null,
+      typeof errorMessages.playlist.NotExistsById | typeof errorMessages.user.AlreadyFollowsPlaylist
+    >
+  > {
+    const platlistRecord = await this.isPlaylistExist(playlistId);
+    if (!platlistRecord.success) {
+      return platlistRecord;
     }
     const playlistFollowersRecord = await database.playlistFollowersModel.findOne({
       where: { user_id: userId, playlist_id: playlistId },
     });
     if (playlistFollowersRecord) {
-      throw new ValidationError(errorMessages.user.AlreadyFollowsPlaylist);
+      return { success: false, reason: errorMessages.user.AlreadyFollowsPlaylist };
     }
     await database.playlistFollowersModel.create({ user_id: userId, playlist_id: playlistId });
-    return true;
-  },
-  async unfollowPlaylist(userId: string, playlistId: string) {
-    const isPlaylistExist = await this.isPlaylistExist(playlistId);
-    if (!isPlaylistExist) {
-      throw new NotFoundError(errorMessages.playlist.NotExistsById);
+    return { success: true, data: null };
+  }
+  async unfollowPlaylist(
+    userId: string,
+    playlistId: string,
+  ): Promise<
+    Result<
+      null,
+      typeof errorMessages.playlist.NotExistsById | typeof errorMessages.user.NotFollowsPlaylist
+    >
+  > {
+    const platlistRecord = await this.isPlaylistExist(playlistId);
+    if (!platlistRecord.success) {
+      return platlistRecord;
     }
     const playlistFollowersRecord = await database.playlistFollowersModel.findOne({
       where: { user_id: userId, playlist_id: playlistId },
     });
     if (!playlistFollowersRecord) {
-      throw new NotFoundError(errorMessages.user.NotFollowsPlaylist);
+      return { success: false, reason: errorMessages.user.NotFollowsPlaylist };
     }
     await playlistFollowersRecord.destroy();
-    return true;
-  },
-  async deleteUser(userId: string) {
+    return { success: true, data: null };
+  }
+  async deleteUser(userId: string): Promise<Result<null, typeof errorMessages.user.NotExistsById>> {
     const userRecord = await this.getUserById(userId);
-    await userRecord.destroy();
+    if (!userRecord.success) {
+      return { success: false, reason: errorMessages.user.NotExistsById };
+    }
+    await userRecord.data.destroy();
 
-    return true;
-  },
-  async registerUser(userInfo: { password: string; email: string }) {
+    return { success: true, data: null };
+  }
+  async registerUser(userInfo: { password: string; email: string }): Promise<
+    Result<
+      {
+        accessToken: { token: string; expires: string };
+        refreshToken: { token: string; expires: string };
+      },
+      typeof errorMessages.user.EmailAlreadyExists
+    >
+  > {
     const { salt, hash } = generatePassword(userInfo.password);
 
     if (await this.isEmailExist(userInfo.email)) {
-      throw new ValidationError(errorMessages.user.EmailAlreadyExists);
+      return { success: false, reason: errorMessages.user.EmailAlreadyExists };
     }
 
     const newUser = await database.userModel.create({
@@ -172,38 +279,93 @@ const user = {
       visible_username: crypto.randomBytes(4).toString('hex'),
       username: crypto.randomBytes(4).toString('hex'),
       email: userInfo.email,
-      avatar_id: crypto.randomUUID(),
-    });
-
-    const tokens = issueBothTokens({
-      userId: newUser.id,
-      hash: newUser.hash,
+      avatar_url: '5f76b92f-6fdd-4e47-9a8c-88ce5e1fe9e1',
     });
 
     return {
-      ...tokens,
+      success: true,
+      data: issueBothTokens({
+        userId: newUser.id,
+        hash: newUser.hash,
+      }),
     };
-  },
-  async sendNewAccessTokenToUser(userInfo: { userId: string; hash: string }) {
+  }
+  async sendNewAccessTokenToUser(userInfo: {
+    userId: string;
+    hash: string;
+  }): Promise<
+    Result<
+      { accessToken: { token: string; expires: string } },
+      typeof errorMessages.user.NotExistsById | typeof errorMessages.user.WrongPassword
+    >
+  > {
     const userRecord = await this.getUserById(userInfo.userId);
-    if (userInfo.hash === userRecord.hash) {
-      return { accessToken: issueAccessToken({ userId: userInfo.userId, hash: userRecord.hash }) };
+    if (!userRecord.success) {
+      return { success: false, reason: errorMessages.user.NotExistsById };
     }
-  },
-  async authenticateUser(userInfo: Pick<IUser, 'username' | 'email' | 'password'>) {
+    if (userInfo.hash !== userRecord.data.hash) {
+      return {
+        success: false,
+        reason: errorMessages.user.WrongPassword,
+      };
+    }
+    return {
+      success: true,
+      data: {
+        accessToken: issueAccessToken({ userId: userInfo.userId, hash: userRecord.data.hash }),
+      },
+    };
+  }
+  async authenticateUser(userInfo: Pick<IUser, 'username' | 'email' | 'password'>): Promise<
+    Result<
+      {
+        accessToken: { token: string; expires: string };
+        refreshToken: { token: string; expires: string };
+      },
+      typeof errorMessages.user.NotExistsById | typeof errorMessages.user.WrongPassword
+    >
+  > {
     const userRecord = await this.getUserByEmailOrUsername(userInfo);
-
-    const isCorrectPassword = verifyPassword(userInfo.password, userRecord.hash, userRecord.salt);
+    if (!userRecord.success) {
+      return { success: false, reason: errorMessages.user.NotExistsById };
+    }
+    const isCorrectPassword = verifyPassword(
+      userInfo.password,
+      userRecord.data.hash,
+      userRecord.data.salt,
+    );
     if (!isCorrectPassword) {
-      throw new ValidationError(errorMessages.user.WrongPassword);
+      return { success: false, reason: errorMessages.user.WrongPassword };
     }
     const tokens = issueBothTokens({
-      userId: userRecord.id,
-      hash: userRecord.hash,
+      userId: userRecord.data.id,
+      hash: userRecord.data.hash,
     });
     return {
-      ...tokens,
+      success: true,
+      data: tokens,
     };
-  },
-};
-export default user;
+  }
+  async getUserAvatar(
+    userId: string,
+  ): Promise<Result<string, typeof errorMessages.user.NotExistsById>> {
+    const userRecord = await this.getUserById(userId);
+    if (!userRecord.success) {
+      return { success: false, reason: errorMessages.user.NotExistsById };
+    }
+    return { success: true, data: `${STATIC_DIRECTORY_PATH}/${userRecord.data.avatar_url}.jpg` };
+  }
+  async updateUserAvatar(
+    userId: string,
+    fileBuffer: Express.Multer.File,
+  ): Promise<Result<string, typeof errorMessages.user.NotExistsById>> {
+    const userRecord = await this.getUserById(userId);
+    if (!userRecord.success) {
+      return { success: false, reason: errorMessages.user.NotExistsById };
+    }
+    const fileUploadData = await new File().uploadImage(fileBuffer);
+    await userRecord.data.update({ avatar_url: fileUploadData.data });
+    return { success: true, data: `${STATIC_DIRECTORY_PATH}/${userRecord.data.avatar_url}.jpg` };
+  }
+}
+export default User;

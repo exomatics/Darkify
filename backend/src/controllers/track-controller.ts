@@ -1,4 +1,5 @@
-import track from '../models/lib/track.ts';
+import Track from '../models/lib/track.ts';
+const track = new Track();
 
 export default {
   async getTrackInfo(trackId: string) {

@@ -25,7 +25,7 @@ router.post(
       if (!validation.success) {
         throw new ValidationError(JSON.stringify(validation.error.flatten()));
       }
-      const newAccessToken = await authController.sendNewAccessTokenToUser(request.body);
+      const newAccessToken = await authController.sendNewAccessTokenToUser(request.jwtPayload);
 
       response.status(200).json({
         accessToken: newAccessToken,
@@ -73,7 +73,7 @@ router.post(
       if (!validation.success) {
         throw new ValidationError(JSON.stringify(validation.error.flatten()));
       }
-      const issuedJwt = await authController.registerUser(request.body);
+      const issuedJwt = await authController.registerUser(validation.data);
 
       response.status(200).json({
         ...issuedJwt,

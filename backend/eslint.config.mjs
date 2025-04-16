@@ -117,6 +117,7 @@ export default tseslint.config(
       },
       globals: {
         ...globals.node,
+        Express: true,
       },
     },
   },
