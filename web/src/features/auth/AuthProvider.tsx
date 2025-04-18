@@ -18,6 +18,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setCurrentUserToken(registerData.token);
   };
 
+  const logout = () => {
+    setCurrentUser(undefined);
+    setCurrentUserToken(undefined);
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -25,6 +30,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         currentUserToken: currentUserToken ?? '',
         login,
         register,
+        logout,
       }}
     >
       {children}

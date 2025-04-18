@@ -6,6 +6,7 @@ export type AuthContextValue = {
   currentUserToken: string;
   login: (emailOrUsername: string, password: string) => void;
   register: (emailOrUsername: string, password: string) => void;
+  logout: () => void;
 };
 
 export const AuthContext = createContext<AuthContextValue | undefined>(undefined);
