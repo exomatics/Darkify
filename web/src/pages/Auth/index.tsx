@@ -20,7 +20,7 @@ export const Auth = () => {
   }, [currentUser, navigate]);
 
   const handleLogin = async (data: LoginForm) => {
-    login?.(data.emailOrUsername, data.password);
+    login(data.emailOrUsername, data.password);
   };
 
   return (

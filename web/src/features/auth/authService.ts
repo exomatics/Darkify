@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import { AuthContext, AuthContextValue } from './AuthContext';
+import { AuthContext } from './AuthContext';
 
 export interface User {
   userId: string;
@@ -9,38 +9,45 @@ export interface User {
 }
 
 export class AuthService {
-  currentAccessToken?: string;
-  currentUser?: User;
-
   login(emailOrUsername: string, password: string) {
     // TODO: make request to login. Get accessToken.
-    this.currentAccessToken = 'tempvalidtoken';
+    const token = 'tempvalidtoken';
     // TODO: make request ot get user
-    this.currentUser = {
+    const user: User = {
       userId: `123123${password}`,
       visible_username: `Test User ${emailOrUsername}`,
       avatar_url: 'https://placehold.co/400',
       followers: 255,
     };
-    return this.currentUser;
+    return {
+      user,
+      token,
+    };
   }
 
   register(emailOrUsername: string, password: string) {
     // TODO: make request to register. Get accessToken.
-    this.currentAccessToken = 'tempvalidtoken';
+    const token = 'tempvalidtoken';
     // TODO: make request ot get user
-    this.currentUser = {
+    const user: User = {
       userId: `123123${password}`,
       visible_username: `Test User ${emailOrUsername}`,
       avatar_url: 'https://placehold.co/400',
       followers: 255,
     };
-    return this.currentUser;
+    return {
+      user,
+      token,
+    };
   }
 }
 
 export const authService = new AuthService();
 
 export const useAuth = () => {
-  return useContext<AuthContextValue>(AuthContext);
+  const ctx = useContext(AuthContext);
+  if (!ctx) {
+    throw new Error('auth context must be initialized');
+  }
+  return ctx;
 };
