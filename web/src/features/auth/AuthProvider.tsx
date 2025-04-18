@@ -1,62 +1,32 @@
-import React, { useEffect, useState } from 'react';
-import { validateToken, getToken, removeToken } from './authService';
+import React, { useState } from 'react';
 import { AuthContext } from './AuthContext';
-
-export interface User {
-  id: number;
-  name: string;
-}
-
-export interface AuthContextValue {
-  isAuthenticated: boolean | null;
-  user: User | null;
-  login: (loginOrEmail: string, password: string) => Promise<boolean>;
-  logout: () => void;
-}
+import { authService } from './authService.ts';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-  const [user, setUser] = useState<User | null>(null);
+  const [currentUser, setCurrentUser] = useState<User | undefined>();
+  const [currentUserToken, setCurrentUserToken] = useState<string | undefined>(null);
 
-  useEffect(() => {
-    async function checkAuth() {
-      const token = getToken();
-      if (token) {
-        const userData = await validateToken(token);
-        if (userData) {
-          setIsAuthenticated(true);
-          setUser(userData);
-        } else {
-          removeToken();
-          setIsAuthenticated(false);
-          setUser(null);
-        }
-      } else {
-        setIsAuthenticated(false);
-        setUser(null);
-      }
-    }
-    checkAuth();
-  }, []);
+  const login = (emailOrUsername: string, password: string) => {
+    const user = authService.login(emailOrUsername, password);
+    setCurrentUser(user);
+    setCurrentUserToken(authService.currentAccessToken);
+  };
 
-  async function login(loginOrEmail: string, password: string) {
-    if (loginOrEmail === 'test@darkify.com' && password === '123') {
-      localStorage.setItem('token', 'validToken123');
-      setIsAuthenticated(true);
-      setUser({ id: 1, name: 'John Doe' });
-      return true;
-    }
-    return false;
-  }
-
-  function logout() {
-    removeToken();
-    setIsAuthenticated(false);
-    setUser(null);
-  }
+  const register = (emailOrUsername: string, password: string) => {
+    const user = authService.register(emailOrUsername, password);
+    setCurrentUser(user);
+    setCurrentUserToken(authService.currentAccessToken);
+  };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, login, logout }}>
+    <AuthContext.Provider
+      value={{
+        currentUser,
+        currentUserToken,
+        login,
+        register,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

@@ -1,30 +1,46 @@
 import { useContext } from 'react';
-import { AuthContext } from './AuthContext';
-import { AuthContextValue } from './AuthProvider';
+import { AuthContext, AuthContextValue } from './AuthContext';
 
-export function getToken(): string | null {
-  return localStorage.getItem('token');
+export interface User {
+  userId: string;
+  visible_username: string;
+  avatar_url: string;
+  followers: number;
 }
 
-export function removeToken() {
-  localStorage.removeItem('token');
-}
+export class AuthService {
+  currentAccessToken?: string;
+  currentUser?: User;
 
-export async function validateToken(token: string) {
-  if (token === 'validToken123') {
-    return { id: 1, name: 'John Doe' };
+  login(emailOrUsername: string, password: string) {
+    // TODO: make request to login. Get accessToken.
+    this.currentAccessToken = 'tempvalidtoken';
+    // TODO: make request ot get user
+    this.currentUser = {
+      userId: `123123${password}`,
+      visible_username: `Test User ${emailOrUsername}`,
+      avatar_url: 'https://placehold.co/400',
+      followers: 255,
+    };
+    return this.currentUser;
   }
-  return null;
+
+  register(emailOrUsername: string, password: string) {
+    // TODO: make request to register. Get accessToken.
+    this.currentAccessToken = 'tempvalidtoken';
+    // TODO: make request ot get user
+    this.currentUser = {
+      userId: `123123${password}`,
+      visible_username: `Test User ${emailOrUsername}`,
+      avatar_url: 'https://placehold.co/400',
+      followers: 255,
+    };
+    return this.currentUser;
+  }
 }
 
-export async function loginToServer(username: string, password: string) {
-  if (username === 'test@darkify.com' && password === '123') {
-    return { token: 'validToken123', user: { id: 1, name: 'John Doe' } };
-  }
-  return null;
-}
+export const authService = new AuthService();
 
 export const useAuth = () => {
-  const context = useContext<AuthContextValue>(AuthContext);
-  return context;
+  return useContext<AuthContextValue>(AuthContext);
 };
