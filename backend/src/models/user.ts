@@ -10,10 +10,7 @@ class UserModel extends Model<InferAttributes<UserModel>, InferCreationAttribute
   declare visible_username: string;
   declare username: string;
   declare email: string;
-  declare avatar_id: string;
-  declare followers_id: string | null;
-  declare following_id: string | null;
-  declare playlist: string | null;
+  declare avatar_url: string | null;
 }
 
 const userModel = (sequelize: Sequelize) => {
@@ -51,20 +48,7 @@ const userModel = (sequelize: Sequelize) => {
         allowNull: false,
         unique: true,
       },
-      avatar_id: {
-        type: DataTypes.UUID,
-        allowNull: false,
-        unique: true,
-      },
-      followers_id: {
-        type: DataTypes.UUID,
-        unique: true,
-      },
-      following_id: {
-        type: DataTypes.UUID,
-        unique: true,
-      },
-      playlist: {
+      avatar_url: {
         type: DataTypes.UUID,
         unique: true,
       },

@@ -1,7 +1,6 @@
 import { Router } from 'express';
 
 import trackController from '../controllers/track-controller.ts';
-import OperationalError from '../errors/operational-error.ts';
 import ValidationError from '../errors/validation-error.ts';
 import asyncHandler from '../middleware/async-handler.ts';
 import { uuidScheme } from '../validator.ts';
@@ -17,12 +16,9 @@ router.get(
   asyncHandler(async (request: Request, response: Response) => {
     const validation = uuidScheme.safeParse(request.params.trackId);
     if (!validation.success) {
-      throw new ValidationError(validation.error.message);
+      throw new ValidationError(JSON.stringify(validation.error.flatten()));
     }
-    const databaseResponse = await trackController.getTrackInfo(request.params.trackId);
-    if (databaseResponse instanceof OperationalError) {
-      throw databaseResponse;
-    }
+    const databaseResponse = await trackController.getTrackInfo(validation.data);
     response.status(200).json(databaseResponse);
   }),
 );

@@ -1,17 +1,9 @@
-import database from '../config/database.ts';
-import NotFoundError from '../errors/not-found-error.ts';
-
-import type { Itrack } from '../interfaces/track-interface.ts';
+import TrackManagerModel from '../models/services/track.ts';
+const track = new TrackManagerModel();
 
 export default {
   async getTrackInfo(trackId: string) {
-    //перенести в валидацию
-    const trackInfo = await database.trackModel.findByPk(trackId);
-    if (trackInfo === null) {
-      return new NotFoundError('Track with this id does not exist');
-    }
-    /////
-    const requiredTrackInfo: Itrack = { ...trackInfo.dataValues };
-    return requiredTrackInfo;
+    const databaseResponse = await track.getTrackById(trackId);
+    return databaseResponse;
   },
 };

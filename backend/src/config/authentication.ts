@@ -37,9 +37,9 @@ const refreshTokenOptions = {
   jwtFromRequest: jwtExtract.fromHeader('refresh_token'),
 };
 const createStrategy = (options: WithSecretOrKey) => {
-  return new jwtStrategy(options, (payload: { id: string; hash?: string }, done) => {
+  return new jwtStrategy(options, (payload: { userId: string; hash?: string }, done) => {
     void (async () => {
-      const user = await database.userModel.findByPk(payload.id);
+      const user = await database.userModel.findByPk(payload.userId);
       if (user?.dataValues) {
         done(null, user);
       } else if (user == null) {

@@ -12,7 +12,8 @@
     "noImplicitAny": true
   },
   "ts-node": {
-    "transpileOnly": true
+    "transpileOnly": true,
+    "logError": true
   },
   "include": ["./src/**/*"]
 }

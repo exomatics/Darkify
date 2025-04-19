@@ -1,13 +1,11 @@
 export interface IUser {
-  id: string;
-  username: string;
+  userId: string;
+  username?: string;
+  visibleUsername?: string;
   avatarId: string;
-  isArtist: boolean;
-  followersId: string;
-  followingId: string;
-  playlists: string;
+  isArtist?: boolean;
   hash: string;
   salt: string;
-  email: string;
+  email?: string;
   password: string;
 }

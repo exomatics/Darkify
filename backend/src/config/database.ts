@@ -1,11 +1,12 @@
 import { Sequelize } from 'sequelize';
 
-import { playlistModel } from '../models/playlist-model.ts';
-import { playlistTrackModel } from '../models/playlist-tracks-model.ts';
-import { trackModel } from '../models/track-model.ts';
-import { userFollowersModel } from '../models/user-followers-model.ts';
-import { userFollowingModel } from '../models/user-following-model.ts';
-import { userModel } from '../models/user-model.ts';
+import { playlistFollowersModel } from '../models/playlist-followers.ts';
+import { playlistTrackModel } from '../models/playlist-tracks.ts';
+import { playlistModel } from '../models/playlist.ts';
+import { trackModel } from '../models/track.ts';
+import { userFollowersModel } from '../models/user-followers.ts';
+import { userFollowingModel } from '../models/user-following.ts';
+import { userModel } from '../models/user.ts';
 
 import logger from './logger.ts';
 
@@ -29,6 +30,7 @@ const sequelize: Sequelize = new Sequelize(POSTGRESDATABASE, POSTGRESUSER, POSTG
 const database: Idb = {
   sequelize,
   playlistModel: playlistModel(sequelize),
+  playlistFollowersModel: playlistFollowersModel(sequelize),
   playlistTrackModel: playlistTrackModel(sequelize),
   trackModel: trackModel(sequelize),
   userModel: userModel(sequelize),
@@ -46,12 +48,12 @@ database.trackModel.belongsToMany(database.playlistModel, {
   foreignKey: 'track_id',
   otherKey: 'playlist_id',
 });
-database.userModel.hasOne(database.userFollowersModel, { foreignKey: 'id' });
-database.userFollowersModel.belongsTo(database.userModel, { foreignKey: 'id' });
+database.userModel.hasMany(database.userFollowersModel, { foreignKey: 'user_id' });
+database.userFollowersModel.belongsTo(database.userModel, { foreignKey: 'user_id' });
 
 // Связь между User и UsersFollowing
-database.userModel.hasOne(database.userFollowingModel, { foreignKey: 'id' });
-database.userFollowingModel.belongsTo(database.userModel, { foreignKey: 'id' });
+database.userModel.hasMany(database.userFollowingModel, { foreignKey: 'user_id' });
+database.userFollowingModel.belongsTo(database.userModel, { foreignKey: 'user_id' });
 
 // Связь между User и Playlist
 database.userModel.hasMany(database.playlistModel, { foreignKey: 'owner' });
@@ -60,6 +62,9 @@ database.playlistModel.belongsTo(database.userModel, { foreignKey: 'owner' });
 // Связь между User и Track
 database.userModel.hasMany(database.trackModel, { foreignKey: 'artist' });
 database.trackModel.belongsTo(database.userModel, { foreignKey: 'artist' });
+// Связь между Playlist и PlaylistFollowers
+database.playlistModel.hasMany(database.playlistFollowersModel, { foreignKey: 'playlist_id' });
+database.playlistFollowersModel.belongsTo(database.playlistModel, { foreignKey: 'playlist_id' });
 
 const sequelizeSync = async (sequelizeConfig: Sequelize) => {
   await sequelizeConfig.sync();
