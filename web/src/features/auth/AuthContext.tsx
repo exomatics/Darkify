@@ -1,10 +1,12 @@
 import { createContext } from 'react';
-import { AuthContextValue } from './AuthProvider';
+import { User } from './authService.ts';
 
-export const AuthContext = createContext<AuthContextValue>({
-  isAuthenticated: false,
-  user: null,
-  // temp lint fix
-  login: (loginOrEmail: string, password: string) => Promise.resolve(loginOrEmail === password),
-  logout: () => {},
-});
+export type AuthContextValue = {
+  currentUser: User;
+  currentUserToken: string;
+  login: (emailOrUsername: string, password: string) => void;
+  register: (emailOrUsername: string, password: string) => void;
+  logout: () => void;
+};
+
+export const AuthContext = createContext<AuthContextValue | undefined>(undefined);

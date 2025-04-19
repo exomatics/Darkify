@@ -1,5 +1,4 @@
 import styled from 'styled-components';
-import avatar from './mock.jpg';
 
 const StyledAvatarIcon = styled.div`
   width: 32px;
@@ -10,6 +9,7 @@ const StyledAvatarIcon = styled.div`
   align-items: center;
   overflow: hidden;
   cursor: pointer;
+
   img {
     width: 100%;
     height: 100%;
@@ -17,10 +17,10 @@ const StyledAvatarIcon = styled.div`
   }
 `;
 
-export const Avatar = () => {
+export const Avatar = ({ src }: { src: string }) => {
   return (
     <StyledAvatarIcon>
-      <img src={avatar} />
+      <img src={src} />
     </StyledAvatarIcon>
   );
 };

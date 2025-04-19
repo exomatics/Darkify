@@ -8,19 +8,19 @@ import { useNavigate } from 'react-router';
 
 export const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
-  const { login, isAuthenticated } = useAuth();
+  const { currentUser, login } = useAuth();
   const navigate = useNavigate();
 
   const { register, handleSubmit } = useForm<LoginForm>();
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (currentUser) {
       navigate('/');
     }
-  }, [isAuthenticated, navigate]);
+  }, [currentUser, navigate]);
 
   const handleLogin = async (data: LoginForm) => {
-    await login(data.emailOrUsername, data.password);
+    login(data.emailOrUsername, data.password);
   };
 
   return (

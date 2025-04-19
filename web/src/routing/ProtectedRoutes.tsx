@@ -3,13 +3,9 @@ import { useAuth } from '../features/auth/authService';
 import { AuthorizedLayout } from './AuthorizedLayout';
 
 export const ProtectedRoutesOutlet = () => {
-  const { isAuthenticated } = useAuth();
+  const { currentUser } = useAuth();
 
-  if (isAuthenticated === null) {
-    return <div />;
-  }
-
-  return isAuthenticated ? (
+  return currentUser ? (
     <AuthorizedLayout>
       <Outlet />
     </AuthorizedLayout>
