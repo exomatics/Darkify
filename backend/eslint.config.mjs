@@ -27,7 +27,6 @@ export default tseslint.config(
   },
   {
     rules: {
-      //Представляешь, они изменили название и запороли мне коммит. Я делал npm upgrade
       'import/extensions': 'off',
       strict: 'error',
       'importPlugin/extensions': 'off',

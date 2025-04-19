@@ -211,8 +211,6 @@ class UserManager {
     } catch {
       throw new InternalError('failed to unfollow user');
     }
-    // await userFollowingRecord.destroy();
-    // await userFollowersRecord.destroy();
   }
   async isPlaylistExist(
     playlistId: string,

@@ -10,4 +10,3 @@ export const DEFAULT_OFFSET = 0;
 export const DEFAULT_LIMIT = 20;
 export const PATH_TO_IMAGES = path.join(PROJECT_ROOT, 'uploads', 'images');
 export const STATIC_DIRECTORY_PATH = '/files';
-export const BASE_AVATAR_IMAGE = '5f76b92f-6fdd-4e47-9a8c-88ce5e1fe9e1'; //must be uuid
