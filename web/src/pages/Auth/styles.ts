@@ -18,33 +18,40 @@ export const StyledAuth = styled.div`
     align-items: center;
     justify-content: center;
   }
+
   .logo {
     display: flex;
     align-items: center;
+
     svg path {
       stroke: ${({ theme }) => theme.colors.primary};
     }
+
     span {
       color: ${({ theme }) => theme.colors.primary};
       font-weight: bold;
       font-size: 30px;
     }
   }
+
   .form {
     margin-top: 50px;
     display: flex;
     flex-direction: column;
     gap: 20px;
   }
+
   .input {
     display: flex;
     flex-direction: column;
+
     label {
       font-weight: 500;
     }
+
     input {
       background: transparent;
-      border: 1px solid ${({ theme }) => theme.colors.fg.primary};
+      border: 1px solid ${({ theme }) => theme.colors.fg.secondary};
       padding: 12px 10px;
       width: 300px;
       transition: 300ms box-shadow;
@@ -53,12 +60,14 @@ export const StyledAuth = styled.div`
       font-size: 15px;
       font-weight: 500;
       border-radius: 10px;
+
       &[data-focus] {
         box-shadow: inset 0 0 0 2px ${({ theme }) => theme.colors.fg.primary};
         outline: none;
       }
     }
   }
+
   .button {
     padding: 10px 20px;
     border-radius: 100px;
@@ -69,9 +78,11 @@ export const StyledAuth = styled.div`
     font-weight: 600;
     margin-top: 5px;
   }
+
   .subtext {
     margin-top: 50px;
     color: ${({ theme }) => theme.colors.fg.secondary};
+
     a {
       color: ${({ theme }) => theme.colors.fg.primary};
       font-weight: 700;

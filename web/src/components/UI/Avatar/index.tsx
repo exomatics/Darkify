@@ -1,8 +1,6 @@
 import styled from 'styled-components';
 
 const StyledAvatarIcon = styled.div`
-  width: 32px;
-  height: 32px;
   border-radius: 100%;
   display: flex;
   justify-content: center;
@@ -17,9 +15,9 @@ const StyledAvatarIcon = styled.div`
   }
 `;
 
-export const Avatar = ({ src }: { src: string }) => {
+export const Avatar = ({ src, size = 15 }: { src: string; size?: number }) => {
   return (
-    <StyledAvatarIcon>
+    <StyledAvatarIcon style={{ width: size + 'px', height: size + 'px' }}>
       <img src={src} />
     </StyledAvatarIcon>
   );

@@ -2,6 +2,9 @@ import styled from 'styled-components';
 import { IconButton } from '../../../UI/IconButton';
 import { Avatar } from '../../../UI/Avatar';
 import { useAuth } from '../../../../features/auth/authService.ts';
+import { Dropdown } from '../../../UI/Dropdown';
+import { useRef, useState } from 'react';
+import { ProfileCard } from '../../../ProfileCard';
 
 const StyledActions = styled.div`
   margin-left: auto;
@@ -25,6 +28,8 @@ const StyledActions = styled.div`
 
 export const Actions = () => {
   const userInfo = useAuth();
+  const avatarRef = useRef<HTMLDivElement>(null);
+  const [isVisibleProfileDropdown, setIsVisibleProfileDropdown] = useState(false);
 
   return (
     <StyledActions>
@@ -32,7 +37,19 @@ export const Actions = () => {
       <IconButton icon="Lock" onClick={() => {}} />
       <IconButton className="friends" icon="Friends" onClick={() => {}} />
       <IconButton icon="Settings" onClick={() => {}} />
-      <Avatar src={userInfo.currentUser?.avatar_url ?? ''} />
+      <div ref={avatarRef} onClick={() => setIsVisibleProfileDropdown(true)}>
+        <Avatar size={32} src={userInfo.currentUser?.avatar_url ?? ''} />
+      </div>
+      <Dropdown
+        width="300px"
+        height="auto"
+        anchorRef={avatarRef}
+        visible={isVisibleProfileDropdown}
+        setVisible={setIsVisibleProfileDropdown}
+        offsetOptions={{ mainAxis: 10, crossAxis: -135 }}
+      >
+        <ProfileCard />
+      </Dropdown>
     </StyledActions>
   );
 };
