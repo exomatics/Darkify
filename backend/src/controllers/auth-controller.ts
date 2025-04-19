@@ -1,9 +1,9 @@
 import NotFoundError from '../errors/not-found-error.ts';
 import ValidationError from '../errors/validation-error.ts';
-import User from '../models/lib/user.ts';
+import UserManager from '../models/services/user.ts';
 
 import type { IUser } from '../interfaces/user-interface.ts';
-const user = new User();
+const user = new UserManager();
 export default {
   async registerUser(userInfo: { password: string; email: string }) {
     const databaseResponse = await user.registerUser(userInfo);
@@ -11,7 +11,7 @@ export default {
       throw new ValidationError(databaseResponse.reason);
     }
     return {
-      ...databaseResponse,
+      ...databaseResponse.data,
     };
   },
   async sendNewAccessTokenToUser(userInfo: { userId: string; hash: string }) {
@@ -22,7 +22,10 @@ export default {
     return databaseResponse;
   },
   async authenticateUser(userInfo: Pick<IUser, 'username' | 'email' | 'password'>) {
-    const tokens = await user.authenticateUser(userInfo);
-    return tokens;
+    const databaseResponse = await user.authenticateUser(userInfo);
+    if (!databaseResponse.success) {
+      throw new ValidationError(databaseResponse.reason);
+    }
+    return databaseResponse.data;
   },
 };

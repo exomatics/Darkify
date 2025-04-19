@@ -47,9 +47,14 @@ router.post(
 
       const userInfo = validation.data;
       const tokens = await authController.authenticateUser(userInfo);
-
+      response.cookie('refreshToken', tokens.refreshToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'strict',
+        maxAge: 365 * 24 * 60 * 60 * 1000,
+      });
       response.status(200).json({
-        ...tokens,
+        accessToken: tokens.accessToken,
       });
     },
   ),
@@ -73,10 +78,16 @@ router.post(
       if (!validation.success) {
         throw new ValidationError(JSON.stringify(validation.error.flatten()));
       }
-      const issuedJwt = await authController.registerUser(validation.data);
+      const tokens = await authController.registerUser(validation.data);
 
+      response.cookie('refreshToken', tokens.refreshToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'strict',
+        maxAge: 365 * 24 * 60 * 60 * 1000,
+      });
       response.status(200).json({
-        ...issuedJwt,
+        accessToken: tokens.accessToken,
       });
     },
   ),

@@ -2,7 +2,7 @@ import database from '../../config/database.ts';
 import { errorMessages } from '../../errors/error-messages.ts';
 import NotFoundError from '../../errors/not-found-error.ts';
 
-class Track {
+class TrackManagerModel {
   async getTrackById(trackId: string) {
     const trackInfo = await database.trackModel.findByPk(trackId);
     if (trackInfo === null) {
@@ -12,4 +12,4 @@ class Track {
   }
 }
 
-export default Track;
+export default TrackManagerModel;

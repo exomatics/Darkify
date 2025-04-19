@@ -10,7 +10,7 @@ class UserModel extends Model<InferAttributes<UserModel>, InferCreationAttribute
   declare visible_username: string;
   declare username: string;
   declare email: string;
-  declare avatar_url: string;
+  declare avatar_url: string | null;
 }
 
 const userModel = (sequelize: Sequelize) => {
@@ -50,7 +50,6 @@ const userModel = (sequelize: Sequelize) => {
       },
       avatar_url: {
         type: DataTypes.UUID,
-        allowNull: false,
         unique: true,
       },
     },

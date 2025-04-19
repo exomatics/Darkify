@@ -1,5 +1,5 @@
-import Track from '../models/lib/track.ts';
-const track = new Track();
+import TrackManagerModel from '../models/services/track.ts';
+const track = new TrackManagerModel();
 
 export default {
   async getTrackInfo(trackId: string) {

@@ -5,11 +5,12 @@ import { Op } from 'sequelize';
 import { DEFAULT_LIMIT, DEFAULT_OFFSET, STATIC_DIRECTORY_PATH } from '../../config/config.ts';
 import database from '../../config/database.ts';
 import { errorMessages } from '../../errors/error-messages.ts';
+import InternalError from '../../errors/internal-error.ts';
 import { issueAccessToken, issueBothTokens } from '../../utils/jwt-issuance.ts';
 import generatePassword from '../../utils/password-generation.ts';
 import verifyPassword from '../../utils/password-verification.ts';
 
-import { File } from './file-management.ts';
+import { FileUploader } from './file-management.ts';
 
 import type { IUser } from '../../interfaces/user-interface.ts';
 import type { PlaylistModel } from '../playlist.ts';
@@ -22,9 +23,10 @@ type Result<TOk = void, TError extends string = string> =
 interface ResultUserData {
   id: string;
   visible_username: string;
-  avatar_url: string;
+  avatar_url: string | null;
 }
-class User {
+
+class UserManager {
   async getUserById(
     userId: string,
   ): Promise<
@@ -78,10 +80,10 @@ class User {
     if (!userRecord.success) {
       return { success: false, reason: errorMessages.user.NotExistsById };
     }
-    const numberOfFollowers = await database.userFollowersModel.count({
+    const followersCount = await database.userFollowersModel.count({
       where: { user_id: userId },
     });
-    return { success: true, data: numberOfFollowers };
+    return { success: true, data: followersCount };
   }
   async getUserFollowing(
     userId: string,
@@ -140,7 +142,9 @@ class User {
       data: {
         id: userRecord.data.id,
         visible_username: userRecord.data.visible_username,
-        avatar_url: `${STATIC_DIRECTORY_PATH}/${userRecord.data.avatar_url}.jpg`,
+        avatar_url: userRecord.data.avatar_url
+          ? `${STATIC_DIRECTORY_PATH}/${userRecord.data.avatar_url}.jpg`
+          : null,
       },
     };
   }
@@ -168,10 +172,20 @@ class User {
     if (userId === followId) {
       return { success: false, reason: errorMessages.user.CanNotFollowYourself };
     }
-
-    await database.userFollowingModel.create({ user_id: userId, following_id: followId });
-    await database.userFollowersModel.create({ followers_id: userId, user_id: followId });
-
+    try {
+      await database.sequelize.transaction(async (transaction) => {
+        await database.userFollowingModel.create(
+          { user_id: userId, following_id: followId },
+          { transaction },
+        );
+        await database.userFollowersModel.create(
+          { followers_id: userId, user_id: followId },
+          { transaction },
+        );
+      });
+    } catch {
+      throw new InternalError('failed to follow user');
+    }
     return { success: true, data: null };
   }
   async unfollowUser(
@@ -188,11 +202,17 @@ class User {
     if (!userFollowingRecord || !userFollowersRecord) {
       return { success: false, reason: errorMessages.user.NotFollowsUser };
     }
-
-    await userFollowingRecord.destroy();
-    await userFollowersRecord.destroy();
-
-    return { success: true, data: null };
+    try {
+      await database.sequelize.transaction(async (transaction) => {
+        await userFollowingRecord.destroy({ transaction });
+        await userFollowersRecord.destroy({ transaction });
+      });
+      return { success: true, data: null };
+    } catch {
+      throw new InternalError('failed to unfollow user');
+    }
+    // await userFollowingRecord.destroy();
+    // await userFollowersRecord.destroy();
   }
   async isPlaylistExist(
     playlistId: string,
@@ -279,7 +299,7 @@ class User {
       visible_username: crypto.randomBytes(4).toString('hex'),
       username: crypto.randomBytes(4).toString('hex'),
       email: userInfo.email,
-      avatar_url: '5f76b92f-6fdd-4e47-9a8c-88ce5e1fe9e1',
+      avatar_url: null,
     });
 
     return {
@@ -348,24 +368,34 @@ class User {
   }
   async getUserAvatar(
     userId: string,
-  ): Promise<Result<string, typeof errorMessages.user.NotExistsById>> {
+  ): Promise<Result<string | null, typeof errorMessages.user.NotExistsById>> {
     const userRecord = await this.getUserById(userId);
     if (!userRecord.success) {
       return { success: false, reason: errorMessages.user.NotExistsById };
     }
-    return { success: true, data: `${STATIC_DIRECTORY_PATH}/${userRecord.data.avatar_url}.jpg` };
+    return {
+      success: true,
+      data: userRecord.data.avatar_url
+        ? `${STATIC_DIRECTORY_PATH}/${userRecord.data.avatar_url}.jpg`
+        : null,
+    };
   }
   async updateUserAvatar(
     userId: string,
     fileBuffer: Express.Multer.File,
-  ): Promise<Result<string, typeof errorMessages.user.NotExistsById>> {
+  ): Promise<Result<string | null, typeof errorMessages.user.NotExistsById>> {
     const userRecord = await this.getUserById(userId);
     if (!userRecord.success) {
       return { success: false, reason: errorMessages.user.NotExistsById };
     }
-    const fileUploadData = await new File().uploadImage(fileBuffer);
+    const fileUploadData = await new FileUploader().uploadImage(fileBuffer);
     await userRecord.data.update({ avatar_url: fileUploadData.data });
-    return { success: true, data: `${STATIC_DIRECTORY_PATH}/${userRecord.data.avatar_url}.jpg` };
+    return {
+      success: true,
+      data: userRecord.data.avatar_url
+        ? `${STATIC_DIRECTORY_PATH}/${userRecord.data.avatar_url}.jpg`
+        : null,
+    };
   }
 }
-export default User;
+export default UserManager;

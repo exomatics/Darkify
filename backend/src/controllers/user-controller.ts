@@ -1,27 +1,27 @@
 import { DEFAULT_LIMIT, DEFAULT_OFFSET } from '../config/config.ts';
 import NotFoundError from '../errors/not-found-error.ts';
 import ValidationError from '../errors/validation-error.ts';
-import User from '../models/lib/user.ts';
+import UserManager from '../models/services/user.ts';
 
 import type { IUser } from '../interfaces/user-interface.ts';
 
-const user = new User();
+const user = new UserManager();
 
 export default {
   async getUserInfo(userId: string) {
     const userRecord = await user.getUserById(userId);
-    const numberOfFollowers = await user.getUserFollowersNumber(userId);
+    const followersCount = await user.getUserFollowersNumber(userId);
     if (!userRecord.success) {
       throw new NotFoundError(userRecord.reason);
     }
-    if (!numberOfFollowers.success) {
-      throw new NotFoundError(numberOfFollowers.reason);
+    if (!followersCount.success) {
+      throw new NotFoundError(followersCount.reason);
     }
     const requiredUserInfo = {
       userId: userRecord.data.id,
       visible_username: userRecord.data.visible_username,
       avatar_url: userRecord.data.avatar_url,
-      followers: numberOfFollowers.data,
+      followers: followersCount.data,
     };
     return requiredUserInfo;
   },
