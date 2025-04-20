@@ -16,7 +16,6 @@ if (!fs.existsSync(PATH_TO_IMAGES)) {
   fs.mkdirSync(PATH_TO_IMAGES, { recursive: true });
 }
 
-const PORT = process.env.PORT;
 const app = express();
 app.disable('x-powered-by');
 app.use(express.json());
@@ -28,4 +27,4 @@ app.use('/', trackRouter);
 app.use('/', userRouter);
 app.use('/', authRouter);
 app.use(errorHandler);
-app.listen(PORT ?? 3000, () => logger.info('server is running'));
+app.listen(3000, () => logger.info('server is running'));
