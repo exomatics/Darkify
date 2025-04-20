@@ -23,6 +23,7 @@ Darkify is an attempt to recreate the core functionality of Spotify. The project
 - **PostgreSQL**: Relational database for storing user and music data.
 - **Multer**: File upload handling for audio files.
 - **fluent-ffmpeg**: Audio processing for HLS streaming.
+- **sharp**: Image processing.
 
 ### Frontend
 
