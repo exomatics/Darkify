@@ -2,6 +2,8 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 
+import { errorMessages } from '../errors/error-messages.js';
+
 import { PRIVATE_KEY_FILE_NAME, PUBLIC_KEY_FILE_NAME } from './config.ts';
 import logger from './logger.ts';
 const __dirname = import.meta.dirname;
@@ -21,7 +23,7 @@ function genKeyPair() {
     fs.existsSync(path.join(__dirname, `${PRIVATE_KEY_FILE_NAME}.pem`)) &&
     fs.existsSync(path.join(__dirname, `${PUBLIC_KEY_FILE_NAME}.pem`))
   ) {
-    logger.info("Key pair already exists. Skipping generation.");
+    logger.info(errorMessages.init.KeysAlreadyGenerated);
     return;
   }
   try {
