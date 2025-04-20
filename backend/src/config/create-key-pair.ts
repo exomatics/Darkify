@@ -2,7 +2,7 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 
-import { errorMessages } from '../errors/error-messages.js';
+import { errorMessages } from '../errors/error-messages.ts';
 
 import { PRIVATE_KEY_FILE_NAME, PUBLIC_KEY_FILE_NAME } from './config.ts';
 import logger from './logger.ts';
