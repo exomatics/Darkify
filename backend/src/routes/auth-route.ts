@@ -16,22 +16,20 @@ const router = Router();
 router.post(
   ROUTES.USERS.POST_ISSUE_ACCESS_TOKEN,
   passport.authenticate('refresh-token', { session: false }) as RequestHandler,
-  asyncHandler(
-    async (
-      request: Request<ParamsDictionary, unknown, { userId: string; hash: string }>,
-      response: Response,
-    ) => {
-      const validation = refreshTokenScheme.safeParse(request.body);
-      if (!validation.success) {
-        throw new ValidationError(JSON.stringify(validation.error.flatten()));
-      }
-      const newAccessToken = await authController.sendNewAccessTokenToUser(request.jwtPayload);
+  asyncHandler(async (request: Request<ParamsDictionary, unknown>, response: Response) => {
+    const validation = refreshTokenScheme.safeParse({
+      userId: request.jwtPayload.userId,
+      hash: request.jwtPayload.hash,
+    });
+    if (!validation.success) {
+      throw new ValidationError(JSON.stringify(validation.error.flatten()));
+    }
+    const newAccessToken = await authController.sendNewAccessTokenToUser(validation.data);
 
-      response.status(200).json({
-        accessToken: newAccessToken,
-      });
-    },
-  ),
+    response.status(200).json({
+      accessToken: newAccessToken,
+    });
+  }),
 );
 router.post(
   ROUTES.USERS.POST_LOGIN,
