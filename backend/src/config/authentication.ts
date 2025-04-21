@@ -3,6 +3,7 @@ import path from 'node:path';
 
 import passportJwt from 'passport-jwt';
 
+import { PATH_TO_KEYS } from './config.ts';
 import database from './database.ts';
 
 import type { PassportStatic } from 'passport';
@@ -10,10 +11,9 @@ import type { WithSecretOrKey } from 'passport-jwt';
 
 const jwtStrategy = passportJwt.Strategy;
 const jwtExtract = passportJwt.ExtractJwt;
-const pathToKey = path.join('src', 'config');
 let PUB_KEY;
 try {
-  PUB_KEY = fs.readFileSync(path.join(pathToKey, 'id_rsa_pub.pem'), 'utf8');
+  PUB_KEY = fs.readFileSync(path.join(PATH_TO_KEYS, 'id_rsa_pub.pem'), 'utf8');
 } catch {
   throw new Error(
     'Error occured while reading public key. Make sure you generated key pair with npm run generateKeys',

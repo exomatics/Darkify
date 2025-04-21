@@ -2,8 +2,9 @@ import path from 'node:path';
 
 const __dirname = import.meta.dirname;
 const PROJECT_ROOT = path.join(__dirname, '..', '..');
-export const PUBLIC_KEY_FILE_NAME = 'id_rsa_pub';
-export const PRIVATE_KEY_FILE_NAME = 'id_rsa_priv';
+export const PUBLIC_KEY_FILE_NAME = 'id_rsa_pub.pem';
+export const PRIVATE_KEY_FILE_NAME = 'id_rsa_priv.pem';
+export const PATH_TO_KEYS = path.join(PROJECT_ROOT, 'src', 'volume');
 export const ACCESS_TOKEN_EXPIRE_DATE = '30d';
 export const REFRESH_TOKEN_EXPIRE_DATE = '1y';
 export const DEFAULT_OFFSET = 0;
