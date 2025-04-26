@@ -1,7 +1,7 @@
 tracks/*
 
 node_modules/
-src/volume/*
+src/keys/*
 logs/
 *.log
 npm-debug.log*
