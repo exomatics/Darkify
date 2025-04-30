@@ -9,6 +9,9 @@ services:
       - .env
     depends_on:
       - db
+    volumes:
+      - keys:/app/keys
+      - uploads:/app/uploads
 
   db:
     image: postgres:16.3
@@ -23,3 +26,5 @@ services:
 
 volumes:
   pgdata:
+  keys:
+  uploads:
