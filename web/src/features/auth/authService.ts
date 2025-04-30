@@ -1,27 +1,15 @@
 import { useContext } from 'react';
 import { AuthContext } from './AuthContext';
-
-export interface User {
-  userId: string;
-  visible_username: string;
-  avatar_url: string;
-  followers: number;
-}
+import {api, initApiClient} from "../../api/api.ts";
 
 export class AuthService {
-  login(emailOrUsername: string, password: string) {
-    // TODO: make request to login. Get accessToken.
-    const token = 'tempvalidtoken';
-    // TODO: make request ot get user
-    const user: User = {
-      userId: `123123${password}`,
-      visible_username: `Test User ${emailOrUsername}`,
-      avatar_url: 'https://placehold.co/400',
-      followers: 255,
-    };
+  async login(emailOrUsername: string, password: string) {
+    const token = await api.auth.postUsersLogin({email: emailOrUsername, password})
+    initApiClient(token.accessToken.token.split(' ')[1] ?? '');
+    const user = await api.user.getUsersMe()
     return {
       user,
-      token,
+      token: token.token,
     };
   }
 
