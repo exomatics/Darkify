@@ -1,8 +1,7 @@
 tracks/*
 
 node_modules/
-src/config/id_rsa_priv.pem
-src/config/id_rsa_pub.pem
+src/keys/*
 logs/
 *.log
 npm-debug.log*

@@ -26,4 +26,7 @@ export const errorMessages = {
     PasswordNoSpecialSymbols: 'Password must have at least on special symbol !@#$%^&*',
     SpecifyUsernameOrEmail: 'Either email or username need to be filled in',
   }),
+  init: Object.freeze({
+    KeysAlreadyGenerated: 'Key pair already exists. Skipping generation.',
+  }),
 };
