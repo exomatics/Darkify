@@ -1,0 +1,331 @@
+openapi: 3.1.0
+info:
+  title: Darkify API
+  description: API for authentication and user management.
+  version: 1.0.0
+
+security:
+  - bearerAuth: []
+
+servers:
+  - url: http://localhost:3000/api
+
+paths:
+  /users/register:
+    post:
+      tags: [Auth]
+      summary: Register new user
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '200':
+          description: User registered
+          $ref: '#/components/responses/SuccessTokens'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+
+  /users/login:
+    post:
+      tags: [Auth]
+      summary: Login user
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: User authenticated
+          $ref: '#/components/responses/SuccessTokens'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+
+  /users/refresh-token:
+    post:
+      tags: [Auth]
+      summary: Issue new access token using refresh token
+
+      responses:
+        '200':
+          description: Access token returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessToken'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+
+  /users/me:
+    get:
+      tags: [User]
+      summary: Get current user info
+
+      responses:
+        '200':
+          description: User info
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserInfo'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /users/me/following:
+    get:
+      tags: [User]
+      summary: Get users followed by current user
+
+      responses:
+        '200':
+          description: List of following users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  offset:
+                    type: integer
+                  next:
+                    type: ['integer', 'null']
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UserPreview'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /users/{userId}:
+    get:
+      tags: [User]
+      summary: Get user info by ID
+
+      parameters:
+        - $ref: '#/components/parameters/UserIdParameter'
+      responses:
+        '200':
+          description: User info
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserInfo'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /users/follow/user/{userId}:
+    post:
+      tags: [User]
+      summary: Follow specified user
+
+      parameters:
+        - $ref: '#/components/parameters/UserIdParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/SuccessStatus'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /users/unfollow/user/{userId}:
+    post:
+      tags: [User]
+      summary: Unfollow specified user
+
+      parameters:
+        - $ref: '#/components/parameters/UserIdParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/SuccessStatus'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /users/follow/playlist/{playlistId}:
+    post:
+      tags: [User]
+      summary: Follow specified playlist
+      parameters:
+        - $ref: '#/components/parameters/PlaylistIdParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/SuccessStatus'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /users/unfollow/playlist/{playlistId}:
+    post:
+      tags: [User]
+      summary: Unfollow specified playlist
+
+      parameters:
+        - $ref: '#/components/parameters/PlaylistIdParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/SuccessStatus'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    RegisterRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          $ref: '#/components/schemas/Password'
+
+    LoginRequest:
+      type: object
+      required: [password]
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          $ref: '#/components/schemas/Password'
+
+    AccessToken:
+      type: object
+      properties:
+        accessToken:
+          $ref: '#/components/schemas/Token'
+
+    Token:
+      type: object
+      properties:
+        token:
+          type: string
+        expires:
+          type: string
+
+    Password:
+      type: string
+      format: password
+      minLength: 8
+      maxLength: 20
+
+    UserInfo:
+      type: object
+      properties:
+        userId:
+          type: string
+          format: uuid
+        visible_username:
+          type: string
+        avatar_url:
+          type: string
+          format: uri-reference
+        followers:
+          type: integer
+
+    UserPreview:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        visible_username:
+          type: string
+        avatar_url:
+          type: string
+          format: uri-reference
+
+  parameters:
+    UserIdParameter:
+      in: path
+      name: userId
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    PlaylistIdParameter:
+      in: path
+      name: playlistId
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  responses:
+    ValidationError:
+      description: Validation failed
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+
+    Unauthorized:
+      description: Unauthorized or invalid token
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+
+    SuccessTokens:
+      description: Successful response with both access and refresh tokens
+      content:
+        application/json:
+          schema:
+            description: access token
+            $ref: '#/components/schemas/Token'
+      headers:
+        Set-Cookie:
+          schema:
+            description: refresh token
+            $ref: '#/components/schemas/Token'
+
+    SuccessStatus:
+      description: Successful response with no data
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              data:
+                type: 'null'

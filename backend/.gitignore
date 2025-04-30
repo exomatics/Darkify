@@ -34,7 +34,5 @@ coverage/
 
 jspm_packages/
 
-docs/
-
 config/*.local.js
 /uploads/images/*
