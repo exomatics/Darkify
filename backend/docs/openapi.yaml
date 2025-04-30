@@ -73,12 +73,57 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserInfo'
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/UserInfo'
         '400':
           $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/Unauthorized'
+    put:
+      tags: [User]
+      summary: Update current user info
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                visibleUsername:
+                  type: string
 
+      responses:
+        '200':
+          description: User info
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/UserPreview'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    delete:
+      summary: Delete current user
+      tags: [User]
+      responses:
+        '200':
+          $ref: '#/components/responses/SuccessStatus'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
   /users/me/following:
     get:
       tags: [User]
@@ -92,16 +137,22 @@ paths:
               schema:
                 type: object
                 properties:
-                  total:
-                    type: integer
-                  offset:
-                    type: integer
-                  next:
-                    type: ['integer', 'null']
-                  items:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/UserPreview'
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                      offset:
+                        type: integer
+                      next:
+                        type: ['integer', 'null']
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/UserPreview'
         '400':
           $ref: '#/components/responses/ValidationError'
         '401':
@@ -120,11 +171,18 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserInfo'
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/UserInfo'
         '400':
           $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/Unauthorized'
+
   /users/follow/user/{userId}:
     post:
       tags: [User]
@@ -183,7 +241,35 @@ paths:
           $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/Unauthorized'
-
+  /users/me/avatar:
+    get:
+      tags: [User]
+      summary: Get avatar url
+      responses:
+        '200':
+          description: avatar url
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: string
+                    format: uri-reference
+    put:
+      tags: [User]
+      summary: Change avatar for current user
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              properties:
+                avatar:
+                  type: string
+                  format: binary
 components:
   securitySchemes:
     bearerAuth:
