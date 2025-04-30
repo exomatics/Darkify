@@ -3,10 +3,10 @@ import fs from 'node:fs';
 import express from 'express';
 import passport from 'passport';
 import swaggerUi from 'swagger-ui-express';
-import YAML from 'yamljs';
+import YAML from 'yaml';
 
 import passportConfiguration from './config/authentication.ts';
-import { STATIC_DIRECTORY_PATH, PATH_TO_IMAGES, PATH_TO_OPENAPI } from './config/config.ts';
+import { STATIC_DIRECTORY_PATH, PATH_TO_OPENAPI, PATH_TO_IMAGES } from './config/config.ts';
 import logger from './config/logger.ts';
 import errorHandler from './middleware/error-handler.ts';
 import { jwtProcess } from './middleware/jwt-processing.ts';
@@ -18,7 +18,8 @@ if (!fs.existsSync(PATH_TO_IMAGES)) {
   fs.mkdirSync(PATH_TO_IMAGES, { recursive: true });
 }
 
-const openapiDocument = YAML.load(PATH_TO_OPENAPI);
+const openapiFile = fs.readFileSync(PATH_TO_OPENAPI, 'utf8');
+const openapiDocument = YAML.parse(openapiFile) as Record<string, unknown>;
 
 const PORT = process.env.PORT;
 const app = express();
