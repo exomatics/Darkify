@@ -20,7 +20,6 @@ FileUploader.init();
 const openapiFile = fs.readFileSync(PATH_TO_OPENAPI, 'utf8');
 const openapiDocument = YAML.parse(openapiFile) as Record<string, unknown>;
 
-
 const app = express();
 app.disable('x-powered-by');
 app.use(express.json());
