@@ -6,8 +6,10 @@
   "type": "module",
   "scripts": {
     "dev": "node --watch --env-file=.env --loader ts-node/esm --no-warnings=ExperimentalWarning ./src/app.ts",
-    "start": "--loader ts-node/esmapp.ts",
+    "start": "node --env-file=.env --loader ts-node/esm --no-warnings=ExperimentalWarning ./src/app.ts",
     "generate:keys": "node --loader ts-node/esm --no-warnings=ExperimentalWarning ./src/config/create-key-pair.ts",
+    "start:full": "pnpm run generate:keys && pnpm run start",
+    "dev:full": "pnpm run generate:keys && pnpm run dev",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "build": "tsc",
@@ -16,6 +18,7 @@
     "prettier:test": "prettier . --check",
     "preinstall": "npx only-allow pnpm"
   },
+  "packageManager": "pnpm@10.8.1",
   "author": "Miroshnichenko Roman <rborisovic74@gmail.com>",
   "license": "MIT",
   "dependencies": {
