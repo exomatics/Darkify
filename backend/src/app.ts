@@ -1,10 +1,10 @@
 import fs from 'node:fs';
 
+import cors from 'cors';
 import express from 'express';
 import passport from 'passport';
 import swaggerUi from 'swagger-ui-express';
 import YAML from 'yaml';
-import cors from 'cors';
 
 import passportConfiguration from './config/authentication.ts';
 import { STATIC_DIRECTORY_PATH, PATH_TO_OPENAPI, PATH_TO_IMAGES } from './config/config.ts';
@@ -23,7 +23,6 @@ const openapiDocument = YAML.parse(openapiFile) as Record<string, unknown>;
 
 const app = express();
 app.disable('x-powered-by');
-// TODO: validate origin in production mode
 // eslint-disable-next-line sonarjs/cors
 app.use(cors());
 app.use(express.json());

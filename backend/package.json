@@ -47,6 +47,7 @@
   "devDependencies": {
     "@eslint/js": "^9.16.0",
     "@tsconfig/node23": "^23.0.0",
+    "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/express-serve-static-core": "^5.0.6",
     "@types/multer": "^1.4.12",

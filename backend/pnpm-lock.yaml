@@ -77,6 +77,9 @@ importers:
       '@tsconfig/node23':
         specifier: ^23.0.0
         version: 23.0.0
+      '@types/cors':
+        specifier: ^2.8.17
+        version: 2.8.17
       '@types/express':
         specifier: ^5.0.0
         version: 5.0.0
@@ -1439,6 +1442,12 @@ packages:
     resolution:
       {
         integrity: sha512-Q7dPOymVpRG5Zpz90/o26+OAqOG2Sw+FED7uQmTrJNCF/JAPTylclZofMxZKd6W7g1BDPmT9/C/jX0ZcSNTQwQ==,
+      }
+
+  '@types/cors@2.8.17':
+    resolution:
+      {
+        integrity: sha512-8CGDvrBj1zgo2qE+oS3pOCyYNqCPryMWY2bGfwA0dcfopWGgxs+78df0Rs3rc9THP4JkOhLsAa+15VdpAqkcUA==,
       }
 
   '@types/debug@4.1.12':
@@ -5909,6 +5918,10 @@ snapshots:
       '@types/node': 22.7.8
 
   '@types/continuation-local-storage@3.2.7':
+    dependencies:
+      '@types/node': 22.7.8
+
+  '@types/cors@2.8.17':
     dependencies:
       '@types/node': 22.7.8
 
