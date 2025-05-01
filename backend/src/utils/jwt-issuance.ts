@@ -27,12 +27,6 @@ function issueToken(userInfo: { userId: string; hash?: string }, expiresIn: stri
     expiresIn,
     algorithm: 'RS256',
   } as jsonwebtoken.SignOptions);
-  if (userInfo.hash) {
-    return {
-      token: `Bearer ${signedToken}`,
-      expires: expiresIn,
-    };
-  }
   return {
     token: signedToken,
     expires: expiresIn,

@@ -4,7 +4,7 @@ import express from 'express';
 import passport from 'passport';
 import swaggerUi from 'swagger-ui-express';
 import YAML from 'yaml';
-import cors from 'cors'
+import cors from 'cors';
 
 import passportConfiguration from './config/authentication.ts';
 import { STATIC_DIRECTORY_PATH, PATH_TO_OPENAPI, PATH_TO_IMAGES } from './config/config.ts';
