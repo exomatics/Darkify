@@ -9,6 +9,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (emailOrUsername: string, password: string) => {
     const loginData = await authService.login(emailOrUsername, password);
+    if(!loginData) return;
     setCurrentUser(loginData.user);
     setCurrentUserToken(loginData.token);
   };

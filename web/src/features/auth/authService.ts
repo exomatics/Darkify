@@ -4,12 +4,14 @@ import {api, initApiClient} from "../../api/api.ts";
 
 export class AuthService {
   async login(emailOrUsername: string, password: string) {
-    const token = await api.auth.postUsersLogin({email: emailOrUsername, password})
-    initApiClient(token.accessToken.token.split(' ')[1] ?? '');
+    const tokenData = await api.auth.postUsersLogin({email: emailOrUsername, password})
+    if(!tokenData.token) return;
+    initApiClient(tokenData.token.split(' ')[1] ?? '');
     const user = await api.user.getUsersMe()
+    if(!user) return;
     return {
-      user,
-      token: token.token,
+      user: user.data,
+      token: tokenData.token,
     };
   }
 
