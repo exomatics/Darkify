@@ -49,55 +49,55 @@ export default {
     if (!modelResponse.success) {
       throw new NotFoundError(modelResponse.reason);
     }
-    return modelResponse;
+    return modelResponse.data;
   },
   async followUser(userId: string, followId: string) {
     const modelResponse = await user.followUser(userId, followId);
     if (!modelResponse.success) {
       throw new ValidationError(modelResponse.reason);
     }
-    return modelResponse;
+    return modelResponse.data;
   },
   async unfollowUser(userId: string, unfollowId: string) {
     const modelResponse = await user.unfollowUser(userId, unfollowId);
     if (!modelResponse.success) {
       throw new ValidationError(modelResponse.reason);
     }
-    return modelResponse;
+    return modelResponse.data;
   },
   async followPlaylist(userId: string, playlistId: string) {
     const modelResponse = await user.followPlaylist(userId, playlistId);
     if (!modelResponse.success) {
       throw new ValidationError(modelResponse.reason);
     }
-    return modelResponse;
+    return modelResponse.data;
   },
   async unfollowPlaylist(userId: string, playlistId: string) {
     const modelResponse = await user.unfollowPlaylist(userId, playlistId);
     if (!modelResponse.success) {
       throw new ValidationError(modelResponse.reason);
     }
-    return modelResponse;
+    return modelResponse.data;
   },
   async deleteUser(userId: string) {
     const modelResponse = await user.deleteUser(userId);
     if (!modelResponse.success) {
       throw new NotFoundError(modelResponse.reason);
     }
-    return modelResponse;
+    return modelResponse.data;
   },
   async updateUserAvatar(userId: string, fileBuffer: Express.Multer.File) {
     const modelResponse = await user.updateUserAvatar(userId, fileBuffer);
     if (!modelResponse.success) {
       throw new NotFoundError(modelResponse.reason);
     }
-    return modelResponse;
+    return modelResponse.data;
   },
   async getUserAvatar(userId: string) {
     const modelResponse = await user.getUserAvatar(userId);
     if (!modelResponse.success) {
       throw new NotFoundError(modelResponse.reason);
     }
-    return modelResponse;
+    return modelResponse.data;
   },
 };
