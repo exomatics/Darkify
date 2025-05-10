@@ -1,7 +1,7 @@
 tracks/*
 
 node_modules/
-src/keys/*
+keys/*
 logs/
 *.log
 npm-debug.log*
@@ -32,8 +32,6 @@ Thumbs.db
 coverage/
 
 jspm_packages/
-
-docs/
 
 config/*.local.js
 /uploads/images/*

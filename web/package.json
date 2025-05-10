@@ -12,7 +12,8 @@
     "preview": "vite preview",
     "test:typescript": "tsc --noEmit",
     "prettier:fix": "prettier . --write",
-    "prettier:test": "prettier . --check"
+    "prettier:test": "prettier . --check",
+    "generate:api": "openapi --input http://localhost:3000/docs --output ./src/api/gen --client fetch --name ApiClient"
   },
   "dependencies": {
     "@floating-ui/react": "^0.27.7",
@@ -37,6 +38,7 @@
     "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-react-refresh": "^0.4.14",
     "globals": "^15.12.0",
+    "openapi-typescript-codegen": "^0.29.0",
     "prettier": "^3.4.2",
     "typescript": "~5.6.2",
     "typescript-eslint": "^8.15.0",
