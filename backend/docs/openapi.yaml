@@ -73,13 +73,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    example: true
-                  data:
-                    $ref: '#/components/schemas/UserInfo'
+                $ref: '#/components/schemas/UserInfo'
         '400':
           $ref: '#/components/responses/ValidationError'
         '401':
@@ -103,13 +97,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    example: true
-                  data:
-                    $ref: '#/components/schemas/UserPreview'
+                $ref: '#/components/schemas/UserPreview'
         '400':
           $ref: '#/components/responses/ValidationError'
         '401':
@@ -137,22 +125,16 @@ paths:
               schema:
                 type: object
                 properties:
-                  success:
-                    type: boolean
-                    example: true
-                  data:
-                    type: object
-                    properties:
-                      total:
-                        type: integer
-                      offset:
-                        type: integer
-                      next:
-                        type: ['integer', 'null']
-                      items:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/UserPreview'
+                  total:
+                    type: integer
+                  offset:
+                    type: integer
+                  next:
+                    type: ['integer', 'null']
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UserPreview'
         '400':
           $ref: '#/components/responses/ValidationError'
         '401':
@@ -171,13 +153,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    example: true
-                  data:
-                    $ref: '#/components/schemas/UserInfo'
+                $ref: '#/components/schemas/UserInfo'
         '400':
           $ref: '#/components/responses/ValidationError'
         '401':
@@ -253,10 +229,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  success:
-                    type: boolean
-                    example: true
-                  data:
+                  avatar_url:
                     type: string
                     format: uri-reference
     put:
@@ -371,9 +344,6 @@ components:
           schema:
             type: object
             properties:
-              success:
-                type: boolean
-                example: false
               message:
                 type: string
 
@@ -384,9 +354,6 @@ components:
           schema:
             type: object
             properties:
-              success:
-                type: boolean
-                example: false
               message:
                 type: string
 
@@ -405,13 +372,3 @@ components:
 
     SuccessStatus:
       description: Successful response with no data
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              success:
-                type: boolean
-                example: true
-              data:
-                type: 'null'
