@@ -4,6 +4,5 @@
 /* eslint-disable */
 import type { Token } from './Token';
 export type AccessToken = {
-    accessToken?: Token;
+  accessToken?: Token;
 };
-

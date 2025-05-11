@@ -3,7 +3,6 @@
 /* tslint:disable */
 /* eslint-disable */
 export type Token = {
-    token?: string;
-    expires?: string;
+  token?: string;
+  expires?: string;
 };
-

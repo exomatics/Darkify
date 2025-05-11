@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { AuthContext } from './AuthContext';
 import { authService } from './authService.ts';
-import {UserInfo} from "../../api/gen";
+import { UserInfo } from '../../api/gen';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [currentUser, setCurrentUser] = useState<UserInfo | undefined>();
@@ -9,7 +9,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (emailOrUsername: string, password: string) => {
     const loginData = await authService.login(emailOrUsername, password);
-    if(!loginData) return;
+    if (!loginData) return;
     setCurrentUser(loginData.user);
     setCurrentUserToken(loginData.token);
   };
