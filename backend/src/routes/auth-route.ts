@@ -52,7 +52,7 @@ router.post(
         maxAge: 365 * 24 * 60 * 60 * 1000,
       });
       response.status(200).json({
-        accessToken: tokens.accessToken,
+        ...tokens.accessToken,
       });
     },
   ),
