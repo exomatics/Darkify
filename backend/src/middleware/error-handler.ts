@@ -7,7 +7,6 @@ const errorHandler: ErrorRequestHandler = (error, request, response, next) => {
     logger.error(`[${error.name}]: ${error.message}`);
 
     response.status(error.statusCode).json({
-      success: false,
       message: error.message,
     });
     return;
@@ -16,7 +15,6 @@ const errorHandler: ErrorRequestHandler = (error, request, response, next) => {
   logger.error(error);
 
   response.status(500).json({
-    success: false,
     message: 'Internal Server Error',
   });
   next();

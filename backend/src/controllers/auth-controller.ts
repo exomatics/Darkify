@@ -19,7 +19,7 @@ export default {
     if (!databaseResponse.success) {
       throw new NotFoundError(databaseResponse.reason);
     }
-    return databaseResponse;
+    return databaseResponse.data;
   },
   async authenticateUser(userInfo: Pick<IUser, 'username' | 'email' | 'password'>) {
     const databaseResponse = await user.authenticateUser(userInfo);

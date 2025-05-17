@@ -12,17 +12,18 @@ import logger from './logger.ts';
 
 import type { Idb } from '../interfaces/database-interface.ts';
 
+const POSTGRESHOST = process.env.POSTGRESHOST ?? 'localhost';
 const POSTGRESDATABASE = process.env.POSTGRESDATABASE;
 const POSTGRESUSER = process.env.POSTGRESUSER;
 const POSTGRESPASSWORD = process.env.POSTGRESPASSWORD;
 const POSTGRESPORT = process.env.POSTGRESPORT;
 
-if (!POSTGRESUSER || !POSTGRESDATABASE || !POSTGRESPASSWORD || !POSTGRESPORT) {
+if (!POSTGRESUSER || !POSTGRESDATABASE || !POSTGRESPASSWORD || !POSTGRESPORT || !POSTGRESPORT) {
   throw new Error('Environment variables are empty. Configure .env file according to .env.example');
 }
 
 const sequelize: Sequelize = new Sequelize(POSTGRESDATABASE, POSTGRESUSER, POSTGRESPASSWORD, {
-  host: 'localhost',
+  host: POSTGRESHOST,
   port: +POSTGRESPORT,
   dialect: 'postgres',
   logging: false,

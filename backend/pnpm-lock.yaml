@@ -19,6 +19,12 @@ importers:
       '@types/sequelize':
         specifier: ^4.28.20
         version: 4.28.20
+      '@types/swagger-ui-express':
+        specifier: ^4.1.8
+        version: 4.1.8
+      cors:
+        specifier: ^2.8.5
+        version: 2.8.5
       express:
         specifier: ^5.0.1
         version: 5.0.1
@@ -49,12 +55,18 @@ importers:
       sharp:
         specifier: ^0.34.1
         version: 0.34.1
+      swagger-ui-express:
+        specifier: ^5.0.1
+        version: 5.0.1(express@5.0.1)
       uuid:
         specifier: ^11.0.3
         version: 11.0.3
       winston:
         specifier: ^3.17.0
         version: 3.17.0
+      yaml:
+        specifier: ^2.7.1
+        version: 2.7.1
       zod:
         specifier: ^3.24.1
         version: 3.24.2
@@ -65,6 +77,9 @@ importers:
       '@tsconfig/node23':
         specifier: ^23.0.0
         version: 23.0.0
+      '@types/cors':
+        specifier: ^2.8.17
+        version: 2.8.17
       '@types/express':
         specifier: ^5.0.0
         version: 5.0.0
@@ -1369,6 +1384,12 @@ packages:
         integrity: sha512-zt6OdqaDoOnJ1ZYsCYGt9YmWzDXl4vQdKTyJev62gFhRGKdx7mcT54V9KIjg+d2wi9EXsPvAPKe7i7WjfVWB8g==,
       }
 
+  '@scarf/scarf@1.4.0':
+    resolution:
+      {
+        integrity: sha512-xxeapPiUXdZAE3che6f3xogoJPeZgig6omHEy1rIY5WVsB3H2BHNnZH+gHG6x91SCWyQCzWGsuL2Hh3ClO5/qQ==,
+      }
+
   '@tsconfig/node10@1.0.11':
     resolution:
       {
@@ -1421,6 +1442,12 @@ packages:
     resolution:
       {
         integrity: sha512-Q7dPOymVpRG5Zpz90/o26+OAqOG2Sw+FED7uQmTrJNCF/JAPTylclZofMxZKd6W7g1BDPmT9/C/jX0ZcSNTQwQ==,
+      }
+
+  '@types/cors@2.8.17':
+    resolution:
+      {
+        integrity: sha512-8CGDvrBj1zgo2qE+oS3pOCyYNqCPryMWY2bGfwA0dcfopWGgxs+78df0Rs3rc9THP4JkOhLsAa+15VdpAqkcUA==,
       }
 
   '@types/debug@4.1.12':
@@ -1553,6 +1580,12 @@ packages:
     resolution:
       {
         integrity: sha512-W8Ym+h8nhuRwaKPaDw34QUkwsGi6Rc4yYqvKFo5rm2FUEhCFbzVWrxXUxuKK8TASjWsysJY0nsmNCGhCOIsrOw==,
+      }
+
+  '@types/swagger-ui-express@4.1.8':
+    resolution:
+      {
+        integrity: sha512-AhZV8/EIreHFmBV5wAs0gzJUNq9JbbSXgJLQubCC0jtIo6prnI9MIRRxnU4MZX9RB9yXxF1V4R7jtLl/Wcj31g==,
       }
 
   '@types/triple-beam@1.3.5':
@@ -2047,6 +2080,13 @@ packages:
       {
         integrity: sha512-ZQBvi1DcpJ4GDqanjucZ2Hj3wEO5pZDS89BWbkcrvdxksJorwUDDZamX9ldFkp9aw2lmBDLgkObEA4DWNJ9FYQ==,
       }
+
+  cors@2.8.5:
+    resolution:
+      {
+        integrity: sha512-KIHbLJqu73RGr/hnbrO9uBeixNGuvSQjul/jdFvS/KFSIH1hWVd1ng7zOHx+YrEfInLG7q4n6GHQ9cDtxv/P6g==,
+      }
+    engines: { node: '>= 0.10' }
 
   create-require@1.1.1:
     resolution:
@@ -4511,6 +4551,21 @@ packages:
         integrity: sha512-Bh05dSOnJBf3miNMqpsormfNtfidA/GxQVakhtn0T4DECWKeXQRQUceYjJ+OxYiiLdGe4Jo9iFV8wICFapFeIA==,
       }
 
+  swagger-ui-dist@5.21.0:
+    resolution:
+      {
+        integrity: sha512-E0K3AB6HvQd8yQNSMR7eE5bk+323AUxjtCz/4ZNKiahOlPhPJxqn3UPIGs00cyY/dhrTDJ61L7C/a8u6zhGrZg==,
+      }
+
+  swagger-ui-express@5.0.1:
+    resolution:
+      {
+        integrity: sha512-SrNU3RiBGTLLmFU8GIJdOdanJTl4TOmT27tt3bWWHppqYmAZ6IDuEuBvMU6nZq0zLEe6b/1rACXCgLZqO6ZfrA==,
+      }
+    engines: { node: '>= v0.10.32' }
+    peerDependencies:
+      express: '>=4.0.0 || >=5.0.0-beta'
+
   synckit@0.9.2:
     resolution:
       {
@@ -4884,6 +4939,14 @@ packages:
       {
         integrity: sha512-a4UGQaWPH59mOXUYnAG2ewncQS4i4F43Tv3JoAM+s2VDAmS9NsK8GpDMLrCHPksFT7h3K6TOoUNn2pb7RoXx4g==,
       }
+
+  yaml@2.7.1:
+    resolution:
+      {
+        integrity: sha512-10ULxpnOCQXxJvBgxsn9ptjq6uviG/htZKk9veJGhlqn3w/DxQ631zFF+nlQXLwmImeS5amR2dl2U8sg6U9jsQ==,
+      }
+    engines: { node: '>= 14' }
+    hasBin: true
 
   yn@3.1.1:
     resolution:
@@ -5831,6 +5894,8 @@ snapshots:
 
   '@rtsao/scc@1.1.0': {}
 
+  '@scarf/scarf@1.4.0': {}
+
   '@tsconfig/node10@1.0.11': {}
 
   '@tsconfig/node12@1.0.11': {}
@@ -5853,6 +5918,10 @@ snapshots:
       '@types/node': 22.7.8
 
   '@types/continuation-local-storage@3.2.7':
+    dependencies:
+      '@types/node': 22.7.8
+
+  '@types/cors@2.8.17':
     dependencies:
       '@types/node': 22.7.8
 
@@ -5937,6 +6006,11 @@ snapshots:
       '@types/http-errors': 2.0.4
       '@types/node': 22.7.8
       '@types/send': 0.17.4
+
+  '@types/swagger-ui-express@4.1.8':
+    dependencies:
+      '@types/express': 5.0.0
+      '@types/serve-static': 1.15.7
 
   '@types/triple-beam@1.3.5': {}
 
@@ -6278,6 +6352,11 @@ snapshots:
       browserslist: 4.24.2
 
   core-util-is@1.0.3: {}
+
+  cors@2.8.5:
+    dependencies:
+      object-assign: 4.1.1
+      vary: 1.1.2
 
   create-require@1.1.1: {}
 
@@ -7850,6 +7929,15 @@ snapshots:
 
   svg-element-attributes@1.3.1: {}
 
+  swagger-ui-dist@5.21.0:
+    dependencies:
+      '@scarf/scarf': 1.4.0
+
+  swagger-ui-express@5.0.1(express@5.0.1):
+    dependencies:
+      express: 5.0.1
+      swagger-ui-dist: 5.21.0
+
   synckit@0.9.2:
     dependencies:
       '@pkgr/core': 0.1.1
@@ -8095,6 +8183,8 @@ snapshots:
   xtend@4.0.2: {}
 
   yallist@3.1.1: {}
+
+  yaml@2.7.1: {}
 
   yn@3.1.1: {}
 

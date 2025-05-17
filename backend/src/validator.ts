@@ -47,7 +47,7 @@ const loginScheme = z
     return requireAtLeastOneCheck({ username, email });
   }, errorMessages.validation.SpecifyUsernameOrEmail);
 const refreshTokenScheme = z.object({
-  id: uuidScheme,
+  userId: uuidScheme,
   hash: hashScheme,
 });
 const registerScheme = z.object({

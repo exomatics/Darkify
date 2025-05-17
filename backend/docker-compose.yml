@@ -5,25 +5,26 @@ services:
       dockerfile: Dockerfile
     ports:
       - '3000:3000'
-    environment:
-      DB_HOST: db
-      POSTGRESPORT: 5432
-      POSTGRESUSER: postgres
-      POSTGRESPASSWORD: postgres
-      POSTGRESDATABASE: darkify
+    env_file:
+      - .env
     depends_on:
       - db
+    volumes:
+      - keys:/app/keys
+      - uploads:/app/uploads
 
   db:
     image: postgres:16.3
     ports:
       - '5432:5432'
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: darkify
+      POSTGRES_USER: ${POSTGRESUSER}
+      POSTGRES_PASSWORD: ${POSTGRESPASSWORD}
+      POSTGRES_DB: ${POSTGRESDATABASE}
     volumes:
       - pgdata:/var/lib/postgresql/data
 
 volumes:
   pgdata:
+  keys:
+  uploads:
