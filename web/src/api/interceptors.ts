@@ -50,7 +50,7 @@ export function setupAxiosInterceptors() {
         return Promise.reject(error);
       }
 
-      (original as any)._retry = true;
+      (original as { _retry?: boolean })._retry = true;
 
       if (isRefreshing) {
         return new Promise((resolve, reject) => {

@@ -1,7 +1,7 @@
 /* generated using openapi-typescript-codegen -- do not edit */
 /* istanbul ignore file */
 /* tslint:disable */
-/* eslint-disable */
+ 
 import type { AccessToken } from '../models/AccessToken';
 import type { LoginRequest } from '../models/LoginRequest';
 import type { RegisterRequest } from '../models/RegisterRequest';
