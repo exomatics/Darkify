@@ -13,13 +13,12 @@ import verifyPassword from '../../utils/password-verification.ts';
 import { FileUploader } from './file-management.ts';
 
 import type { IUser } from '../../interfaces/user-interface.ts';
+import type { Result } from '../../types/result-type.ts';
 import type { PlaylistModel } from '../playlist.ts';
 import type { UserFollowingModel } from '../user-following.ts';
 import type { UserModel } from '../user.ts';
 import type { InferAttributes, InferCreationAttributes, Model } from 'sequelize';
-type Result<TOk = void, TError extends string = string> =
-  | { success: true; data: TOk }
-  | { success: false; reason: TError };
+
 interface ResultUserData {
   id: string;
   visible_username: string;
