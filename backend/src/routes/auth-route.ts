@@ -18,7 +18,7 @@ router.post(
   passport.authenticate('refresh-token', { session: false }) as RequestHandler,
   asyncHandler(async (request: Request<ParamsDictionary, unknown>, response: Response) => {
     const validation = refreshTokenScheme.safeParse({
-      userId: request.jwtPayload.userId,
+      user_id: request.jwtPayload.user_id,
       hash: request.jwtPayload.hash,
     });
     if (!validation.success) {
