@@ -14,8 +14,6 @@ import { SplashScreen } from './pages/SplashScreen';
 export const RoutesList = () => {
   const auth = useAuth();
 
-  console.log(auth);
-
   return (
     <>
       {auth.initialized ? (
