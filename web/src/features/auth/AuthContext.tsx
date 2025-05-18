@@ -1,12 +1,13 @@
 import { createContext } from 'react';
-import { User } from './authService.ts';
+import { UserInfo } from '../../api/gen';
 
 export type AuthContextValue = {
-  currentUser: User;
+  currentUser: UserInfo | undefined;
   currentUserToken: string;
   login: (emailOrUsername: string, password: string) => void;
   register: (emailOrUsername: string, password: string) => void;
   logout: () => void;
+  initialized: boolean;
 };
 
 export const AuthContext = createContext<AuthContextValue | undefined>(undefined);

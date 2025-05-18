@@ -35,6 +35,7 @@ import Close from './assets/big/close.svg?react';
 import Playing from './assets/big/playing.svg?react';
 import ArrowRight from './assets/big/arrow-right.svg?react';
 import ArrowLeft from './assets/big/arrow-left.svg?react';
+import UserFilled from './assets/big/user-filled.svg?react';
 
 export const Icons = {
   Big: {
@@ -75,6 +76,7 @@ export const Icons = {
     Sound,
     AddFriend,
     Playing,
+    UserFilled,
   },
 };
 
