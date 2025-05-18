@@ -7,8 +7,8 @@ export const ProfileCard = () => {
 
   return (
     <StyledProfileCard>
-      <Avatar size={64} src={userData.currentUser.avatar_url} />
-      <div className="visible-username">{userData.currentUser.visible_username}</div>
+      <Avatar size={64} src={userData.currentUser?.avatar_url} />
+      <div className="visible-username">{userData.currentUser?.visible_username ?? 'Name'}</div>
       <div className="items">
         <div className="item">Profile</div>
         <div className="item">Settings</div>

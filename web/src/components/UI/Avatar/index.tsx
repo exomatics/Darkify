@@ -1,4 +1,5 @@
 import styled from 'styled-components';
+import { Icons } from '../Icons';
 
 const StyledAvatarIcon = styled.div`
   border-radius: 100%;
@@ -15,10 +16,30 @@ const StyledAvatarIcon = styled.div`
   }
 `;
 
-export const Avatar = ({ src, size = 15 }: { src: string; size?: number }) => {
+export const Avatar = ({ src, size = 15 }: { src?: string; size?: number }) => {
   return (
     <StyledAvatarIcon style={{ width: size + 'px', height: size + 'px' }}>
-      <img src={src} />
+      {src ? (
+        <img src={src} />
+      ) : (
+        <StyledEmptyAvatar>
+          <Icons.Big.UserFilled />
+        </StyledEmptyAvatar>
+      )}
     </StyledAvatarIcon>
   );
 };
+
+const StyledEmptyAvatar = styled.div`
+  background-color: ${({ theme }) => theme.colors.bg.secondary};
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  svg {
+    width: 50%;
+    height: 50%;
+  }
+`;
