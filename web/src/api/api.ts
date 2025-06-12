@@ -2,6 +2,8 @@ import { ApiClient, OpenAPI } from './gen';
 
 let accessToken = '';
 
+export const BACKEND_BASE = 'http://localhost:3000';
+
 export function setToken(t: string) {
   accessToken = t;
   localStorage.setItem('access_token', t);

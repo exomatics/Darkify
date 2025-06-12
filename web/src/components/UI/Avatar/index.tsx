@@ -1,5 +1,6 @@
 import styled from 'styled-components';
 import { Icons } from '../Icons';
+import { BACKEND_BASE } from '../../../api/api.ts';
 
 const StyledAvatarIcon = styled.div`
   border-radius: 100%;
@@ -20,7 +21,7 @@ export const Avatar = ({ src, size = 15 }: { src?: string; size?: number }) => {
   return (
     <StyledAvatarIcon style={{ width: size + 'px', height: size + 'px' }}>
       {src ? (
-        <img src={src} />
+        <img src={BACKEND_BASE + src} />
       ) : (
         <StyledEmptyAvatar>
           <Icons.Big.UserFilled />

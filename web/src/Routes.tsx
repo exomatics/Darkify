@@ -8,15 +8,16 @@ import { LikedSongs } from './pages/LikedSongs';
 import { Playlists } from './pages/Playlists';
 import { Search } from './pages/Search';
 import { Discover } from './pages/Discover';
-import { useAuth } from './features/auth/authService.ts';
+import { useUser } from './features/auth/authService.ts';
 import { SplashScreen } from './pages/SplashScreen';
+import { Profile } from './pages/Profile';
 
 export const RoutesList = () => {
-  const auth = useAuth();
+  const { isInitialized } = useUser();
 
   return (
     <>
-      {auth.initialized ? (
+      {isInitialized ? (
         <Routes>
           <Route index path="/" element={<IndexPage />} />
           <Route path="/login" element={<Auth />} />
@@ -27,6 +28,7 @@ export const RoutesList = () => {
             <Route path="/playlists" element={<Playlists />} />
             <Route path="/search" element={<Search />} />
             <Route path="/discover" element={<Discover />} />
+            <Route path="/profile" element={<Profile />} />
           </Route>
         </Routes>
       ) : (

@@ -6,8 +6,10 @@ import type { UserInfo } from '../models/UserInfo';
 import type { UserPreview } from '../models/UserPreview';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import type { BaseHttpRequest } from '../core/BaseHttpRequest';
+
 export class UserService {
   constructor(public readonly httpRequest: BaseHttpRequest) {}
+
   /**
    * Get current user info
    * @returns UserInfo User info
@@ -23,6 +25,7 @@ export class UserService {
       },
     });
   }
+
   /**
    * Update current user info
    * @param requestBody
@@ -41,6 +44,7 @@ export class UserService {
       },
     });
   }
+
   /**
    * Delete current user
    * @returns any Successful response with no data
@@ -56,6 +60,7 @@ export class UserService {
       },
     });
   }
+
   /**
    * Get users followed by current user
    * @returns any List of following users
@@ -76,6 +81,7 @@ export class UserService {
       },
     });
   }
+
   /**
    * Get user info by ID
    * @param userId
@@ -95,6 +101,7 @@ export class UserService {
       },
     });
   }
+
   /**
    * Follow specified user
    * @param userId
@@ -114,6 +121,7 @@ export class UserService {
       },
     });
   }
+
   /**
    * Unfollow specified user
    * @param userId
@@ -133,6 +141,7 @@ export class UserService {
       },
     });
   }
+
   /**
    * Follow specified playlist
    * @param playlistId
@@ -152,6 +161,7 @@ export class UserService {
       },
     });
   }
+
   /**
    * Unfollow specified playlist
    * @param playlistId
@@ -171,6 +181,7 @@ export class UserService {
       },
     });
   }
+
   /**
    * Get avatar url
    * @returns any avatar url
@@ -184,6 +195,7 @@ export class UserService {
       url: '/users/me/avatar',
     });
   }
+
   /**
    * Change avatar for current user
    * @param formData
@@ -193,7 +205,7 @@ export class UserService {
     return this.httpRequest.request({
       method: 'PUT',
       url: '/users/me/avatar',
-      formData: formData,
+      body: formData,
       mediaType: 'multipart/form-data',
     });
   }
