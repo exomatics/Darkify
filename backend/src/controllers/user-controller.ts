@@ -8,9 +8,9 @@ import type { IUser } from '../interfaces/user-interface.ts';
 const user = new UserManager();
 
 export default {
-  async getUserInfo(userId: string) {
-    const userRecord = await user.getUserById(userId);
-    const followersCount = await user.getUserFollowersNumber(userId);
+  async getUserInfo(user_id: string) {
+    const userRecord = await user.getUserById(user_id);
+    const followersCount = await user.getUserFollowersNumber(user_id);
     if (!userRecord.success) {
       throw new NotFoundError(userRecord.reason);
     }
@@ -18,7 +18,7 @@ export default {
       throw new NotFoundError(followersCount.reason);
     }
     const requiredUserInfo = {
-      userId: userRecord.data.id,
+      user_id: userRecord.data.id,
       visible_username: userRecord.data.visible_username,
       avatar_url: userRecord.data.avatar_url
         ? `${STATIC_DIRECTORY_PATH}/${userRecord.data.avatar_url}.jpg`
@@ -28,11 +28,11 @@ export default {
     return requiredUserInfo;
   },
   async getUserFollowing(
-    userId: string,
+    user_id: string,
     limit: number = DEFAULT_LIMIT,
     offset: number = DEFAULT_OFFSET,
   ) {
-    const userFollowingRecord = await user.getUserFollowing(userId, limit, offset);
+    const userFollowingRecord = await user.getUserFollowing(user_id, limit, offset);
     if (!userFollowingRecord.success) {
       throw new NotFoundError(userFollowingRecord.reason);
     }
@@ -44,57 +44,57 @@ export default {
       items: rows,
     };
   },
-  async updateUserInfo(userId: string, userInfo: Pick<IUser, 'visibleUsername'>) {
-    const modelResponse = await user.updateUserInfo(userId, userInfo);
+  async updateUserInfo(user_id: string, userInfo: Pick<IUser, 'visible_username'>) {
+    const modelResponse = await user.updateUserInfo(user_id, userInfo);
     if (!modelResponse.success) {
       throw new NotFoundError(modelResponse.reason);
     }
     return modelResponse.data;
   },
-  async followUser(userId: string, followId: string) {
-    const modelResponse = await user.followUser(userId, followId);
+  async followUser(user_id: string, follow_id: string) {
+    const modelResponse = await user.followUser(user_id, follow_id);
     if (!modelResponse.success) {
       throw new ValidationError(modelResponse.reason);
     }
     return modelResponse.data;
   },
-  async unfollowUser(userId: string, unfollowId: string) {
-    const modelResponse = await user.unfollowUser(userId, unfollowId);
+  async unfollowUser(user_id: string, unfollow_id: string) {
+    const modelResponse = await user.unfollowUser(user_id, unfollow_id);
     if (!modelResponse.success) {
       throw new ValidationError(modelResponse.reason);
     }
     return modelResponse.data;
   },
-  async followPlaylist(userId: string, playlistId: string) {
-    const modelResponse = await user.followPlaylist(userId, playlistId);
+  async followPlaylist(user_id: string, platlist_id: string) {
+    const modelResponse = await user.followPlaylist(user_id, platlist_id);
     if (!modelResponse.success) {
       throw new ValidationError(modelResponse.reason);
     }
     return modelResponse.data;
   },
-  async unfollowPlaylist(userId: string, playlistId: string) {
-    const modelResponse = await user.unfollowPlaylist(userId, playlistId);
+  async unfollowPlaylist(user_id: string, platlist_id: string) {
+    const modelResponse = await user.unfollowPlaylist(user_id, platlist_id);
     if (!modelResponse.success) {
       throw new ValidationError(modelResponse.reason);
     }
     return modelResponse.data;
   },
-  async deleteUser(userId: string) {
-    const modelResponse = await user.deleteUser(userId);
+  async deleteUser(user_id: string) {
+    const modelResponse = await user.deleteUser(user_id);
     if (!modelResponse.success) {
       throw new NotFoundError(modelResponse.reason);
     }
     return modelResponse.data;
   },
-  async updateUserAvatar(userId: string, fileBuffer: Express.Multer.File) {
-    const modelResponse = await user.updateUserAvatar(userId, fileBuffer);
+  async updateUserAvatar(user_id: string, fileBuffer: Express.Multer.File) {
+    const modelResponse = await user.updateUserAvatar(user_id, fileBuffer);
     if (!modelResponse.success) {
       throw new NotFoundError(modelResponse.reason);
     }
     return modelResponse.data;
   },
-  async getUserAvatar(userId: string) {
-    const modelResponse = await user.getUserAvatar(userId);
+  async getUserAvatar(user_id: string) {
+    const modelResponse = await user.getUserAvatar(user_id);
     if (!modelResponse.success) {
       throw new NotFoundError(modelResponse.reason);
     }

@@ -1,18 +1,28 @@
-import { useAuth } from '../../features/auth/authService.ts';
+import { useUser } from '../../features/auth/authService.ts';
 import styled from 'styled-components';
 import { Avatar } from '../UI/Avatar';
+import { useNavigate } from 'react-router';
 
-export const ProfileCard = () => {
-  const userData = useAuth();
+export const ProfileCard = ({ onClick }: { onClick: () => void }) => {
+  const { avatarUrl, visibleUsername, logout } = useUser();
+  const navigate = useNavigate();
 
   return (
     <StyledProfileCard>
-      <Avatar size={64} src={userData.currentUser?.avatar_url} />
-      <div className="visible-username">{userData.currentUser?.visible_username ?? 'Name'}</div>
+      <Avatar size={64} src={avatarUrl} />
+      <div className="visible-username">{visibleUsername ?? 'Your Name'}</div>
       <div className="items">
-        <div className="item">Profile</div>
+        <div
+          className="item"
+          onClick={() => {
+            navigate('/profile');
+            onClick();
+          }}
+        >
+          Profile
+        </div>
         <div className="item">Settings</div>
-        <div onClick={userData.logout} className="item">
+        <div onClick={logout} className="item">
           Log Out
         </div>
       </div>

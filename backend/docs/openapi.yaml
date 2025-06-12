@@ -88,7 +88,7 @@ paths:
             schema:
               type: object
               properties:
-                visibleUsername:
+                visible_username:
                   type: string
 
       responses:
@@ -296,7 +296,7 @@ components:
     UserInfo:
       type: object
       properties:
-        userId:
+        user_id:
           type: string
           format: uuid
         visible_username:
@@ -310,7 +310,7 @@ components:
     UserPreview:
       type: object
       properties:
-        id:
+        user_id:
           type: string
           format: uuid
         visible_username:
@@ -322,7 +322,7 @@ components:
   parameters:
     UserIdParameter:
       in: path
-      name: userId
+      name: user_id
       required: true
       schema:
         type: string
@@ -330,7 +330,7 @@ components:
 
     PlaylistIdParameter:
       in: path
-      name: playlistId
+      name: playlist_id
       required: true
       schema:
         type: string
