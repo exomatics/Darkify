@@ -1,5 +1,6 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { api } from '../../api/api.ts';
+import log from 'loglevel';
 
 export const useLocalModel = () => {
   const userInfo = useQuery({
@@ -14,6 +15,9 @@ export const useLocalModel = () => {
 
   const updateAvatarMutation = useMutation({
     mutationFn: (formData: FormData) => api.user.putUsersMeAvatar(formData),
+    onError: (error: Error) => {
+      log.error(error);
+    },
   });
 
   return {
