@@ -139,12 +139,9 @@ router.put(
         throw new ValidationError(JSON.stringify(validation.error.flatten()));
       }
 
-      const databaseResponse = await userController.updateUserSettings(
-        '7938a56a-5ced-4c35-a1e1-a03e507ec419',
-        {
-          bitrate: validation.data.bitrate,
-        },
-      );
+      const databaseResponse = await userController.updateUserSettings(validation.data.userId, {
+        bitrate: validation.data.bitrate,
+      });
       response.status(200).json(databaseResponse);
     },
   ),
