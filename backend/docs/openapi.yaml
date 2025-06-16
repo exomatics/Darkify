@@ -112,6 +112,37 @@ paths:
           $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/Unauthorized'
+  /users/me/settings:
+    get:
+      tags: [User]
+      summary: Get current user settings
+
+      responses:
+        '200':
+          description: List of user settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSettings'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    put:
+      tags: [User]
+      summary: Update current user settings
+
+      responses:
+        '200':
+          description: List of user settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSettings'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
   /users/me/following:
     get:
       tags: [User]
@@ -306,7 +337,15 @@ components:
           format: uri-reference
         followers:
           type: integer
-
+    UserSettings:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuuid
+        bitrate:
+          description: User's bitrate option. Can be low, normal, high, veryHigh or auto.
+          type: string
     UserPreview:
       type: object
       properties:

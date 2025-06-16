@@ -125,7 +125,7 @@ router.put(
 );
 router.put(
   ROUTES.USERS.PUT_ME_SETTINGS,
-  // passport.authenticate('access-token', { session: false }) as RequestHandler,
+  passport.authenticate('access-token', { session: false }) as RequestHandler,
   asyncHandler(
     async (
       request: Request<ParamsDictionary, unknown, Pick<IUser, 'bitrate'>>,

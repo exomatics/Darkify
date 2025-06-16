@@ -150,7 +150,9 @@ class UserManager {
   async updateUserSettings(
     userId: string,
     userSettings: Pick<IUser, 'bitrate'>,
-  ): Promise<Result<{ id: string; bitrate: string }, typeof errorMessages.user.NotExistsById>> {
+  ): Promise<
+    Result<{ user_id: string; bitrate: string }, typeof errorMessages.user.NotExistsById>
+  > {
     const userRecord = await this.getUserById(userId);
     if (!userRecord.success) {
       return { success: false, reason: errorMessages.user.NotExistsById };
@@ -161,7 +163,7 @@ class UserManager {
     return {
       success: true,
       data: {
-        id: userRecord.data.id,
+        user_id: userRecord.data.id,
         bitrate: userRecord.data.bitrate,
       },
     };

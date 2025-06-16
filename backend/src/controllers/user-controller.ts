@@ -32,7 +32,7 @@ export default {
     if (!userRecord.success) {
       throw new NotFoundError(userRecord.reason);
     }
-    const userSettings = { userId: userRecord.data.id, bitrate: userRecord.data.bitrate };
+    const userSettings = { user_id: userRecord.data.id, bitrate: userRecord.data.bitrate };
     return userSettings;
   },
   async getUserFollowing(
