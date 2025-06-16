@@ -11,6 +11,7 @@ import {
   userFollowScheme,
   playlistFollowScheme,
   userAvatarScheme,
+  updateUserSettingsScheme,
 } from '../validator.ts';
 
 import { ROUTES } from './routes.ts';
@@ -75,6 +76,18 @@ router.get(
   }),
 );
 router.get(
+  ROUTES.USERS.GET_ME_SETTINGS,
+  passport.authenticate('access-token', { session: false }) as RequestHandler,
+  asyncHandler(async (request: Request, response: Response) => {
+    const validation = uuidScheme.safeParse(request.jwtPayload.userId);
+    if (!validation.success) {
+      throw new ValidationError(JSON.stringify(validation.error.flatten()));
+    }
+    const databaseResponse = await userController.getUserSettings(request.jwtPayload.userId);
+    response.status(200).json(databaseResponse);
+  }),
+);
+router.get(
   ROUTES.USERS.GET_USER,
   passport.authenticate('access-token', { session: false }) as RequestHandler,
   asyncHandler(async (request: Request, response: Response) => {
@@ -106,6 +119,32 @@ router.put(
       const databaseResponse = await userController.updateUserInfo(validation.data.userId, {
         visibleUsername: validation.data.visibleUsername,
       });
+      response.status(200).json(databaseResponse);
+    },
+  ),
+);
+router.put(
+  ROUTES.USERS.PUT_ME_SETTINGS,
+  // passport.authenticate('access-token', { session: false }) as RequestHandler,
+  asyncHandler(
+    async (
+      request: Request<ParamsDictionary, unknown, Pick<IUser, 'bitrate'>>,
+      response: Response,
+    ) => {
+      const validation = updateUserSettingsScheme.safeParse({
+        userId: request.jwtPayload.userId,
+        ...request.body,
+      });
+      if (!validation.success) {
+        throw new ValidationError(JSON.stringify(validation.error.flatten()));
+      }
+
+      const databaseResponse = await userController.updateUserSettings(
+        '7938a56a-5ced-4c35-a1e1-a03e507ec419',
+        {
+          bitrate: validation.data.bitrate,
+        },
+      );
       response.status(200).json(databaseResponse);
     },
   ),

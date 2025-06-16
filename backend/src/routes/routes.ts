@@ -20,7 +20,9 @@ export const ROUTES = Object.freeze({
   USERS: {
     GET_ME: `${API_BASE}/users/me`,
     PUT_ME: `${API_BASE}/users/me`,
+    PUT_ME_SETTINGS: `${API_BASE}/users/me/settings`,
     DELETE_ME: `${API_BASE}/users/me`,
+    GET_ME_SETTINGS: `${API_BASE}/users/me/settings`,
     GET_ME_AVATAR: `${API_BASE}/users/me/avatar`,
     GET_ME_FOLLOWING: `${API_BASE}/users/me/following`,
     GET_USER: `${API_BASE}/users/:userId`,

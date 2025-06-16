@@ -147,6 +147,25 @@ class UserManager {
       },
     };
   }
+  async updateUserSettings(
+    userId: string,
+    userSettings: Pick<IUser, 'bitrate'>,
+  ): Promise<Result<{ id: string; bitrate: string }, typeof errorMessages.user.NotExistsById>> {
+    const userRecord = await this.getUserById(userId);
+    if (!userRecord.success) {
+      return { success: false, reason: errorMessages.user.NotExistsById };
+    }
+    await userRecord.data.update({
+      bitrate: userSettings.bitrate,
+    });
+    return {
+      success: true,
+      data: {
+        id: userRecord.data.id,
+        bitrate: userRecord.data.bitrate,
+      },
+    };
+  }
   async followUser(
     userId: string,
     followId: string,
@@ -297,6 +316,7 @@ class UserManager {
       username: crypto.randomBytes(4).toString('hex'),
       email: userInfo.email,
       avatar_url: null,
+      bitrate: 'high',
     });
 
     return {

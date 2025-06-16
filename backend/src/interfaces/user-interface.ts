@@ -8,4 +8,5 @@ export interface IUser {
   salt: string;
   email?: string;
   password: string;
+  bitrate: 'low' | 'normal' | 'high' | 'veryHigh' | 'auto';
 }

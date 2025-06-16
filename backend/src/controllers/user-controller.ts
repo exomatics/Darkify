@@ -27,6 +27,14 @@ export default {
     };
     return requiredUserInfo;
   },
+  async getUserSettings(userId: string) {
+    const userRecord = await user.getUserById(userId);
+    if (!userRecord.success) {
+      throw new NotFoundError(userRecord.reason);
+    }
+    const userSettings = { userId: userRecord.data.id, bitrate: userRecord.data.bitrate };
+    return userSettings;
+  },
   async getUserFollowing(
     userId: string,
     limit: number = DEFAULT_LIMIT,
@@ -46,6 +54,13 @@ export default {
   },
   async updateUserInfo(userId: string, userInfo: Pick<IUser, 'visibleUsername'>) {
     const modelResponse = await user.updateUserInfo(userId, userInfo);
+    if (!modelResponse.success) {
+      throw new NotFoundError(modelResponse.reason);
+    }
+    return modelResponse.data;
+  },
+  async updateUserSettings(userId: string, userSettings: Pick<IUser, 'bitrate'>) {
+    const modelResponse = await user.updateUserSettings(userId, userSettings);
     if (!modelResponse.success) {
       throw new NotFoundError(modelResponse.reason);
     }

@@ -3,6 +3,7 @@ import { z } from 'zod';
 import database from './config/database.ts';
 import { errorMessages } from './errors/error-messages.ts';
 import NotFoundError from './errors/not-found-error.ts';
+import { BITRATE_OPTIONS } from './config/config.ts';
 
 const uuidScheme = z.string().uuid();
 function requireAtLeastOneCheck(object: Record<string | number | symbol, unknown>) {
@@ -77,6 +78,10 @@ const updateUserScheme = z.object({
   userId: uuidScheme,
   visibleUsername: visibleUsernameScheme,
 });
+const updateUserSettingsScheme = z.object({
+  userId: uuidScheme,
+  bitrate: z.enum(['low', 'normal', 'high', 'veryHigh', 'auto']),
+});
 
 export {
   uuidScheme,
@@ -84,6 +89,7 @@ export {
   refreshTokenScheme,
   registerScheme,
   updateUserScheme,
+  updateUserSettingsScheme,
   userIdScheme,
   userFollowScheme,
   playlistFollowScheme,
