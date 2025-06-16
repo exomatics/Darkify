@@ -79,11 +79,11 @@ router.get(
   ROUTES.USERS.GET_ME_SETTINGS,
   passport.authenticate('access-token', { session: false }) as RequestHandler,
   asyncHandler(async (request: Request, response: Response) => {
-    const validation = uuidScheme.safeParse(request.jwtPayload.userId);
+    const validation = uuidScheme.safeParse(request.jwtPayload.user_id);
     if (!validation.success) {
       throw new ValidationError(JSON.stringify(validation.error.flatten()));
     }
-    const databaseResponse = await userController.getUserSettings(request.jwtPayload.userId);
+    const databaseResponse = await userController.getUserSettings(request.jwtPayload.user_id);
     response.status(200).json(databaseResponse);
   }),
 );
@@ -132,7 +132,7 @@ router.put(
       response: Response,
     ) => {
       const validation = updateUserSettingsScheme.safeParse({
-        userId: request.jwtPayload.userId,
+        userId: request.jwtPayload.user_id,
         ...request.body,
       });
       if (!validation.success) {
