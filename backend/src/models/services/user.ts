@@ -20,21 +20,21 @@ import type { UserModel } from '../user.ts';
 import type { InferAttributes, InferCreationAttributes, Model } from 'sequelize';
 
 interface ResultUserData {
-  id: string;
+  user_id: string;
   visible_username: string;
   avatar_url: string | null;
 }
 
 class UserManager {
   async getUserById(
-    userId: string,
+    user_id: string,
   ): Promise<
     Result<
       UserModel,
       typeof errorMessages.user.NotExistsById | typeof errorMessages.user.NotFollowsAnyone
     >
   > {
-    const userRecord = await database.userModel.findByPk(userId);
+    const userRecord = await database.userModel.findByPk(user_id);
     if (!userRecord) {
       return { success: false, reason: errorMessages.user.NotExistsById };
     }
@@ -73,19 +73,19 @@ class UserManager {
     return { success: true, data: userRecord };
   }
   async getUserFollowersNumber(
-    userId: string,
+    user_id: string,
   ): Promise<Result<number, typeof errorMessages.user.NotExistsById>> {
-    const userRecord = await this.getUserById(userId);
+    const userRecord = await this.getUserById(user_id);
     if (!userRecord.success) {
       return { success: false, reason: errorMessages.user.NotExistsById };
     }
     const followersCount = await database.userFollowersModel.count({
-      where: { user_id: userId },
+      where: { user_id },
     });
     return { success: true, data: followersCount };
   }
   async getUserFollowing(
-    userId: string,
+    user_id: string,
     limit: number = DEFAULT_LIMIT,
     offset: number = DEFAULT_OFFSET,
   ): Promise<
@@ -94,13 +94,13 @@ class UserManager {
       typeof errorMessages.user.NotExistsById | typeof errorMessages.user.NotFollowsAnyone
     >
   > {
-    const userRecord = await this.getUserById(userId);
+    const userRecord = await this.getUserById(user_id);
     if (!userRecord.success) {
       return { success: false, reason: errorMessages.user.NotExistsById };
     }
     const userFollowingRecords = await database.userFollowingModel.findAndCountAll({
       attributes: ['following_id'],
-      where: { user_id: userId },
+      where: { user_id },
       offset,
       limit,
     });
@@ -126,20 +126,20 @@ class UserManager {
     return { success: true, data: { rows: followingUsers, count: userFollowingRecords.count } };
   }
   async updateUserInfo(
-    userId: string,
-    userInfo: Pick<IUser, 'visibleUsername'>,
+    user_id: string,
+    userInfo: Pick<IUser, 'visible_username'>,
   ): Promise<Result<ResultUserData, typeof errorMessages.user.NotExistsById>> {
-    const userRecord = await this.getUserById(userId);
+    const userRecord = await this.getUserById(user_id);
     if (!userRecord.success) {
       return { success: false, reason: errorMessages.user.NotExistsById };
     }
     await userRecord.data.update({
-      visible_username: userInfo.visibleUsername ?? userRecord.data.visible_username,
+      visible_username: userInfo.visible_username ?? userRecord.data.visible_username,
     });
     return {
       success: true,
       data: {
-        id: userRecord.data.id,
+        user_id: userRecord.data.id,
         visible_username: userRecord.data.visible_username,
         avatar_url: userRecord.data.avatar_url
           ? `${STATIC_DIRECTORY_PATH}/${userRecord.data.avatar_url}.jpg`
@@ -167,8 +167,8 @@ class UserManager {
     };
   }
   async followUser(
-    userId: string,
-    followId: string,
+    user_id: string,
+    follow_id: string,
   ): Promise<
     Result<
       null,
@@ -177,27 +177,27 @@ class UserManager {
       | typeof errorMessages.user.CanNotFollowYourself
     >
   > {
-    const userRecord = await this.getUserById(userId);
+    const userRecord = await this.getUserById(user_id);
     if (!userRecord.success) {
       return { success: false, reason: errorMessages.user.NotExistsById };
     }
     const userFollowingRecord = await database.userFollowingModel.findOne({
-      where: { user_id: userId, following_id: followId },
+      where: { user_id, following_id: follow_id },
     });
     if (userFollowingRecord) {
       return { success: false, reason: errorMessages.user.AlreadyFollowsUser };
     }
-    if (userId === followId) {
+    if (user_id === follow_id) {
       return { success: false, reason: errorMessages.user.CanNotFollowYourself };
     }
     try {
       await database.sequelize.transaction(async (transaction) => {
         await database.userFollowingModel.create(
-          { user_id: userId, following_id: followId },
+          { user_id, following_id: follow_id },
           { transaction },
         );
         await database.userFollowersModel.create(
-          { followers_id: userId, user_id: followId },
+          { followers_id: user_id, user_id: follow_id },
           { transaction },
         );
       });
@@ -207,14 +207,14 @@ class UserManager {
     return { success: true, data: null };
   }
   async unfollowUser(
-    userId: string,
-    unfollowId: string,
+    user_id: string,
+    unfollow_id: string,
   ): Promise<Result<null, typeof errorMessages.user.NotFollowsUser>> {
     const userFollowingRecord = await database.userFollowingModel.findOne({
-      where: { user_id: userId, following_id: unfollowId },
+      where: { user_id, following_id: unfollow_id },
     });
     const userFollowersRecord = await database.userFollowersModel.findOne({
-      where: { followers_id: userId, user_id: unfollowId },
+      where: { followers_id: user_id, user_id: unfollow_id },
     });
 
     if (!userFollowingRecord || !userFollowersRecord) {
@@ -231,51 +231,51 @@ class UserManager {
     }
   }
   async isPlaylistExist(
-    playlistId: string,
+    playlist_id: string,
   ): Promise<Result<PlaylistModel, typeof errorMessages.playlist.NotExistsById>> {
-    const playlistRecord = await database.playlistModel.findByPk(playlistId);
+    const playlistRecord = await database.playlistModel.findByPk(playlist_id);
     if (!playlistRecord) {
       return { success: false, reason: errorMessages.playlist.NotExistsById };
     }
     return { success: true, data: playlistRecord };
   }
   async followPlaylist(
-    userId: string,
-    playlistId: string,
+    user_id: string,
+    playlist_id: string,
   ): Promise<
     Result<
       null,
       typeof errorMessages.playlist.NotExistsById | typeof errorMessages.user.AlreadyFollowsPlaylist
     >
   > {
-    const platlistRecord = await this.isPlaylistExist(playlistId);
+    const platlistRecord = await this.isPlaylistExist(playlist_id);
     if (!platlistRecord.success) {
       return platlistRecord;
     }
     const playlistFollowersRecord = await database.playlistFollowersModel.findOne({
-      where: { user_id: userId, playlist_id: playlistId },
+      where: { user_id, playlist_id },
     });
     if (playlistFollowersRecord) {
       return { success: false, reason: errorMessages.user.AlreadyFollowsPlaylist };
     }
-    await database.playlistFollowersModel.create({ user_id: userId, playlist_id: playlistId });
+    await database.playlistFollowersModel.create({ user_id, playlist_id });
     return { success: true, data: null };
   }
   async unfollowPlaylist(
-    userId: string,
-    playlistId: string,
+    user_id: string,
+    playlist_id: string,
   ): Promise<
     Result<
       null,
       typeof errorMessages.playlist.NotExistsById | typeof errorMessages.user.NotFollowsPlaylist
     >
   > {
-    const platlistRecord = await this.isPlaylistExist(playlistId);
+    const platlistRecord = await this.isPlaylistExist(playlist_id);
     if (!platlistRecord.success) {
       return platlistRecord;
     }
     const playlistFollowersRecord = await database.playlistFollowersModel.findOne({
-      where: { user_id: userId, playlist_id: playlistId },
+      where: { user_id, playlist_id },
     });
     if (!playlistFollowersRecord) {
       return { success: false, reason: errorMessages.user.NotFollowsPlaylist };
@@ -283,8 +283,10 @@ class UserManager {
     await playlistFollowersRecord.destroy();
     return { success: true, data: null };
   }
-  async deleteUser(userId: string): Promise<Result<null, typeof errorMessages.user.NotExistsById>> {
-    const userRecord = await this.getUserById(userId);
+  async deleteUser(
+    user_id: string,
+  ): Promise<Result<null, typeof errorMessages.user.NotExistsById>> {
+    const userRecord = await this.getUserById(user_id);
     if (!userRecord.success) {
       return { success: false, reason: errorMessages.user.NotExistsById };
     }
@@ -322,13 +324,13 @@ class UserManager {
     return {
       success: true,
       data: issueBothTokens({
-        userId: newUser.id,
+        user_id: newUser.id,
         hash: newUser.hash,
       }),
     };
   }
   async sendNewAccessTokenToUser(userInfo: {
-    userId: string;
+    user_id: string;
     hash: string;
   }): Promise<
     Result<
@@ -336,7 +338,7 @@ class UserManager {
       typeof errorMessages.user.NotExistsById | typeof errorMessages.user.WrongPassword
     >
   > {
-    const userRecord = await this.getUserById(userInfo.userId);
+    const userRecord = await this.getUserById(userInfo.user_id);
     if (!userRecord.success) {
       return { success: false, reason: errorMessages.user.NotExistsById };
     }
@@ -349,7 +351,7 @@ class UserManager {
     return {
       success: true,
       data: {
-        accessToken: issueAccessToken({ userId: userInfo.userId, hash: userRecord.data.hash }),
+        accessToken: issueAccessToken({ user_id: userInfo.user_id, hash: userRecord.data.hash }),
       },
     };
   }
@@ -375,7 +377,7 @@ class UserManager {
       return { success: false, reason: errorMessages.user.WrongPassword };
     }
     const tokens = issueBothTokens({
-      userId: userRecord.data.id,
+      user_id: userRecord.data.id,
       hash: userRecord.data.hash,
     });
     return {
@@ -384,9 +386,9 @@ class UserManager {
     };
   }
   async getUserAvatar(
-    userId: string,
+    user_id: string,
   ): Promise<Result<string | null, typeof errorMessages.user.NotExistsById>> {
-    const userRecord = await this.getUserById(userId);
+    const userRecord = await this.getUserById(user_id);
     if (!userRecord.success) {
       return { success: false, reason: errorMessages.user.NotExistsById };
     }
@@ -398,10 +400,10 @@ class UserManager {
     };
   }
   async updateUserAvatar(
-    userId: string,
+    user_id: string,
     fileBuffer: Express.Multer.File,
   ): Promise<Result<string | null, typeof errorMessages.user.NotExistsById>> {
-    const userRecord = await this.getUserById(userId);
+    const userRecord = await this.getUserById(user_id);
     if (!userRecord.success) {
       return { success: false, reason: errorMessages.user.NotExistsById };
     }

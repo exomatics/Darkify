@@ -14,7 +14,7 @@ export default {
       ...databaseResponse.data,
     };
   },
-  async sendNewAccessTokenToUser(userInfo: { userId: string; hash: string }) {
+  async sendNewAccessTokenToUser(userInfo: { user_id: string; hash: string }) {
     const databaseResponse = await user.sendNewAccessTokenToUser(userInfo);
     if (!databaseResponse.success) {
       throw new NotFoundError(databaseResponse.reason);

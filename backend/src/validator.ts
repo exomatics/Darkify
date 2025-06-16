@@ -14,8 +14,8 @@ const hashScheme = z
   .length(128);
 const usernameScheme = z.string().max(25);
 const emailScheme = z.string().email();
-const userIdScheme = uuidScheme.refine(async (userId) => {
-  const fullUserInfo = await database.userModel.findByPk(userId);
+const userIdScheme = uuidScheme.refine(async (user_id) => {
+  const fullUserInfo = await database.userModel.findByPk(user_id);
   if (!fullUserInfo) {
     throw new NotFoundError(errorMessages.user.NotExistsById);
   }
@@ -47,7 +47,7 @@ const loginScheme = z
     return requireAtLeastOneCheck({ username, email });
   }, errorMessages.validation.SpecifyUsernameOrEmail);
 const refreshTokenScheme = z.object({
-  userId: uuidScheme,
+  user_id: uuidScheme,
   hash: hashScheme,
 });
 const registerScheme = z.object({
@@ -55,15 +55,15 @@ const registerScheme = z.object({
   email: emailScheme,
 });
 const userFollowScheme = z.object({
-  userId: uuidScheme,
-  followId: uuidScheme,
+  user_id: uuidScheme,
+  follow_id: uuidScheme,
 });
 const playlistFollowScheme = z.object({
-  userId: uuidScheme,
-  playlistId: uuidScheme,
+  user_id: uuidScheme,
+  playlist_id: uuidScheme,
 });
 const userAvatarScheme = z.object({
-  userId: uuidScheme,
+  user_id: uuidScheme,
   file: z.custom<Express.Multer.File>(
     (value: Express.Multer.File) => {
       return value;
@@ -74,8 +74,8 @@ const userAvatarScheme = z.object({
 const visibleUsernameScheme = z.string().max(25);
 
 const updateUserScheme = z.object({
-  userId: uuidScheme,
-  visibleUsername: visibleUsernameScheme,
+  user_id: uuidScheme,
+  visible_username: visibleUsernameScheme,
 });
 const updateUserSettingsScheme = z.object({
   userId: uuidScheme,
