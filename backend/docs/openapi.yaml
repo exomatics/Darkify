@@ -301,7 +301,7 @@ components:
           $ref: '#/components/schemas/Password'
     Bitrate:
       description: User's bitrate option. Can be low, normal, high, veryHigh or auto.
-      type: integer
+      type: string
       enum: [low, normal, high, veryHigh, auto]
     LoginRequest:
       type: object
