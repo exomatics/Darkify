@@ -1,8 +1,8 @@
 enum Bitrate {
-  low = 'low',
-  normal = 'normal',
-  high = 'high',
-  veryHigh = 'veryHigh',
-  auto = 'auto',
+  Low = 'low',
+  Normal = 'normal',
+  High = 'high',
+  VeryHigh = 'veryHigh',
+  Auto = 'auto',
 }
 export { Bitrate };

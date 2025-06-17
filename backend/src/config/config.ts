@@ -1,5 +1,6 @@
 import path from 'node:path';
 
+import { Bitrate } from '../types/bitrate-type.ts';
 const __dirname = import.meta.dirname;
 export const PROJECT_ROOT = path.join(__dirname, '..', '..');
 export const PUBLIC_KEY_FILE_NAME = 'id_rsa_pub.pem';
@@ -13,9 +14,9 @@ export const PATH_TO_IMAGES = path.join(PROJECT_ROOT, 'uploads', 'images');
 export const STATIC_DIRECTORY_PATH = '/files';
 export const PATH_TO_OPENAPI = path.resolve(PROJECT_ROOT, 'docs', 'openapi.yaml');
 export const BITRATE_OPTIONS = {
-  low: '24kb',
-  normal: '96kb',
-  high: '160kb',
-  veryHigh: '320kb',
-  auto: 'auto',
+  [Bitrate.low]: '24kb',
+  [Bitrate.normal]: '96kb',
+  [Bitrate.high]: '160kb',
+  [Bitrate.veryHigh]: '320kb',
+  [Bitrate.auto]: 'auto',
 };
