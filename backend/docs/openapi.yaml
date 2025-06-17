@@ -346,6 +346,7 @@ components:
         bitrate:
           description: User's bitrate option. Can be low, normal, high, veryHigh or auto.
           type: string
+          enum: [low, normal, high, veryHigh, auto]
     UserPreview:
       type: object
       properties:
