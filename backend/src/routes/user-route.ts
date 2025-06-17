@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import multer from 'multer';
 import passport from 'passport';
+import { z } from 'zod/v4';
 
 import userController from '../controllers/user-controller.ts';
 import ValidationError from '../errors/validation-error.ts';
@@ -11,6 +12,7 @@ import {
   userFollowScheme,
   playlistFollowScheme,
   userAvatarScheme,
+  updateUserSettingsScheme,
 } from '../validator.ts';
 
 import { ROUTES } from './routes.ts';
@@ -42,7 +44,7 @@ router.get(
   asyncHandler(async (request: Request, response: Response) => {
     const validation = uuidScheme.safeParse(request.jwtPayload.user_id);
     if (!validation.success) {
-      throw new ValidationError(JSON.stringify(validation.error.flatten()));
+      throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }
     const databaseResponse = await userController.getUserInfo(validation.data.trim());
     response.status(200).json(databaseResponse);
@@ -54,7 +56,7 @@ router.get(
   asyncHandler(async (request: Request, response: Response) => {
     const validation = uuidScheme.safeParse(request.jwtPayload.user_id);
     if (!validation.success) {
-      throw new ValidationError(JSON.stringify(validation.error.flatten()));
+      throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }
 
     const databaseResponse = await userController.getUserFollowing(validation.data.trim());
@@ -67,7 +69,7 @@ router.get(
   asyncHandler(async (request: Request, response: Response) => {
     const validation = uuidScheme.safeParse(request.jwtPayload.user_id);
     if (!validation.success) {
-      throw new ValidationError(JSON.stringify(validation.error.flatten()));
+      throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }
 
     const databaseResponse = await userController.getUserAvatar(request.jwtPayload.user_id);
@@ -75,14 +77,24 @@ router.get(
   }),
 );
 router.get(
-  ROUTES.USERS.GET_USER,
+  ROUTES.USERS.GET_ME_SETTINGS,
   passport.authenticate('access-token', { session: false }) as RequestHandler,
+  asyncHandler(async (request: Request, response: Response) => {
+    const validation = uuidScheme.safeParse(request.jwtPayload.user_id);
+    if (!validation.success) {
+      throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
+    }
+    const databaseResponse = await userController.getUserSettings(request.jwtPayload.user_id);
+    response.status(200).json(databaseResponse);
+  }),
+);
+router.get(
+  ROUTES.USERS.GET_USER,
   asyncHandler(async (request: Request, response: Response) => {
     const validation = uuidScheme.safeParse(request.params.user_id);
     if (!validation.success) {
-      throw new ValidationError(JSON.stringify(validation.error.flatten()));
+      throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }
-
     const databaseResponse = await userController.getUserInfo(validation.data.trim());
     response.status(200).json(databaseResponse);
   }),
@@ -100,11 +112,34 @@ router.put(
         ...request.body,
       });
       if (!validation.success) {
-        throw new ValidationError(JSON.stringify(validation.error.flatten()));
+        throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
       }
 
       const databaseResponse = await userController.updateUserInfo(validation.data.user_id, {
         visible_username: validation.data.visible_username,
+      });
+      response.status(200).json(databaseResponse);
+    },
+  ),
+);
+router.put(
+  ROUTES.USERS.PUT_ME_SETTINGS,
+  passport.authenticate('access-token', { session: false }) as RequestHandler,
+  asyncHandler(
+    async (
+      request: Request<ParamsDictionary, unknown, Pick<IUser, 'bitrate'>>,
+      response: Response,
+    ) => {
+      const validation = updateUserSettingsScheme.safeParse({
+        userId: request.jwtPayload.user_id,
+        ...request.body,
+      });
+      if (!validation.success) {
+        throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
+      }
+
+      const databaseResponse = await userController.updateUserSettings(validation.data.userId, {
+        bitrate: validation.data.bitrate,
       });
       response.status(200).json(databaseResponse);
     },
@@ -119,7 +154,7 @@ router.post(
       follow_id: request.params.user_id,
     });
     if (!validation.success) {
-      throw new ValidationError(JSON.stringify(validation.error.flatten()));
+      throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }
 
     const databaseResponse = await userController.followUser(
@@ -138,7 +173,7 @@ router.post(
       follow_id: request.params.user_id,
     });
     if (!validation.success) {
-      throw new ValidationError(JSON.stringify(validation.error.flatten()));
+      throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }
 
     const databaseResponse = await userController.unfollowUser(
@@ -157,7 +192,7 @@ router.post(
       playlist_id: request.params.playlist_id,
     });
     if (!validation.success) {
-      throw new ValidationError(JSON.stringify(validation.error.flatten()));
+      throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }
 
     const databaseResponse = await userController.followPlaylist(
@@ -176,7 +211,7 @@ router.post(
       playlist_id: request.params.playlist_id,
     });
     if (!validation.success) {
-      throw new ValidationError(JSON.stringify(validation.error.flatten()));
+      throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }
 
     const databaseResponse = await userController.unfollowPlaylist(
@@ -196,7 +231,7 @@ router.put(
       file: request.file,
     });
     if (!validation.success) {
-      throw new ValidationError(JSON.stringify(validation.error.flatten()));
+      throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }
 
     const databaseResponse = await userController.updateUserAvatar(
@@ -212,7 +247,7 @@ router.delete(
   asyncHandler(async (request: Request, response: Response) => {
     const validation = uuidScheme.safeParse(request.jwtPayload.user_id);
     if (!validation.success) {
-      throw new ValidationError(JSON.stringify(validation.error.flatten()));
+      throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }
 
     const databaseResponse = await userController.deleteUser(validation.data);

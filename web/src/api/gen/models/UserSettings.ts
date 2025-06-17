@@ -2,4 +2,8 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type Password = string;
+import type { Bitrate } from './Bitrate';
+export type UserSettings = {
+  user_id?: string;
+  bitrate?: Bitrate;
+};

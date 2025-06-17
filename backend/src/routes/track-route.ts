@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { z } from 'zod/v4';
 
 import trackController from '../controllers/track-controller.ts';
 import ValidationError from '../errors/validation-error.ts';
@@ -16,7 +17,7 @@ router.get(
   asyncHandler(async (request: Request, response: Response) => {
     const validation = uuidScheme.safeParse(request.params.trackId);
     if (!validation.success) {
-      throw new ValidationError(JSON.stringify(validation.error.flatten()));
+      throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }
     const databaseResponse = await trackController.getTrackInfo(validation.data);
     response.status(200).json(databaseResponse);

@@ -1,3 +1,5 @@
+import type { Bitrate } from '../types/bitrate-type.ts';
+
 export interface IUser {
   user_id: string;
   username?: string;
@@ -8,4 +10,5 @@ export interface IUser {
   salt: string;
   email?: string;
   password: string;
+  bitrate: Bitrate;
 }

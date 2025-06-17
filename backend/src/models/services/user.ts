@@ -13,13 +13,12 @@ import verifyPassword from '../../utils/password-verification.ts';
 import { FileUploader } from './file-management.ts';
 
 import type { IUser } from '../../interfaces/user-interface.ts';
+import type { Result } from '../../types/result-type.ts';
 import type { PlaylistModel } from '../playlist.ts';
 import type { UserFollowingModel } from '../user-following.ts';
 import type { UserModel } from '../user.ts';
 import type { InferAttributes, InferCreationAttributes, Model } from 'sequelize';
-type Result<TOk = void, TError extends string = string> =
-  | { success: true; data: TOk }
-  | { success: false; reason: TError };
+
 interface ResultUserData {
   user_id: string;
   visible_username: string;
@@ -145,6 +144,30 @@ class UserManager {
         avatar_url: userRecord.data.avatar_url
           ? `${STATIC_DIRECTORY_PATH}/${userRecord.data.avatar_url}.jpg`
           : null,
+      },
+    };
+  }
+  async updateUserSettings(
+    userId: string,
+    userSettings: Pick<IUser, 'bitrate'>,
+  ): Promise<
+    Result<
+      { user_id: string; bitrate: string | undefined },
+      typeof errorMessages.user.NotExistsById
+    >
+  > {
+    const userRecord = await this.getUserById(userId);
+    if (!userRecord.success) {
+      return { success: false, reason: errorMessages.user.NotExistsById };
+    }
+    await userRecord.data.update({
+      bitrate: userSettings.bitrate,
+    });
+    return {
+      success: true,
+      data: {
+        user_id: userRecord.data.id,
+        bitrate: userRecord.data.bitrate,
       },
     };
   }
