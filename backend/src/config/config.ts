@@ -14,9 +14,9 @@ export const PATH_TO_IMAGES = path.join(PROJECT_ROOT, 'uploads', 'images');
 export const STATIC_DIRECTORY_PATH = '/files';
 export const PATH_TO_OPENAPI = path.resolve(PROJECT_ROOT, 'docs', 'openapi.yaml');
 export const BITRATE_OPTIONS = {
-  [Bitrate.low]: '24kb',
-  [Bitrate.normal]: '96kb',
-  [Bitrate.high]: '160kb',
-  [Bitrate.veryHigh]: '320kb',
-  [Bitrate.auto]: 'auto',
+  [Bitrate.Low]: '24kb',
+  [Bitrate.Normal]: '96kb',
+  [Bitrate.High]: '160kb',
+  [Bitrate.VeryHigh]: '320kb',
+  [Bitrate.Auto]: 'auto',
 };
