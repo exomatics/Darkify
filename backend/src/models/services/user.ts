@@ -320,7 +320,6 @@ class UserManager {
       username: crypto.randomBytes(4).toString('hex'),
       email: userInfo.email,
       avatar_url: null,
-      bitrate: 'high',
     });
 
     return {

@@ -1,10 +1,9 @@
-import { z } from 'zod';
+import { z } from 'zod/v4';
 
 import database from './config/database.ts';
 import { errorMessages } from './errors/error-messages.ts';
 import NotFoundError from './errors/not-found-error.ts';
-
-const uuidScheme = z.string().uuid();
+const uuidScheme = z.uuid();
 function requireAtLeastOneCheck(object: Record<string | number | symbol, unknown>) {
   return Object.values(object).some((value) => value !== undefined);
 }
@@ -13,7 +12,7 @@ const hashScheme = z
   .regex(/^(0x|0h)?[0-9A-F]+$/i)
   .length(128);
 const usernameScheme = z.string().max(25);
-const emailScheme = z.string().email();
+const emailScheme = z.email();
 const userIdScheme = uuidScheme.refine(async (user_id) => {
   const fullUserInfo = await database.userModel.findByPk(user_id);
   if (!fullUserInfo) {
@@ -65,7 +64,7 @@ const playlistFollowScheme = z.object({
 const userAvatarScheme = z.object({
   user_id: uuidScheme,
   file: z.custom<Express.Multer.File>(
-    (value: Express.Multer.File) => {
+    (value) => {
       return value;
     },
     { message: errorMessages.user.GotNoFile },
@@ -77,9 +76,16 @@ const updateUserScheme = z.object({
   user_id: uuidScheme,
   visible_username: visibleUsernameScheme,
 });
+enum Bitrate {
+  low = 'low',
+  normal = 'normal',
+  high = 'high',
+  veryHigh = 'veryHigh',
+  auto = 'auto',
+}
 const updateUserSettingsScheme = z.object({
   userId: uuidScheme,
-  bitrate: z.enum(['low', 'normal', 'high', 'veryHigh', 'auto']),
+  bitrate: z.enum(Bitrate),
 });
 
 export {

@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import passport from 'passport';
+import { z } from 'zod/v4';
 
 import authController from '../controllers/auth-controller.ts';
 import ValidationError from '../errors/validation-error.ts';
@@ -22,7 +23,7 @@ router.post(
       hash: request.jwtPayload.hash,
     });
     if (!validation.success) {
-      throw new ValidationError(JSON.stringify(validation.error.flatten()));
+      throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }
     const newAccessToken = await authController.sendNewAccessTokenToUser(validation.data);
 
@@ -40,7 +41,7 @@ router.post(
     ) => {
       const validation = loginScheme.safeParse(request.body);
       if (!validation.success) {
-        throw new ValidationError(JSON.stringify(validation.error.flatten()));
+        throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
       }
 
       const userInfo = validation.data;
@@ -74,7 +75,7 @@ router.post(
     ) => {
       const validation = registerScheme.safeParse(request.body);
       if (!validation.success) {
-        throw new ValidationError(JSON.stringify(validation.error.flatten()));
+        throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
       }
       const tokens = await authController.registerUser(validation.data);
 

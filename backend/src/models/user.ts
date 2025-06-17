@@ -1,5 +1,6 @@
 import { DataTypes, Model } from 'sequelize';
 
+import type { Bitrate } from '../types/bitrate-type.ts';
 import type { InferAttributes, InferCreationAttributes, Sequelize } from 'sequelize';
 
 class UserModel extends Model<InferAttributes<UserModel>, InferCreationAttributes<UserModel>> {
@@ -11,7 +12,7 @@ class UserModel extends Model<InferAttributes<UserModel>, InferCreationAttribute
   declare username: string;
   declare email: string;
   declare avatar_url: string | null;
-  declare bitrate: 'low' | 'normal' | 'high' | 'veryHigh' | 'auto';
+  declare bitrate: Bitrate;
 }
 
 const userModel = (sequelize: Sequelize) => {
