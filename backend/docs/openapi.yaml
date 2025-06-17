@@ -136,10 +136,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                bitrate:
-                  $ref: '#/components/schemas/Bitrate'
+              $ref: '#/components/schemas/UserSettings'
       responses:
         '200':
           description: List of user settings
