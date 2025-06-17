@@ -11,9 +11,12 @@ import { Discover } from './pages/Discover';
 import { useUser } from './features/auth/authService.ts';
 import { SplashScreen } from './pages/SplashScreen';
 import { Profile } from './pages/Profile';
+import log from 'loglevel';
 
 export const RoutesList = () => {
   const { isInitialized } = useUser();
+
+  log.info('isInitialized authService is', isInitialized);
 
   return (
     <>
