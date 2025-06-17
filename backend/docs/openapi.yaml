@@ -131,7 +131,15 @@ paths:
     put:
       tags: [User]
       summary: Update current user settings
-
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bitrate:
+                  $ref: '#/components/schemas/Bitrate'
       responses:
         '200':
           description: List of user settings
@@ -291,7 +299,10 @@ components:
           format: email
         password:
           $ref: '#/components/schemas/Password'
-
+    Bitrate:
+      description: User's bitrate option. Can be low, normal, high, veryHigh or auto.
+      type: integer
+      enum: [low, normal, high, veryHigh, auto]
     LoginRequest:
       type: object
       required: [password]
@@ -342,11 +353,9 @@ components:
       properties:
         user_id:
           type: string
-          format: uuuid
+          format: uuid
         bitrate:
-          description: User's bitrate option. Can be low, normal, high, veryHigh or auto.
-          type: string
-          enum: [low, normal, high, veryHigh, auto]
+          $ref: '#/components/schemas/Bitrate'
     UserPreview:
       type: object
       properties:
