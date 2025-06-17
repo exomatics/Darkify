@@ -151,7 +151,10 @@ class UserManager {
     userId: string,
     userSettings: Pick<IUser, 'bitrate'>,
   ): Promise<
-    Result<{ user_id: string; bitrate: string }, typeof errorMessages.user.NotExistsById>
+    Result<
+      { user_id: string; bitrate: string | undefined },
+      typeof errorMessages.user.NotExistsById
+    >
   > {
     const userRecord = await this.getUserById(userId);
     if (!userRecord.success) {

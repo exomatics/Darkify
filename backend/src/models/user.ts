@@ -12,7 +12,7 @@ class UserModel extends Model<InferAttributes<UserModel>, InferCreationAttribute
   declare username: string;
   declare email: string;
   declare avatar_url: string | null;
-  declare bitrate: Bitrate;
+  declare bitrate?: Bitrate;
 }
 
 const userModel = (sequelize: Sequelize) => {

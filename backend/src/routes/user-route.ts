@@ -90,13 +90,11 @@ router.get(
 );
 router.get(
   ROUTES.USERS.GET_USER,
-  passport.authenticate('access-token', { session: false }) as RequestHandler,
   asyncHandler(async (request: Request, response: Response) => {
     const validation = uuidScheme.safeParse(request.params.user_id);
     if (!validation.success) {
       throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }
-
     const databaseResponse = await userController.getUserInfo(validation.data.trim());
     response.status(200).json(databaseResponse);
   }),
