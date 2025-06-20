@@ -2,8 +2,8 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type UserPreview = {
+import type { Bitrate } from './Bitrate';
+export type UserSettings = {
   user_id?: string;
-  visible_username?: string;
-  avatar_url?: string;
+  bitrate?: Bitrate;
 };

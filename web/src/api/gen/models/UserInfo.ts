@@ -3,7 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export type UserInfo = {
-  userId?: string;
+  user_id?: string;
   visible_username?: string;
   avatar_url?: string;
   followers?: number;

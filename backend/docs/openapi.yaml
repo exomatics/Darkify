@@ -88,7 +88,7 @@ paths:
             schema:
               type: object
               properties:
-                visibleUsername:
+                visible_username:
                   type: string
 
       responses:
@@ -108,6 +108,42 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/SuccessStatus'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /users/me/settings:
+    get:
+      tags: [User]
+      summary: Get current user settings
+
+      responses:
+        '200':
+          description: List of user settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSettings'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    put:
+      tags: [User]
+      summary: Update current user settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserSettings'
+      responses:
+        '200':
+          description: List of user settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSettings'
         '400':
           $ref: '#/components/responses/ValidationError'
         '401':
@@ -260,7 +296,10 @@ components:
           format: email
         password:
           $ref: '#/components/schemas/Password'
-
+    Bitrate:
+      description: User's bitrate option. Can be low, normal, high, veryHigh or auto.
+      type: string
+      enum: [low, normal, high, veryHigh, auto]
     LoginRequest:
       type: object
       required: [password]
@@ -296,7 +335,7 @@ components:
     UserInfo:
       type: object
       properties:
-        userId:
+        user_id:
           type: string
           format: uuid
         visible_username:
@@ -306,11 +345,18 @@ components:
           format: uri-reference
         followers:
           type: integer
-
+    UserSettings:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        bitrate:
+          $ref: '#/components/schemas/Bitrate'
     UserPreview:
       type: object
       properties:
-        id:
+        user_id:
           type: string
           format: uuid
         visible_username:
@@ -322,7 +368,7 @@ components:
   parameters:
     UserIdParameter:
       in: path
-      name: userId
+      name: user_id
       required: true
       schema:
         type: string
@@ -330,7 +376,7 @@ components:
 
     PlaylistIdParameter:
       in: path
-      name: playlistId
+      name: playlist_id
       required: true
       schema:
         type: string

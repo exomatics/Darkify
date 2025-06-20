@@ -4,6 +4,7 @@
 /* eslint-disable */
 import type { UserInfo } from '../models/UserInfo';
 import type { UserPreview } from '../models/UserPreview';
+import type { UserSettings } from '../models/UserSettings';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import type { BaseHttpRequest } from '../core/BaseHttpRequest';
 export class UserService {
@@ -29,7 +30,7 @@ export class UserService {
    * @returns UserPreview User info
    * @throws ApiError
    */
-  public putUsersMe(requestBody: { visibleUsername?: string }): CancelablePromise<UserPreview> {
+  public putUsersMe(requestBody: { visible_username?: string }): CancelablePromise<UserPreview> {
     return this.httpRequest.request({
       method: 'PUT',
       url: '/users/me',
@@ -50,6 +51,39 @@ export class UserService {
     return this.httpRequest.request({
       method: 'DELETE',
       url: '/users/me',
+      errors: {
+        400: `Validation failed`,
+        401: `Unauthorized or invalid token`,
+      },
+    });
+  }
+  /**
+   * Get current user settings
+   * @returns UserSettings List of user settings
+   * @throws ApiError
+   */
+  public getUsersMeSettings(): CancelablePromise<UserSettings> {
+    return this.httpRequest.request({
+      method: 'GET',
+      url: '/users/me/settings',
+      errors: {
+        400: `Validation failed`,
+        401: `Unauthorized or invalid token`,
+      },
+    });
+  }
+  /**
+   * Update current user settings
+   * @param requestBody
+   * @returns UserSettings List of user settings
+   * @throws ApiError
+   */
+  public putUsersMeSettings(requestBody: UserSettings): CancelablePromise<UserSettings> {
+    return this.httpRequest.request({
+      method: 'PUT',
+      url: '/users/me/settings',
+      body: requestBody,
+      mediaType: 'application/json',
       errors: {
         400: `Validation failed`,
         401: `Unauthorized or invalid token`,
@@ -87,7 +121,7 @@ export class UserService {
       method: 'GET',
       url: '/users/{userId}',
       path: {
-        userId: userId,
+        user_id: userId,
       },
       errors: {
         400: `Validation failed`,
@@ -106,7 +140,7 @@ export class UserService {
       method: 'POST',
       url: '/users/follow/user/{userId}',
       path: {
-        userId: userId,
+        user_id: userId,
       },
       errors: {
         400: `Validation failed`,
@@ -125,7 +159,7 @@ export class UserService {
       method: 'POST',
       url: '/users/unfollow/user/{userId}',
       path: {
-        userId: userId,
+        user_id: userId,
       },
       errors: {
         400: `Validation failed`,
@@ -144,7 +178,7 @@ export class UserService {
       method: 'POST',
       url: '/users/follow/playlist/{playlistId}',
       path: {
-        playlistId: playlistId,
+        playlist_id: playlistId,
       },
       errors: {
         400: `Validation failed`,
@@ -163,7 +197,7 @@ export class UserService {
       method: 'POST',
       url: '/users/unfollow/playlist/{playlistId}',
       path: {
-        playlistId: playlistId,
+        playlist_id: playlistId,
       },
       errors: {
         400: `Validation failed`,

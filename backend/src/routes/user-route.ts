@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import multer from 'multer';
 import passport from 'passport';
+import { z } from 'zod/v4';
 
 import userController from '../controllers/user-controller.ts';
 import ValidationError from '../errors/validation-error.ts';
@@ -11,6 +12,7 @@ import {
   userFollowScheme,
   playlistFollowScheme,
   userAvatarScheme,
+  updateUserSettingsScheme,
 } from '../validator.ts';
 
 import { ROUTES } from './routes.ts';
@@ -40,9 +42,9 @@ router.get(
   ROUTES.USERS.GET_ME,
   passport.authenticate('access-token', { session: false }) as RequestHandler,
   asyncHandler(async (request: Request, response: Response) => {
-    const validation = uuidScheme.safeParse(request.jwtPayload.userId);
+    const validation = uuidScheme.safeParse(request.jwtPayload.user_id);
     if (!validation.success) {
-      throw new ValidationError(JSON.stringify(validation.error.flatten()));
+      throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }
     const databaseResponse = await userController.getUserInfo(validation.data.trim());
     response.status(200).json(databaseResponse);
@@ -52,9 +54,9 @@ router.get(
   ROUTES.USERS.GET_ME_FOLLOWING,
   passport.authenticate('access-token', { session: false }) as RequestHandler,
   asyncHandler(async (request: Request, response: Response) => {
-    const validation = uuidScheme.safeParse(request.jwtPayload.userId);
+    const validation = uuidScheme.safeParse(request.jwtPayload.user_id);
     if (!validation.success) {
-      throw new ValidationError(JSON.stringify(validation.error.flatten()));
+      throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }
 
     const databaseResponse = await userController.getUserFollowing(validation.data.trim());
@@ -65,24 +67,34 @@ router.get(
   ROUTES.USERS.GET_ME_AVATAR,
   passport.authenticate('access-token', { session: false }) as RequestHandler,
   asyncHandler(async (request: Request, response: Response) => {
-    const validation = uuidScheme.safeParse(request.jwtPayload.userId);
+    const validation = uuidScheme.safeParse(request.jwtPayload.user_id);
     if (!validation.success) {
-      throw new ValidationError(JSON.stringify(validation.error.flatten()));
+      throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }
 
-    const databaseResponse = await userController.getUserAvatar(request.jwtPayload.userId);
+    const databaseResponse = await userController.getUserAvatar(request.jwtPayload.user_id);
+    response.status(200).json(databaseResponse);
+  }),
+);
+router.get(
+  ROUTES.USERS.GET_ME_SETTINGS,
+  passport.authenticate('access-token', { session: false }) as RequestHandler,
+  asyncHandler(async (request: Request, response: Response) => {
+    const validation = uuidScheme.safeParse(request.jwtPayload.user_id);
+    if (!validation.success) {
+      throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
+    }
+    const databaseResponse = await userController.getUserSettings(request.jwtPayload.user_id);
     response.status(200).json(databaseResponse);
   }),
 );
 router.get(
   ROUTES.USERS.GET_USER,
-  passport.authenticate('access-token', { session: false }) as RequestHandler,
   asyncHandler(async (request: Request, response: Response) => {
-    const validation = uuidScheme.safeParse(request.params.userId);
+    const validation = uuidScheme.safeParse(request.params.user_id);
     if (!validation.success) {
-      throw new ValidationError(JSON.stringify(validation.error.flatten()));
+      throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }
-
     const databaseResponse = await userController.getUserInfo(validation.data.trim());
     response.status(200).json(databaseResponse);
   }),
@@ -92,19 +104,42 @@ router.put(
   passport.authenticate('access-token', { session: false }) as RequestHandler,
   asyncHandler(
     async (
-      request: Request<ParamsDictionary, unknown, Pick<IUser, 'visibleUsername'>>,
+      request: Request<ParamsDictionary, unknown, Pick<IUser, 'visible_username'>>,
       response: Response,
     ) => {
       const validation = updateUserScheme.safeParse({
-        userId: request.jwtPayload.userId,
+        user_id: request.jwtPayload.user_id,
         ...request.body,
       });
       if (!validation.success) {
-        throw new ValidationError(JSON.stringify(validation.error.flatten()));
+        throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
       }
 
-      const databaseResponse = await userController.updateUserInfo(validation.data.userId, {
-        visibleUsername: validation.data.visibleUsername,
+      const databaseResponse = await userController.updateUserInfo(validation.data.user_id, {
+        visible_username: validation.data.visible_username,
+      });
+      response.status(200).json(databaseResponse);
+    },
+  ),
+);
+router.put(
+  ROUTES.USERS.PUT_ME_SETTINGS,
+  passport.authenticate('access-token', { session: false }) as RequestHandler,
+  asyncHandler(
+    async (
+      request: Request<ParamsDictionary, unknown, Pick<IUser, 'bitrate'>>,
+      response: Response,
+    ) => {
+      const validation = updateUserSettingsScheme.safeParse({
+        userId: request.jwtPayload.user_id,
+        ...request.body,
+      });
+      if (!validation.success) {
+        throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
+      }
+
+      const databaseResponse = await userController.updateUserSettings(validation.data.userId, {
+        bitrate: validation.data.bitrate,
       });
       response.status(200).json(databaseResponse);
     },
@@ -115,16 +150,16 @@ router.post(
   passport.authenticate('access-token', { session: false }) as RequestHandler,
   asyncHandler(async (request: Request, response: Response) => {
     const validation = userFollowScheme.safeParse({
-      userId: request.jwtPayload.userId,
-      followId: request.params.userId,
+      user_id: request.jwtPayload.user_id,
+      follow_id: request.params.user_id,
     });
     if (!validation.success) {
-      throw new ValidationError(JSON.stringify(validation.error.flatten()));
+      throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }
 
     const databaseResponse = await userController.followUser(
-      validation.data.userId,
-      validation.data.followId,
+      validation.data.user_id,
+      validation.data.follow_id,
     );
     response.status(200).json(databaseResponse);
   }),
@@ -134,16 +169,16 @@ router.post(
   passport.authenticate('access-token', { session: false }) as RequestHandler,
   asyncHandler(async (request: Request, response: Response) => {
     const validation = userFollowScheme.safeParse({
-      userId: request.jwtPayload.userId,
-      followId: request.params.userId,
+      user_id: request.jwtPayload.user_id,
+      follow_id: request.params.user_id,
     });
     if (!validation.success) {
-      throw new ValidationError(JSON.stringify(validation.error.flatten()));
+      throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }
 
     const databaseResponse = await userController.unfollowUser(
-      validation.data.userId,
-      validation.data.followId,
+      validation.data.user_id,
+      validation.data.follow_id,
     );
     response.status(200).json(databaseResponse);
   }),
@@ -153,16 +188,16 @@ router.post(
   passport.authenticate('access-token', { session: false }) as RequestHandler,
   asyncHandler(async (request: Request, response: Response) => {
     const validation = playlistFollowScheme.safeParse({
-      userId: request.jwtPayload.userId,
-      playlistId: request.params.playlistId,
+      user_id: request.jwtPayload.user_id,
+      playlist_id: request.params.playlist_id,
     });
     if (!validation.success) {
-      throw new ValidationError(JSON.stringify(validation.error.flatten()));
+      throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }
 
     const databaseResponse = await userController.followPlaylist(
-      validation.data.userId,
-      validation.data.playlistId,
+      validation.data.user_id,
+      validation.data.playlist_id,
     );
     response.status(200).json(databaseResponse);
   }),
@@ -172,16 +207,16 @@ router.post(
   passport.authenticate('access-token', { session: false }) as RequestHandler,
   asyncHandler(async (request: Request, response: Response) => {
     const validation = playlistFollowScheme.safeParse({
-      userId: request.jwtPayload.userId,
-      playlistId: request.params.playlistId,
+      user_id: request.jwtPayload.user_id,
+      playlist_id: request.params.playlist_id,
     });
     if (!validation.success) {
-      throw new ValidationError(JSON.stringify(validation.error.flatten()));
+      throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }
 
     const databaseResponse = await userController.unfollowPlaylist(
-      validation.data.userId,
-      validation.data.playlistId,
+      validation.data.user_id,
+      validation.data.playlist_id,
     );
     response.status(200).json(databaseResponse);
   }),
@@ -192,15 +227,15 @@ router.put(
   passport.authenticate('access-token', { session: false }) as RequestHandler,
   asyncHandler(async (request: Request, response: Response) => {
     const validation = userAvatarScheme.safeParse({
-      userId: request.jwtPayload.userId,
+      user_id: request.jwtPayload.user_id,
       file: request.file,
     });
     if (!validation.success) {
-      throw new ValidationError(JSON.stringify(validation.error.flatten()));
+      throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }
 
     const databaseResponse = await userController.updateUserAvatar(
-      request.jwtPayload.userId,
+      request.jwtPayload.user_id,
       validation.data.file,
     );
     response.status(200).json(databaseResponse);
@@ -210,9 +245,9 @@ router.delete(
   ROUTES.USERS.DELETE_ME,
   passport.authenticate('access-token', { session: false }) as RequestHandler,
   asyncHandler(async (request: Request, response: Response) => {
-    const validation = uuidScheme.safeParse(request.jwtPayload.userId);
+    const validation = uuidScheme.safeParse(request.jwtPayload.user_id);
     if (!validation.success) {
-      throw new ValidationError(JSON.stringify(validation.error.flatten()));
+      throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }
 
     const databaseResponse = await userController.deleteUser(validation.data);

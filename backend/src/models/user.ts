@@ -1,5 +1,6 @@
 import { DataTypes, Model } from 'sequelize';
 
+import type { Bitrate } from '../types/bitrate-type.ts';
 import type { InferAttributes, InferCreationAttributes, Sequelize } from 'sequelize';
 
 class UserModel extends Model<InferAttributes<UserModel>, InferCreationAttributes<UserModel>> {
@@ -11,6 +12,7 @@ class UserModel extends Model<InferAttributes<UserModel>, InferCreationAttribute
   declare username: string;
   declare email: string;
   declare avatar_url: string | null;
+  declare bitrate?: Bitrate;
 }
 
 const userModel = (sequelize: Sequelize) => {
@@ -51,6 +53,10 @@ const userModel = (sequelize: Sequelize) => {
       avatar_url: {
         type: DataTypes.UUID,
         unique: true,
+      },
+      bitrate: {
+        type: DataTypes.ENUM({ values: ['low', 'normal', 'high', 'very-high', 'auto'] }),
+        defaultValue: 'high',
       },
     },
     {

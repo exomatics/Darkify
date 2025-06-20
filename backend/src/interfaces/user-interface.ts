@@ -1,11 +1,14 @@
+import type { Bitrate } from '../types/bitrate-type.ts';
+
 export interface IUser {
-  userId: string;
+  user_id: string;
   username?: string;
-  visibleUsername?: string;
-  avatarId: string;
-  isArtist?: boolean;
+  visible_username?: string;
+  avatar_id: string;
+  is_artist?: boolean;
   hash: string;
   salt: string;
   email?: string;
   password: string;
+  bitrate: Bitrate;
 }
