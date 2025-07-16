@@ -16,7 +16,8 @@ export const errorMessages = {
     NotExistsById: 'Playlist with this id does not exist',
   }),
   track: Object.freeze({
-    NotExistById: 'Track with this id does not exist',
+    NotExistsById: 'Track with this id does not exist',
+    RangeNotSpecified: 'Range header is not specified',
   }),
   validation: Object.freeze({
     PasswordNoCapital: 'Password has no capital letters',

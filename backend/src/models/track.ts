@@ -5,9 +5,11 @@ import type { InferAttributes, InferCreationAttributes, Sequelize } from 'sequel
 class TrackModel extends Model<InferAttributes<TrackModel>, InferCreationAttributes<TrackModel>> {
   declare id: string;
   declare name: string;
-  declare artist: string;
+  declare artists: string[];
   declare lyrics: string | null;
-  declare number_of_play: number;
+  declare play_count: number;
+  declare deleted?: boolean;
+  declare track_filename: string;
 }
 const trackModel = (sequelize: Sequelize) => {
   return sequelize.define<TrackModel>(
@@ -22,15 +24,23 @@ const trackModel = (sequelize: Sequelize) => {
         type: DataTypes.STRING(100),
         allowNull: false,
       },
-      artist: {
-        type: DataTypes.UUID,
+      artists: {
+        type: DataTypes.ARRAY(DataTypes.UUID),
         allowNull: false,
       },
       lyrics: {
         type: DataTypes.TEXT,
       },
-      number_of_play: {
+      play_count: {
         type: DataTypes.BIGINT,
+        allowNull: false,
+      },
+      deleted: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+      },
+      track_filename: {
+        type: DataTypes.STRING,
         allowNull: false,
       },
     },

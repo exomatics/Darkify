@@ -1,7 +1,17 @@
-export interface Itrack {
+interface Itrack {
   id: string;
   name: string;
-  artist: string;
+  artists: string[];
   lyrics: string | null;
-  number_of_play: number;
+  play_count: number;
+  track_filename: string;
+  deleted?: boolean;
 }
+interface UpdateTrack {
+  id: string;
+  name?: string;
+  artists?: string[];
+  lyrics?: string | null;
+}
+
+export { Itrack, UpdateTrack };

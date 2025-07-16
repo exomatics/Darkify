@@ -39,6 +39,7 @@ const passwordScheme = z
   );
 const loginScheme = z
   .object({
+    //username or email in one field
     username: usernameScheme.optional(),
     password: passwordScheme,
     email: emailScheme.optional(),
@@ -83,6 +84,24 @@ const updateUserSettingsScheme = z.object({
   bitrate: z.enum(Bitrate),
 });
 
+const trackScheme = z.object({
+  id: uuidScheme,
+  name: z.string().max(100).nonempty(),
+  artists: z.array(uuidScheme),
+  lyrics: z.string(),
+});
+
+const createTrackScheme = trackScheme.extend({ track_filename: uuidScheme });
+const updateTrackScheme = trackScheme.refine(({ name, artists, lyrics }) => {
+  return requireAtLeastOneCheck({ name, artists, lyrics });
+});
+const streamTrackScheme = z.object({
+  id: uuidScheme,
+  range: z.refine<string>((value: string) => {
+    const array = value.split('=');
+    return array[0] === 'bytes' && /d{3}-d{3}/.test(array[1]);
+  }, errorMessages.track.RangeNotSpecified),
+});
 export {
   uuidScheme,
   loginScheme,
@@ -94,4 +113,7 @@ export {
   userFollowScheme,
   playlistFollowScheme,
   userAvatarScheme,
+  createTrackScheme,
+  updateTrackScheme,
+  streamTrackScheme,
 };
