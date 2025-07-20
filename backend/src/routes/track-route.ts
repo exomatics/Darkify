@@ -50,7 +50,7 @@ router.get(
   asyncHandler(async (request: Request, response: Response) => {
     const validation = createTrackScheme.safeParse({
       ...request.body,
-      track_filename: request.file?.filename,
+      track_id: request.file?.filename,
     });
     if (!validation.success) {
       throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));

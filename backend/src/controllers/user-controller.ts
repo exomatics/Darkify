@@ -1,4 +1,4 @@
-import { DEFAULT_LIMIT, DEFAULT_OFFSET, STATIC_DIRECTORY_PATH } from '../config/config.ts';
+import { DEFAULT_LIMIT, DEFAULT_OFFSET, STATIC_IMAGES_PATH } from '../config/config.ts';
 import NotFoundError from '../errors/not-found-error.ts';
 import ValidationError from '../errors/validation-error.ts';
 import UserManager from '../models/services/user.ts';
@@ -21,7 +21,7 @@ export default {
       user_id: userRecord.data.id,
       visible_username: userRecord.data.visible_username,
       avatar_url: userRecord.data.avatar_url
-        ? `${STATIC_DIRECTORY_PATH}/${userRecord.data.avatar_url}.jpg`
+        ? `${STATIC_IMAGES_PATH}/${userRecord.data.avatar_url}.jpg`
         : null,
       followers: followersCount.data,
     };

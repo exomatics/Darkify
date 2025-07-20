@@ -2,7 +2,7 @@ import crypto from 'node:crypto';
 
 import { Op } from 'sequelize';
 
-import { DEFAULT_LIMIT, DEFAULT_OFFSET, STATIC_DIRECTORY_PATH } from '../../config/config.ts';
+import { DEFAULT_LIMIT, DEFAULT_OFFSET, STATIC_IMAGES_PATH } from '../../config/config.ts';
 import database from '../../config/database.ts';
 import { errorMessages } from '../../errors/error-messages.ts';
 import InternalError from '../../errors/internal-error.ts';
@@ -142,7 +142,7 @@ class UserManager {
         user_id: userRecord.data.id,
         visible_username: userRecord.data.visible_username,
         avatar_url: userRecord.data.avatar_url
-          ? `${STATIC_DIRECTORY_PATH}/${userRecord.data.avatar_url}.jpg`
+          ? `${STATIC_IMAGES_PATH}/${userRecord.data.avatar_url}.jpg`
           : null,
       },
     };
@@ -399,7 +399,7 @@ class UserManager {
     return {
       success: true,
       data: userRecord.data.avatar_url
-        ? `${STATIC_DIRECTORY_PATH}/${userRecord.data.avatar_url}.jpg`
+        ? `${STATIC_IMAGES_PATH}/${userRecord.data.avatar_url}.jpg`
         : null,
     };
   }
@@ -416,7 +416,7 @@ class UserManager {
     return {
       success: true,
       data: userRecord.data.avatar_url
-        ? `${STATIC_DIRECTORY_PATH}/${userRecord.data.avatar_url}.jpg`
+        ? `${STATIC_IMAGES_PATH}/${userRecord.data.avatar_url}.jpg`
         : null,
     };
   }

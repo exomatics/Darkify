@@ -2,9 +2,9 @@ interface Itrack {
   id: string;
   name: string;
   artists: string[];
-  lyrics: string | null;
+  lyrics?: string | null;
   play_count: number;
-  track_filename: string;
+  track_id: string;
   deleted?: boolean;
 }
 interface UpdateTrack {

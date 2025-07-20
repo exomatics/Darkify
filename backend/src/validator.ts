@@ -91,17 +91,11 @@ const trackScheme = z.object({
   lyrics: z.string(),
 });
 
-const createTrackScheme = trackScheme.extend({ track_filename: uuidScheme });
+const createTrackScheme = trackScheme.extend({ track_id: uuidScheme });
 const updateTrackScheme = trackScheme.refine(({ name, artists, lyrics }) => {
   return requireAtLeastOneCheck({ name, artists, lyrics });
 });
-const streamTrackScheme = z.object({
-  id: uuidScheme,
-  range: z.refine<string>((value: string) => {
-    const array = value.split('=');
-    return array[0] === 'bytes' && /d{3}-d{3}/.test(array[1]);
-  }, errorMessages.track.RangeNotSpecified),
-});
+
 export {
   uuidScheme,
   loginScheme,
@@ -115,5 +109,4 @@ export {
   userAvatarScheme,
   createTrackScheme,
   updateTrackScheme,
-  streamTrackScheme,
 };

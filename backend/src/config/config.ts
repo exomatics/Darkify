@@ -13,8 +13,18 @@ export const DEFAULT_LIMIT = 20;
 export const PATH_TO_UPLOADS = path.join(PROJECT_ROOT, 'uploads');
 export const PATH_TO_AUDIO = path.join(PATH_TO_UPLOADS, 'audio');
 export const PATH_TO_IMAGES = path.join(PATH_TO_UPLOADS, 'images');
+
+export const STATIC_PATH_TO_320m3u8 = '320kbps/320kbps.m3u8';
+export const STATIC_PATH_TO_160m3u8 = '160kbps/160kbps.m3u8';
+export const STATIC_PATH_TO_96m3u8 = '96kbps/96kbps.m3u8';
+export const STATIC_PATH_TO_24m3u8 = '24kbps/24kbps.m3u8';
+
 export const STATIC_DIRECTORY_PATH = '/files';
+export const STATIC_IMAGES_PATH = `${STATIC_DIRECTORY_PATH}/images`;
+export const STATIC_AUDIO_PATH = `${STATIC_DIRECTORY_PATH}/audio`;
+
 export const PATH_TO_OPENAPI = path.resolve(PROJECT_ROOT, 'docs', 'openapi.yaml');
+
 export const BITRATE_OPTIONS = {
   [Bitrate.Low]: '24',
   [Bitrate.Normal]: '96',

@@ -17,7 +17,7 @@ export const errorMessages = {
   }),
   track: Object.freeze({
     NotExistsById: 'Track with this id does not exist',
-    RangeNotSpecified: 'Range header is not specified',
+    FfmpegError: 'Error while converting to hls',
   }),
   validation: Object.freeze({
     PasswordNoCapital: 'Password has no capital letters',
