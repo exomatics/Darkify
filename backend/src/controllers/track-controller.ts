@@ -1,3 +1,10 @@
+import {
+  STATIC_PATH_TO_160m3u8,
+  STATIC_PATH_TO_24m3u8,
+  STATIC_PATH_TO_320m3u8,
+  STATIC_PATH_TO_96m3u8,
+  STATIC_PATH_TO_AUTO_BITRATE,
+} from '../config/config.ts';
 import InternalError from '../errors/internal-error.ts';
 import NotFoundError from '../errors/not-found-error.ts';
 import TrackManager from '../models/services/track.ts';
@@ -12,15 +19,19 @@ export default {
     if (!modelResponse.success) {
       throw new NotFoundError(modelResponse.reason);
     }
-    return modelResponse.data.dataValues;
-  },
-  async streamTrack(trackInfo: { id: string; range: string }) {
-    const modelResponse = await track.streamTrack();
+    return {
+      ...modelResponse.data.dataValues,
+      '320kbps': `${modelResponse.data.track_filename}/${STATIC_PATH_TO_320m3u8}`,
+      '160kbps': `${modelResponse.data.track_filename}/${STATIC_PATH_TO_160m3u8}`,
+      '96kbps': `${modelResponse.data.track_filename}/${STATIC_PATH_TO_96m3u8}`,
+      '24kbps': `${modelResponse.data.track_filename}/${STATIC_PATH_TO_24m3u8}`,
+      auto: `${modelResponse.data.track_filename}/${STATIC_PATH_TO_AUTO_BITRATE}`,
+    };
   },
   async createTrack(trackInfo: Omit<Itrack, 'id' | 'play_count'>) {
     const modelResponse = await track.createTrack(trackInfo);
     if (!modelResponse.success) {
-      throw new InternalError();
+      throw new InternalError(modelResponse.reason);
     }
     return modelResponse.data.dataValues;
   },
@@ -29,7 +40,7 @@ export default {
     if (!modelResponse.success) {
       throw new NotFoundError(modelResponse.reason);
     }
-    return modelResponse.data;
+    return modelResponse.data.dataValues;
   },
   async deleteTrack(trackId: string) {
     const modelResponse = await track.deleteTrack(trackId);

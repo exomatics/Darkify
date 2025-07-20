@@ -13,14 +13,16 @@ import type { Result } from '../../types/result-type.ts';
 import type { TrackModel } from '../track.ts';
 
 class TrackManager {
-  async getTrackById(trackId: string): Promise<Result<TrackModel>> {
+  async getTrackById(
+    trackId: string,
+  ): Promise<Result<TrackModel, typeof errorMessages.track.NotExistsById>> {
     const trackInfo = await database.trackModel.findByPk(trackId);
     if (trackInfo === null) {
       return { success: false, reason: errorMessages.track.NotExistsById };
     }
     return { success: true, data: trackInfo };
   }
-  convertToHls(trackFilename: string) {
+  convertToHls(trackFilename: string): Result<null, typeof errorMessages.track.FfmpegError> {
     const pathToTrack = path.join(PATH_TO_AUDIO, `${trackFilename}.mp3`);
     const pathToHls = path.join(PATH_TO_AUDIO, trackFilename);
 
@@ -96,32 +98,9 @@ class TrackManager {
         return { success: false, reason: errorMessages.track.FfmpegError };
       });
     command.run();
+
     this.createMasterPlaylist(trackFilename, pathToHls);
-    // .output(
-    //   path.join(
-    //     PATH_TO_AUDIO,
-    //     trackInfo.track_filename,
-    //     `${trackInfo.track_filename}_%v`,
-    //     `${trackInfo.track_filename}_320_playlist_.m3u8`,
-    //   ),
-    // )
-    // // .outputOption('-b:a', '160k')
-    // // .output(`./${trackInfo.id}_160_playlist_.m3u8`)
-    // // .outputOption('-b:a', '96k')
-    // // .output(`./${trackInfo.id}_96_playlist_.m3u8`)
-    // // .outputOption('-b:a', '24k')
-    // // .output(`./${trackInfo.id}_24_playlist_.m3u8`)
-    // const newTrack = await database.trackModel.create({
-    //   id: crypto.randomUUID(),
-    //   artists: trackInfo.artists,
-    //   name: trackInfo.name,
-    //   play_count: 0,
-    //   lyrics: trackInfo.lyrics ?? null,
-    //   track_filename: trackInfo.track_filename,
-    // });
-    // .on('end', function () {
-    //   console.log('Processing finished !');
-    // })
+
     return { success: true, data: null };
   }
   createMasterPlaylist(trackFilename: string, pathToHls: string) {
@@ -152,16 +131,20 @@ class TrackManager {
     });
     return { success: true, data: newTrack };
   }
-  async createTrack(trackInfo: Pick<Itrack, 'track_filename' | 'artists' | 'name' | 'lyrics'>) {
+  async createTrack(
+    trackInfo: Pick<Itrack, 'track_filename' | 'artists' | 'name' | 'lyrics'>,
+  ): Promise<Result<TrackModel, typeof errorMessages.track.FfmpegError>> {
     const convertStatus = this.convertToHls(trackInfo.track_filename);
     if (!convertStatus.success) {
       return convertStatus;
     }
 
     const trackRecord = await this.createTrackRecord(trackInfo);
-    return trackRecord;
+    return { success: true, data: trackRecord.data };
   }
-  async updateTrack(trackInfo: UpdateTrack) {
+  async updateTrack(
+    trackInfo: UpdateTrack,
+  ): Promise<Result<TrackModel, typeof errorMessages.track.NotExistsById>> {
     const trackRecord = await this.getTrackById(trackInfo.id);
     if (!trackRecord.success) {
       return trackRecord;
@@ -172,9 +155,11 @@ class TrackManager {
       name: trackInfo.name ?? trackRecord.data.name,
       lyrics: trackInfo.lyrics ?? trackRecord.data.lyrics,
     });
-    return { success: true, data: trackRecord };
+    return { success: true, data: trackRecord.data };
   }
-  async deleteTrack(trackId: string) {
+  async deleteTrack(
+    trackId: string,
+  ): Promise<Result<null, typeof errorMessages.track.NotExistsById>> {
     const trackRecord = await this.getTrackById(trackId);
     if (!trackRecord.success) {
       return trackRecord;
