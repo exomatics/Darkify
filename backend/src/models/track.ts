@@ -9,7 +9,7 @@ class TrackModel extends Model<InferAttributes<TrackModel>, InferCreationAttribu
   declare lyrics: string | null;
   declare play_count: number;
   declare deleted?: boolean;
-  declare track_id: string;
+  declare track_filename: string;
 }
 const trackModel = (sequelize: Sequelize) => {
   return sequelize.define<TrackModel>(
@@ -39,7 +39,7 @@ const trackModel = (sequelize: Sequelize) => {
         type: DataTypes.BOOLEAN,
         defaultValue: false,
       },
-      track_id: {
+      track_filename: {
         type: DataTypes.STRING,
         allowNull: false,
       },

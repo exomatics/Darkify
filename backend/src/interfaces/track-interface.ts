@@ -4,7 +4,7 @@ interface Itrack {
   artists: string[];
   lyrics?: string | null;
   play_count: number;
-  track_id: string;
+  track_filename: string;
   deleted?: boolean;
 }
 interface UpdateTrack {

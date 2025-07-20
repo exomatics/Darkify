@@ -42,7 +42,7 @@ const database: Idb = {
 database.playlistModel.belongsToMany(database.trackModel, {
   through: database.playlistTrackModel,
   foreignKey: 'playlist_id',
-  otherKey: 'track_id',
+  otherKey: 'track_filename',
 });
 database.trackModel.belongsToMany(database.playlistModel, {
   through: database.playlistTrackModel,

@@ -8,7 +8,7 @@ import { BITRATE_OPTIONS, PATH_TO_AUDIO, STATIC_AUDIO_PATH } from '../../config/
 import database from '../../config/database.ts';
 import { errorMessages } from '../../errors/error-messages.ts';
 
-import type { Itrack } from '../../interfaces/track-interface.ts';
+import type { Itrack, UpdateTrack } from '../../interfaces/track-interface.ts';
 import type { Result } from '../../types/result-type.ts';
 import type { TrackModel } from '../track.ts';
 
@@ -100,9 +100,9 @@ class TrackManager {
     // .output(
     //   path.join(
     //     PATH_TO_AUDIO,
-    //     trackInfo.track_id,
-    //     `${trackInfo.track_id}_%v`,
-    //     `${trackInfo.track_id}_320_playlist_.m3u8`,
+    //     trackInfo.track_filename,
+    //     `${trackInfo.track_filename}_%v`,
+    //     `${trackInfo.track_filename}_320_playlist_.m3u8`,
     //   ),
     // )
     // // .outputOption('-b:a', '160k')
@@ -117,7 +117,7 @@ class TrackManager {
     //   name: trackInfo.name,
     //   play_count: 0,
     //   lyrics: trackInfo.lyrics ?? null,
-    //   track_id: trackInfo.track_id,
+    //   track_filename: trackInfo.track_filename,
     // });
     // .on('end', function () {
     //   console.log('Processing finished !');
@@ -139,24 +139,40 @@ class TrackManager {
     `;
     fs.writeFileSync(path.join(pathToHls, 'master_playlist.m3u8'), masterPlaylistContent);
   }
-  async createTrackRecord(trackInfo: Pick<Itrack, 'track_id' | 'artists' | 'name' | 'lyrics'>) {
+  async createTrackRecord(
+    trackInfo: Pick<Itrack, 'track_filename' | 'artists' | 'name' | 'lyrics'>,
+  ) {
     const newTrack = await database.trackModel.create({
       id: crypto.randomUUID(),
       artists: trackInfo.artists,
       name: trackInfo.name,
       play_count: 0,
       lyrics: trackInfo.lyrics ?? null,
-      track_id: trackInfo.track_id,
+      track_filename: trackInfo.track_filename,
     });
     return { success: true, data: newTrack };
   }
-  async createTrack(trackInfo: Pick<Itrack, 'track_id' | 'artists' | 'name' | 'lyrics'>) {
-    const convertStatus = this.convertToHls(trackInfo.track_id);
+  async createTrack(trackInfo: Pick<Itrack, 'track_filename' | 'artists' | 'name' | 'lyrics'>) {
+    const convertStatus = this.convertToHls(trackInfo.track_filename);
     if (!convertStatus.success) {
       return convertStatus;
     }
+
     const trackRecord = await this.createTrackRecord(trackInfo);
     return trackRecord;
+  }
+  async updateTrack(trackInfo: UpdateTrack) {
+    const trackRecord = await this.getTrackById(trackInfo.id);
+    if (!trackRecord.success) {
+      return trackRecord;
+    }
+
+    await trackRecord.data.update({
+      artists: trackInfo.artists ?? trackRecord.data.artists,
+      name: trackInfo.name ?? trackRecord.data.name,
+      lyrics: trackInfo.lyrics ?? trackRecord.data.lyrics,
+    });
+    return { success: true, data: trackRecord };
   }
 }
 // const tracks = new TrackManager();
@@ -164,7 +180,7 @@ class TrackManager {
 //   await tracks.createTrack({
 //     artists: ['Orgasm'],
 //     name: 'Mindfuck',
-//     track_id: '2a87a08f-79ac-4497-9da4-369d0cb40655',
+//     track_filename: '2a87a08f-79ac-4497-9da4-369d0cb40655',
 //   }),
 // );
 //delete with deleted in db

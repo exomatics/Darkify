@@ -5,12 +5,7 @@ import trackController from '../controllers/track-controller.ts';
 import ValidationError from '../errors/validation-error.ts';
 import asyncHandler from '../middleware/async-handler.ts';
 import { FileUploader } from '../models/services/file-management.ts';
-import {
-  createTrackScheme,
-  streamTrackScheme,
-  updateTrackScheme,
-  uuidScheme,
-} from '../validator.ts';
+import { createTrackScheme, updateTrackScheme, uuidScheme } from '../validator.ts';
 
 import { ROUTES } from './routes.ts';
 
@@ -50,7 +45,7 @@ router.get(
   asyncHandler(async (request: Request, response: Response) => {
     const validation = createTrackScheme.safeParse({
       ...request.body,
-      track_id: request.file?.filename,
+      track_filename: request.file?.filename,
     });
     if (!validation.success) {
       throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
