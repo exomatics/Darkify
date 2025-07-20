@@ -20,9 +20,9 @@ class TrackManager {
     }
     return { success: true, data: trackInfo };
   }
-  convertToHls(trackId: string) {
-    const pathToTrack = path.join(PATH_TO_AUDIO, `${trackId}.mp3`);
-    const pathToHls = path.join(PATH_TO_AUDIO, trackId);
+  convertToHls(trackFilename: string) {
+    const pathToTrack = path.join(PATH_TO_AUDIO, `${trackFilename}.mp3`);
+    const pathToHls = path.join(PATH_TO_AUDIO, trackFilename);
 
     const pathTo320Hls = path.resolve(pathToHls, '320kbps');
     const pathTo160Hls = path.resolve(pathToHls, '160kbps');
@@ -96,7 +96,7 @@ class TrackManager {
         return { success: false, reason: errorMessages.track.FfmpegError };
       });
     command.run();
-    this.createMasterPlaylist(trackId, pathToHls);
+    this.createMasterPlaylist(trackFilename, pathToHls);
     // .output(
     //   path.join(
     //     PATH_TO_AUDIO,
@@ -124,18 +124,18 @@ class TrackManager {
     // })
     return { success: true, data: null };
   }
-  createMasterPlaylist(trackId: string, pathToHls: string) {
+  createMasterPlaylist(trackFilename: string, pathToHls: string) {
     const masterPlaylistContent = `
     #EXTM3U
     
     #EXT-X-STREAM-INF:BANDWIDTH=320000,NAME="320kbps"
-    ${STATIC_AUDIO_PATH}/${trackId}/320kbps/320kbps.m3u8
+    ${STATIC_AUDIO_PATH}/${trackFilename}/320kbps/320kbps.m3u8
     #EXT-X-STREAM-INF:BANDWIDTH=160000,NAME="160kbps"
-    ${STATIC_AUDIO_PATH}/${trackId}/160kbps/160kbps.m3u8
+    ${STATIC_AUDIO_PATH}/${trackFilename}/160kbps/160kbps.m3u8
     #EXT-X-STREAM-INF:BANDWIDTH=96000,NAME="96kbps"
-    ${STATIC_AUDIO_PATH}/${trackId}/96kbps/96kbps.m3u8
+    ${STATIC_AUDIO_PATH}/${trackFilename}/96kbps/96kbps.m3u8
     #EXT-X-STREAM-INF:BANDWIDTH=24000,NAME="24kbps"
-    ${STATIC_AUDIO_PATH}/${trackId}/24kbps/24kbps.m3u8
+    ${STATIC_AUDIO_PATH}/${trackFilename}/24kbps/24kbps.m3u8
     `;
     fs.writeFileSync(path.join(pathToHls, 'master_playlist.m3u8'), masterPlaylistContent);
   }
@@ -173,6 +173,15 @@ class TrackManager {
       lyrics: trackInfo.lyrics ?? trackRecord.data.lyrics,
     });
     return { success: true, data: trackRecord };
+  }
+  async deleteTrack(trackId: string) {
+    const trackRecord = await this.getTrackById(trackId);
+    if (!trackRecord.success) {
+      return trackRecord;
+    }
+
+    await trackRecord.data.update({ deleted: true });
+    return { success: true, data: null };
   }
 }
 // const tracks = new TrackManager();
