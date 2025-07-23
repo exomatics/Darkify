@@ -10,7 +10,7 @@
     "generate:keys": "node --loader ts-node/esm --no-warnings=ExperimentalWarning ./src/config/create-key-pair.ts",
     "start:full": "pnpm run generate:keys && pnpm run start",
     "dev:full": "pnpm run generate:keys && pnpm run dev",
-    "lint": "eslint .",
+    "lint": "eslint . --debug",
     "lint:fix": "eslint . --fix",
     "build": "tsc",
     "test:typescript": "tsc --noEmit",

@@ -21,6 +21,7 @@ export default tseslint.config(
   pluginSecurity.configs.recommended,
   eslintPluginUnicorn.configs['flat/recommended'],
   sonarjs.configs.recommended,
+
   {
     plugins: {
       'import-x': importX,
@@ -38,6 +39,7 @@ export default tseslint.config(
       camelcase: 'off',
       'import-x/no-named-as-default-member': 'off',
       'security/detect-non-literal-fs-filename': 'off',
+      'sonarjs/no-hardcoded-passwords': 'off',
       '@typescript-eslint/no-explicit-any': 'error',
       'unused-imports/no-unused-imports': 'error',
       'unused-imports/no-unused-vars': [
@@ -98,7 +100,7 @@ export default tseslint.config(
     },
   },
   {
-    ignores: ['eslint.config.mjs', 'prettier.config.js'],
+    ignores: ['eslint.config.mjs', 'prettier.config.js', './uploads/*'],
   },
   {
     files: ['./src/**/*.ts'],
@@ -112,7 +114,6 @@ export default tseslint.config(
       }),
     },
   },
-
   {
     languageOptions: {
       parserOptions: {

@@ -253,9 +253,9 @@ class UserManager {
       typeof errorMessages.playlist.NotExistsById | typeof errorMessages.user.AlreadyFollowsPlaylist
     >
   > {
-    const platlistRecord = await this.isPlaylistExist(playlist_id);
-    if (!platlistRecord.success) {
-      return platlistRecord;
+    const playlistRecord = await this.isPlaylistExist(playlist_id);
+    if (!playlistRecord.success) {
+      return playlistRecord;
     }
     const playlistFollowersRecord = await database.playlistFollowersModel.findOne({
       where: { user_id, playlist_id },

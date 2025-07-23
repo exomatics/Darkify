@@ -25,7 +25,17 @@ router.get(
     response.status(200).json(databaseResponse);
   }),
 );
-
+router.get(
+  ROUTES.TRACKS.GET_STREAM_TRACK,
+  asyncHandler(async (request: Request, response: Response) => {
+    const validation = uuidScheme.safeParse(request.params.trackId);
+    if (!validation.success) {
+      throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
+    }
+    const databaseResponse = await trackController.streamTrack(validation.data);
+    response.status(200).json(databaseResponse);
+  }),
+);
 router.get(
   ROUTES.TRACKS.POST_TRACK,
   fileUploader.uploadTrackMiddleware.single('track'),

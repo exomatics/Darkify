@@ -7,20 +7,30 @@ import ffmpeg from 'fluent-ffmpeg';
 import { BITRATE_OPTIONS, PATH_TO_AUDIO, STATIC_AUDIO_PATH } from '../../config/config.ts';
 import database from '../../config/database.ts';
 import { errorMessages } from '../../errors/error-messages.ts';
+import InternalError from '../../errors/internal-error.ts';
 
 import type { Itrack, UpdateTrack } from '../../interfaces/track-interface.ts';
 import type { Result } from '../../types/result-type.ts';
+import type { TrackArtistsModel } from '../track-artists.ts';
 import type { TrackModel } from '../track.ts';
 
 class TrackManager {
   async getTrackById(
     trackId: string,
-  ): Promise<Result<TrackModel, typeof errorMessages.track.NotExistsById>> {
+  ): Promise<
+    Result<
+      { track: TrackModel; artists: TrackArtistsModel[] },
+      typeof errorMessages.track.NotExistsById
+    >
+  > {
     const trackInfo = await database.trackModel.findByPk(trackId);
     if (trackInfo === null) {
       return { success: false, reason: errorMessages.track.NotExistsById };
     }
-    return { success: true, data: trackInfo };
+    const trackArtistsRecord = await database.trackArtistsModel.findAll({
+      where: { track_id: trackId },
+    });
+    return { success: true, data: { track: trackInfo, artists: trackArtistsRecord } };
   }
   convertToHls(trackFilename: string): Result<null, typeof errorMessages.track.FfmpegError> {
     const pathToTrack = path.join(PATH_TO_AUDIO, `${trackFilename}.mp3`);
@@ -121,19 +131,34 @@ class TrackManager {
   async createTrackRecord(
     trackInfo: Pick<Itrack, 'track_filename' | 'artists' | 'name' | 'lyrics'>,
   ) {
-    const newTrack = await database.trackModel.create({
-      id: crypto.randomUUID(),
-      artists: trackInfo.artists,
-      name: trackInfo.name,
-      play_count: 0,
-      lyrics: trackInfo.lyrics ?? null,
-      track_filename: trackInfo.track_filename,
-    });
-    return { success: true, data: newTrack };
+    try {
+      const trackId = crypto.randomUUID();
+      const trackArtists = trackInfo.artists.map((value) => {
+        return { track_id: trackId, artist_id: value };
+      });
+
+      const newTrack = await database.trackModel.create({
+        id: trackId,
+        name: trackInfo.name,
+        play_count: 0,
+        lyrics: trackInfo.lyrics ?? null,
+        track_filename: trackInfo.track_filename,
+      });
+      const trackArtistsRecord = await database.trackArtistsModel.bulkCreate(trackArtists);
+
+      return { success: true, data: { track: newTrack, artists: trackArtistsRecord } };
+    } catch {
+      throw new InternalError('failed to create track');
+    }
   }
   async createTrack(
     trackInfo: Pick<Itrack, 'track_filename' | 'artists' | 'name' | 'lyrics'>,
-  ): Promise<Result<TrackModel, typeof errorMessages.track.FfmpegError>> {
+  ): Promise<
+    Result<
+      { track: TrackModel; artists: TrackArtistsModel[] },
+      typeof errorMessages.track.FfmpegError
+    >
+  > {
     const convertStatus = this.convertToHls(trackInfo.track_filename);
     if (!convertStatus.success) {
       return convertStatus;
@@ -144,17 +169,32 @@ class TrackManager {
   }
   async updateTrack(
     trackInfo: UpdateTrack,
-  ): Promise<Result<TrackModel, typeof errorMessages.track.NotExistsById>> {
+  ): Promise<
+    Result<
+      { track: TrackModel; artists: TrackArtistsModel[] },
+      typeof errorMessages.track.NotExistsById
+    >
+  > {
     const trackRecord = await this.getTrackById(trackInfo.id);
     if (!trackRecord.success) {
       return trackRecord;
     }
-
-    await trackRecord.data.update({
-      artists: trackInfo.artists ?? trackRecord.data.artists,
-      name: trackInfo.name ?? trackRecord.data.name,
-      lyrics: trackInfo.lyrics ?? trackRecord.data.lyrics,
-    });
+    try {
+      if (trackInfo.artists) {
+        const trackArtists = trackInfo.artists.map((value) => {
+          return { track_id: trackInfo.id, artist_id: value };
+        });
+        await database.trackArtistsModel.bulkCreate(trackArtists, {
+          updateOnDuplicate: ['artist_id'],
+        });
+      }
+      await trackRecord.data.track.update({
+        name: trackInfo.name ?? trackRecord.data.track.name,
+        lyrics: trackInfo.lyrics ?? trackRecord.data.track.lyrics,
+      });
+    } catch {
+      throw new InternalError('failed to update track');
+    }
     return { success: true, data: trackRecord.data };
   }
   async deleteTrack(
@@ -165,7 +205,7 @@ class TrackManager {
       return trackRecord;
     }
 
-    await trackRecord.data.update({ deleted: true });
+    await trackRecord.data.track.update({ deleted: true });
     return { success: true, data: null };
   }
 }

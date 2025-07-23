@@ -5,7 +5,6 @@ import type { InferAttributes, InferCreationAttributes, Sequelize } from 'sequel
 class TrackModel extends Model<InferAttributes<TrackModel>, InferCreationAttributes<TrackModel>> {
   declare id: string;
   declare name: string;
-  declare artists: string[];
   declare lyrics: string | null;
   declare play_count: number;
   declare deleted?: boolean;
@@ -22,10 +21,6 @@ const trackModel = (sequelize: Sequelize) => {
       },
       name: {
         type: DataTypes.STRING(100),
-        allowNull: false,
-      },
-      artists: {
-        type: DataTypes.ARRAY(DataTypes.UUID),
         allowNull: false,
       },
       lyrics: {

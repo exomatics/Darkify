@@ -94,7 +94,7 @@ const trackScheme = z.object({
 const createTrackScheme = trackScheme.extend({ track_filename: uuidScheme });
 const updateTrackScheme = trackScheme.refine(({ name, artists, lyrics }) => {
   return requireAtLeastOneCheck({ name, artists, lyrics });
-});
+}, errorMessages.validation.SpecifyToUpdateTrack);
 
 export {
   uuidScheme,
