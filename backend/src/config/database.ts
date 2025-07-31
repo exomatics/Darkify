@@ -78,7 +78,7 @@ database.playlistModel.hasMany(database.playlistFollowersModel, { foreignKey: 'p
 database.playlistFollowersModel.belongsTo(database.playlistModel, { foreignKey: 'playlist_id' });
 
 const sequelizeSync = async (sequelizeConfig: Sequelize) => {
-  await sequelizeConfig.sync({ force: true });
+  await sequelizeConfig.sync();
   logger.info('database sync!');
 };
 void sequelizeSync(sequelize);

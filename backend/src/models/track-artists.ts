@@ -11,7 +11,7 @@ class TrackArtistsModel extends Model<
 }
 const trackArtistsModel = (sequelize: Sequelize) => {
   return sequelize.define<TrackArtistsModel>(
-    'trackArtists',
+    'track_artists',
     {
       artist_id: {
         type: DataTypes.UUID,

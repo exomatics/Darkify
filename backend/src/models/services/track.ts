@@ -13,26 +13,57 @@ import type { Itrack, UpdateTrack } from '../../interfaces/track-interface.ts';
 import type { Result } from '../../types/result-type.ts';
 import type { TrackArtistsModel } from '../track-artists.ts';
 import type { TrackModel } from '../track.ts';
+import type { UserModel } from '../user.ts';
+
+interface TrackModelWithUsers extends TrackModel {
+  dataValues: TrackModel['dataValues'] & { users: UserModel[] };
+}
 
 class TrackManager {
   async getTrackById(
     trackId: string,
   ): Promise<
     Result<
-      { track: TrackModel; artists: TrackArtistsModel[] },
+      Omit<Itrack, 'artists'> & { users: { id: string; visible_username: string }[] },
       typeof errorMessages.track.NotExistsById
     >
   > {
-    const trackInfo = await database.trackModel.findByPk(trackId);
-    if (trackInfo === null) {
+    const trackInfo = (await database.trackModel.findOne({
+      attributes: { exclude: ['track_foldername'] },
+      where: { id: trackId },
+      include: [
+        {
+          model: database.userModel,
+          through: { attributes: [] },
+          attributes: ['id', 'visible_username'],
+        },
+      ],
+    })) as TrackModelWithUsers | null;
+    if (!trackInfo) {
       return { success: false, reason: errorMessages.track.NotExistsById };
     }
-    const trackArtistsRecord = await database.trackArtistsModel.findAll({
-      where: { track_id: trackId },
-    });
-    return { success: true, data: { track: trackInfo, artists: trackArtistsRecord } };
+    // const trackArtistsRecord = await database.trackArtistsModel.findAll({
+    //   where: { track_id: trackId },
+    // });
+    const trackskWithArtists = {
+      ...trackInfo.dataValues,
+      play_count: String(trackInfo.play_count + 1),
+      users: trackInfo.dataValues.users.map((trackArtists) => {
+        return { id: trackArtists.id, visible_username: trackArtists.visible_username };
+      }),
+    };
+    return { success: true, data: trackskWithArtists };
   }
-  convertToHls(trackFilename: string): Result<null, typeof errorMessages.track.FfmpegError> {
+  async getTrackRecordById(
+    trackId: string,
+  ): Promise<Result<TrackModel, typeof errorMessages.track.NotExistsById>> {
+    const trackInfo = await database.trackModel.findByPk(trackId);
+    if (!trackInfo) {
+      return { success: false, reason: errorMessages.track.NotExistsById };
+    }
+    return { success: true, data: trackInfo };
+  }
+  convertToHls(trackFilename: string): Result<string, typeof errorMessages.track.FfmpegError> {
     const pathToTrack = path.join(PATH_TO_AUDIO, `${trackFilename}.mp3`);
     const pathToHls = path.join(PATH_TO_AUDIO, trackFilename);
 
@@ -45,6 +76,8 @@ class TrackManager {
     fs.mkdirSync(pathTo160Hls, { recursive: true });
     fs.mkdirSync(pathTo96Hls, { recursive: true });
     fs.mkdirSync(pathTo24Hls, { recursive: true });
+
+    let trackDuration = '';
 
     const command = ffmpeg(pathToTrack)
       .audioCodec('aac')
@@ -101,22 +134,21 @@ class TrackManager {
         '-hls_list_size 0',
       ])
 
-      // .on('codecData', function (data) {
-      //   console.log(data.audio, data.format, data.duration);
-      // })
+      .on('codecData', function (data) {
+        trackDuration = data.duration;
+      })
       .on('error', () => {
         return { success: false, reason: errorMessages.track.FfmpegError };
       });
     command.run();
-
     this.createMasterPlaylist(trackFilename, pathToHls);
 
-    return { success: true, data: null };
+    return { success: true, data: trackDuration };
   }
   createMasterPlaylist(trackFilename: string, pathToHls: string) {
     const masterPlaylistContent = `
     #EXTM3U
-    
+
     #EXT-X-STREAM-INF:BANDWIDTH=320000,NAME="320kbps"
     ${STATIC_AUDIO_PATH}/${trackFilename}/320kbps/320kbps.m3u8
     #EXT-X-STREAM-INF:BANDWIDTH=160000,NAME="160kbps"
@@ -129,7 +161,7 @@ class TrackManager {
     fs.writeFileSync(path.join(pathToHls, 'master_playlist.m3u8'), masterPlaylistContent);
   }
   async createTrackRecord(
-    trackInfo: Pick<Itrack, 'track_filename' | 'artists' | 'name' | 'lyrics'>,
+    trackInfo: Pick<Itrack, 'track_foldername' | 'artists' | 'name' | 'lyrics' | 'duration'>,
   ) {
     try {
       const trackId = crypto.randomUUID();
@@ -142,7 +174,8 @@ class TrackManager {
         name: trackInfo.name,
         play_count: 0,
         lyrics: trackInfo.lyrics ?? null,
-        track_filename: trackInfo.track_filename,
+        track_foldername: trackInfo.track_foldername,
+        duration: trackInfo.duration,
       });
       const trackArtistsRecord = await database.trackArtistsModel.bulkCreate(trackArtists);
 
@@ -152,30 +185,25 @@ class TrackManager {
     }
   }
   async createTrack(
-    trackInfo: Pick<Itrack, 'track_filename' | 'artists' | 'name' | 'lyrics'>,
+    trackInfo: Pick<Itrack, 'track_foldername' | 'artists' | 'name' | 'lyrics'>,
   ): Promise<
     Result<
       { track: TrackModel; artists: TrackArtistsModel[] },
       typeof errorMessages.track.FfmpegError
     >
   > {
-    const convertStatus = this.convertToHls(trackInfo.track_filename);
-    if (!convertStatus.success) {
-      return convertStatus;
+    const fileData = this.convertToHls(trackInfo.track_foldername);
+    if (!fileData.success) {
+      return fileData;
     }
 
-    const trackRecord = await this.createTrackRecord(trackInfo);
+    const trackRecord = await this.createTrackRecord({ ...trackInfo, duration: fileData.data });
     return { success: true, data: trackRecord.data };
   }
   async updateTrack(
     trackInfo: UpdateTrack,
-  ): Promise<
-    Result<
-      { track: TrackModel; artists: TrackArtistsModel[] },
-      typeof errorMessages.track.NotExistsById
-    >
-  > {
-    const trackRecord = await this.getTrackById(trackInfo.id);
+  ): Promise<Result<TrackModel, typeof errorMessages.track.NotExistsById>> {
+    const trackRecord = await this.getTrackRecordById(trackInfo.id);
     if (!trackRecord.success) {
       return trackRecord;
     }
@@ -188,9 +216,9 @@ class TrackManager {
           updateOnDuplicate: ['artist_id'],
         });
       }
-      await trackRecord.data.track.update({
-        name: trackInfo.name ?? trackRecord.data.track.name,
-        lyrics: trackInfo.lyrics ?? trackRecord.data.track.lyrics,
+      await trackRecord.data.update({
+        name: trackInfo.name ?? trackRecord.data.name,
+        lyrics: trackInfo.lyrics ?? trackRecord.data.lyrics,
       });
     } catch {
       throw new InternalError('failed to update track');
@@ -200,16 +228,17 @@ class TrackManager {
   async deleteTrack(
     trackId: string,
   ): Promise<Result<null, typeof errorMessages.track.NotExistsById>> {
-    const trackRecord = await this.getTrackById(trackId);
+    const trackRecord = await this.getTrackRecordById(trackId);
     if (!trackRecord.success) {
       return trackRecord;
     }
 
-    await trackRecord.data.track.update({ deleted: true });
+    await trackRecord.data.update({ deleted: true });
     return { success: true, data: null };
   }
 }
 // const tracks = new TrackManager();
+// tracks.getTrackById('b3218e5e-2a29-4d91-bffa-123456789abc');
 // console.log(
 //   await tracks.createTrack({
 //     artists: ['Orgasm'],
