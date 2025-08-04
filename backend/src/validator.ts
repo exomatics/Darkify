@@ -83,18 +83,30 @@ const updateUserSettingsScheme = z.object({
   userId: uuidScheme,
   bitrate: z.enum(Bitrate),
 });
-
-const trackScheme = z.object({
-  id: uuidScheme,
-  name: z.string().max(100).nonempty(),
-  artists: z.array(uuidScheme),
-  lyrics: z.string(),
+const trackNameScheme = z.string().max(100).nonempty();
+const trackScheme = z
+  .object({
+    id: uuidScheme,
+    lyrics: z.string(),
+    duration: z.string(),
+  })
+  .extend({ name: trackNameScheme });
+const streamTrackScheme = z.object({
+  trackId: uuidScheme,
+  userId: uuidScheme,
 });
 
-const createTrackScheme = trackScheme.extend({ track_filename: uuidScheme });
-const updateTrackScheme = trackScheme.refine(({ name, artists, lyrics }) => {
-  return requireAtLeastOneCheck({ name, artists, lyrics });
-}, errorMessages.validation.SpecifyToUpdateTrack);
+const createTrackScheme = trackScheme
+  .extend({ track_foldername: uuidScheme, artists: z.array(z.string()) })
+  .omit({ duration: true, id: true });
+
+const getTracksScheme = trackNameScheme;
+
+const updateTrackScheme = trackScheme
+  .extend({ artists: z.array(z.string()) })
+  .refine(({ name, artists, lyrics }) => {
+    return requireAtLeastOneCheck({ name, artists, lyrics });
+  }, errorMessages.validation.SpecifyToUpdateTrack);
 
 export {
   uuidScheme,
@@ -107,6 +119,8 @@ export {
   userFollowScheme,
   playlistFollowScheme,
   userAvatarScheme,
+  getTracksScheme,
   createTrackScheme,
   updateTrackScheme,
+  streamTrackScheme,
 };

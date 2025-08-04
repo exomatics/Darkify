@@ -28,7 +28,7 @@ const trackModel = (sequelize: Sequelize) => {
         type: DataTypes.TEXT,
       },
       play_count: {
-        type: DataTypes.BIGINT,
+        type: DataTypes.INTEGER,
         allowNull: false,
       },
       deleted: {

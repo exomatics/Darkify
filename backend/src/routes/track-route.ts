@@ -5,7 +5,13 @@ import trackController from '../controllers/track-controller.ts';
 import ValidationError from '../errors/validation-error.ts';
 import asyncHandler from '../middleware/async-handler.ts';
 import { FileUploader } from '../models/services/file-management.ts';
-import { createTrackScheme, updateTrackScheme, uuidScheme } from '../validator.ts';
+import {
+  createTrackScheme,
+  getTracksScheme,
+  streamTrackScheme,
+  updateTrackScheme,
+  uuidScheme,
+} from '../validator.ts';
 
 import { ROUTES } from './routes.ts';
 
@@ -26,14 +32,28 @@ router.get(
   }),
 );
 router.get(
+  ROUTES.TRACKS.GET_TRACKS,
+  asyncHandler(async (request: Request, response: Response) => {
+    const validation = getTracksScheme.safeParse(request.params.trackName);
+    if (!validation.success) {
+      throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
+    }
+    const databaseResponse = await trackController.getTracksByName(validation.data);
+    response.status(200).json(databaseResponse);
+  }),
+);
+router.get(
   ROUTES.TRACKS.GET_STREAM_TRACK,
   asyncHandler(async (request: Request, response: Response) => {
-    const validation = uuidScheme.safeParse(request.params.trackId);
+    const validation = streamTrackScheme.safeParse({
+      trackId: request.params.trackId,
+      userId: request.jwtPayload.user_id,
+    });
     if (!validation.success) {
       throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }
     const databaseResponse = await trackController.streamTrack(validation.data);
-    response.status(200).json(databaseResponse);
+    response.status(200).download(databaseResponse);
   }),
 );
 router.get(
@@ -42,7 +62,7 @@ router.get(
   asyncHandler(async (request: Request, response: Response) => {
     const validation = createTrackScheme.safeParse({
       ...request.body,
-      track_filename: request.file?.filename,
+      track_foldername: request.file?.filename,
     });
     if (!validation.success) {
       throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));

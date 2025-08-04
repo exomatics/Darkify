@@ -3,7 +3,7 @@ interface Itrack {
   name: string;
   artists: string[];
   lyrics?: string | null;
-  play_count: string;
+  play_count: number;
   track_foldername: string;
   deleted?: boolean;
   duration: string;
