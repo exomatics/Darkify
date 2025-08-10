@@ -1,4 +1,3 @@
-import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -29,8 +28,7 @@ class TrackManager {
     >
   > {
     const trackInfo = (await database.trackModel.findOne({
-      attributes: { exclude: ['track_foldername'] },
-      where: { id: trackId },
+      where: { id: trackId, deleted: false },
       include: [
         {
           model: database.userModel,
@@ -44,17 +42,29 @@ class TrackManager {
     }
     const trackWithArtists = {
       ...trackInfo.dataValues,
-      play_count: trackInfo.play_count++,
       users: trackInfo.dataValues.users.map((trackArtists) => {
         return { id: trackArtists.id, visible_username: trackArtists.visible_username };
       }),
     };
     return { success: true, data: trackWithArtists };
   }
-  async getTracksByName(trackName: string) {
+  async increasePlayCount(trackId: string) {
+    const trackRecord = await this.getTrackRecordById(trackId);
+    if (!trackRecord.success) {
+      return { success: false, reason: errorMessages.track.NotExistsById };
+    }
+    await trackRecord.data.update({ play_count: ++trackRecord.data.play_count });
+  }
+  async getTracksByName(trackName: string): Promise<
+    Result<
+      (Omit<TrackModelWithUsers['dataValues'], 'users'> & {
+        users: { id: string; visible_username: string }[];
+      })[],
+      typeof errorMessages.track.NotExistsByName
+    >
+  > {
     const trackRecords = (await database.trackModel.findAll({
-      attributes: { exclude: ['track_foldername'] },
-      where: { name: { [Op.iLike]: `%${trackName}%` } },
+      where: { name: { [Op.iLike]: `%${trackName}%` }, deleted: false },
       include: [
         {
           model: database.userModel,
@@ -64,7 +74,7 @@ class TrackManager {
       ],
     })) as TrackModelWithUsers[] | [];
     if (trackRecords.length === 0) {
-      return { success: false, reason: errorMessages.track.NotExistsById };
+      return { success: false, reason: errorMessages.track.NotExistsByName };
     }
     const tracksWithArtists = trackRecords.map((trackRecord) => {
       return {
@@ -89,6 +99,7 @@ class TrackManager {
     trackFilename: string,
   ): Promise<Result<string, typeof errorMessages.track.FfmpegError>> {
     const pathToTrack = path.join(PATH_TO_AUDIO, `${trackFilename}.mp3`);
+
     const pathToHls = path.join(PATH_TO_AUDIO, trackFilename);
 
     const pathTo320Hls = path.resolve(pathToHls, '320kbps');
@@ -96,6 +107,7 @@ class TrackManager {
     const pathTo96Hls = path.resolve(pathToHls, '96kbps');
     const pathTo24Hls = path.resolve(pathToHls, '24kbps');
 
+    fs.mkdirSync(pathToHls, { recursive: true });
     fs.mkdirSync(pathTo320Hls, { recursive: true });
     fs.mkdirSync(pathTo160Hls, { recursive: true });
     fs.mkdirSync(pathTo96Hls, { recursive: true });
@@ -171,8 +183,22 @@ class TrackManager {
         })
         .run();
     });
+
     this.createMasterPlaylist(trackFilename, pathToHls);
     await command;
+
+    function postProccessPlaylist(pathToPlaylist: string, bitrate: string) {
+      fs.writeFileSync(
+        pathToPlaylist,
+        fs
+          .readFileSync(pathToPlaylist, 'utf8')
+          .replaceAll('data', `${STATIC_AUDIO_PATH}/${trackFilename}/${bitrate}/data`),
+      );
+    }
+    postProccessPlaylist(path.join(pathTo320Hls, '320kbps.m3u8'), '320kbps');
+    postProccessPlaylist(path.join(pathTo160Hls, '160kbps.m3u8'), '160kbps');
+    postProccessPlaylist(path.join(pathTo96Hls, '96kbps.m3u8'), '96kbps');
+    postProccessPlaylist(path.join(pathTo24Hls, '24kbps.m3u8'), '24kbps');
 
     return { success: true, data: trackDuration };
   }
@@ -192,7 +218,7 @@ class TrackManager {
     fs.writeFileSync(path.join(pathToHls, 'master_playlist.m3u8'), masterPlaylistContent);
   }
   async createTrackRecord(
-    trackInfo: Pick<Itrack, 'track_foldername' | 'artists' | 'name' | 'lyrics' | 'duration'>,
+    trackInfo: Pick<Itrack, 'id' | 'admin_id' | 'artists' | 'name' | 'lyrics' | 'duration'>,
   ): Promise<
     Result<
       Omit<Itrack, 'artists'> & { users: { id: string; visible_username: string }[] },
@@ -200,50 +226,58 @@ class TrackManager {
     >
   > {
     try {
-      const trackId = crypto.randomUUID();
       const trackArtists = trackInfo.artists.map((value) => {
-        return { track_id: trackId, artist_id: value };
+        return { track_id: trackInfo.id, is_admin: false, artist_id: value };
       });
       await database.sequelize.transaction(async (transaction) => {
         await database.trackModel.create(
           {
-            id: trackId,
+            id: trackInfo.id,
+            admin_id: trackInfo.admin_id,
             name: trackInfo.name,
             play_count: 0,
             lyrics: trackInfo.lyrics ?? null,
-            track_foldername: trackInfo.track_foldername,
             duration: trackInfo.duration,
           },
           { transaction },
         );
-        await database.trackArtistsModel.bulkCreate(trackArtists, { transaction });
+        await database.trackArtistsModel.bulkCreate(
+          [
+            { track_id: trackInfo.id, is_admin: true, artist_id: trackInfo.admin_id },
+            ...trackArtists,
+          ],
+          { transaction },
+        );
       });
-      const trackArtistsRecord = await this.getTrackById(trackId);
+      const trackArtistsRecord = await this.getTrackById(trackInfo.id);
       if (!trackArtistsRecord.success) {
         return trackArtistsRecord;
       }
       return { success: true, data: trackArtistsRecord.data };
     } catch {
-      throw new InternalError('failed to create track');
+      throw new InternalError(errorMessages.track.FailedToCreate);
     }
   }
   async createTrack(
-    trackInfo: Pick<Itrack, 'track_foldername' | 'artists' | 'name' | 'lyrics'>,
+    trackInfo: Pick<Itrack, 'id' | 'admin_id' | 'artists' | 'name' | 'lyrics'>,
   ): Promise<
     Result<
       Omit<Itrack, 'artists'> & { users: { id: string; visible_username: string }[] },
       typeof errorMessages.track.FfmpegError | typeof errorMessages.track.NotExistsById
     >
   > {
-    const fileData = await this.convertToHls(trackInfo.track_foldername);
+    const fileData = await this.convertToHls(trackInfo.id);
     if (!fileData.success) {
       return fileData;
     }
-
-    const trackRecord = await this.createTrackRecord({ ...trackInfo, duration: fileData.data });
+    const trackRecord = await this.createTrackRecord({
+      duration: fileData.data,
+      ...trackInfo,
+    });
     if (!trackRecord.success) {
       return trackRecord;
     }
+
     return { success: true, data: trackRecord.data };
   }
   async updateTrack(
@@ -261,7 +295,7 @@ class TrackManager {
     try {
       if (trackInfo.artists) {
         const trackArtists = trackInfo.artists.map((value) => {
-          return { track_id: trackInfo.id, artist_id: value };
+          return { track_id: trackInfo.id, is_admin: false, artist_id: value };
         });
 
         await database.sequelize.transaction(async (transaction) => {

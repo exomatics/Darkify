@@ -3,6 +3,7 @@ import {
   PATH_TO_24m3u8,
   PATH_TO_320m3u8,
   PATH_TO_96m3u8,
+  PATH_TO_AUDIO,
   PATH_TO_AUTO_BITRATE,
 } from '../config/config.ts';
 import { errorMessages } from '../errors/error-messages.ts';
@@ -26,7 +27,7 @@ export default {
   async getTracksByName(trackName: string) {
     const modelResponse = await track.getTracksByName(trackName);
     if (!modelResponse.success) {
-      throw new NotFoundError(modelResponse.reason);
+      return [];
     }
     return modelResponse.data;
   },
@@ -39,26 +40,27 @@ export default {
     if (!userRecord.success) {
       throw new NotFoundError(errorMessages.user.NotExistsById);
     }
+    await track.increasePlayCount(streamInfo.trackId);
     let pathToFile;
     switch (userRecord.data.bitrate) {
       case Bitrate.VeryHigh: {
-        pathToFile = `${modelResponse.data.track_foldername}/${PATH_TO_320m3u8}`;
+        pathToFile = `${PATH_TO_AUDIO}/${modelResponse.data.id}/${PATH_TO_320m3u8}`;
         break;
       }
       case Bitrate.High: {
-        pathToFile = `${modelResponse.data.track_foldername}/${PATH_TO_160m3u8}`;
+        pathToFile = `${PATH_TO_AUDIO}/${modelResponse.data.id}/${PATH_TO_160m3u8}`;
         break;
       }
       case Bitrate.Normal: {
-        pathToFile = `${modelResponse.data.track_foldername}/${PATH_TO_96m3u8}`;
+        pathToFile = `${PATH_TO_AUDIO}/${modelResponse.data.id}/${PATH_TO_96m3u8}`;
         break;
       }
       case Bitrate.Low: {
-        pathToFile = `${modelResponse.data.track_foldername}/${PATH_TO_24m3u8}`;
+        pathToFile = `${PATH_TO_AUDIO}/${modelResponse.data.id}/${PATH_TO_24m3u8}`;
         break;
       }
       case Bitrate.Auto: {
-        pathToFile = `${modelResponse.data.track_foldername}/${PATH_TO_AUTO_BITRATE}`;
+        pathToFile = `${PATH_TO_AUDIO}/${modelResponse.data.id}/${PATH_TO_AUTO_BITRATE}`;
         break;
       }
       default: {
@@ -67,7 +69,7 @@ export default {
     }
     return pathToFile;
   },
-  async createTrack(trackInfo: Omit<Itrack, 'id' | 'duration' | 'play_count'>) {
+  async createTrack(trackInfo: Omit<Itrack, 'duration' | 'play_count'>) {
     const modelResponse = await track.createTrack(trackInfo);
     if (!modelResponse.success) {
       throw new InternalError(modelResponse.reason);

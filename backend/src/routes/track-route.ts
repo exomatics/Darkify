@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import passport from 'passport';
 import { z } from 'zod/v4';
 
 import trackController from '../controllers/track-controller.ts';
@@ -15,13 +16,16 @@ import {
 
 import { ROUTES } from './routes.ts';
 
+import type { Itrack } from '../interfaces/track-interface.ts';
 import type { Request, Response } from 'express';
+import type { ParamsDictionary, RequestHandler } from 'express-serve-static-core';
 
 const fileUploader = new FileUploader();
 const router = Router();
 
 router.get(
   ROUTES.TRACKS.GET_TRACK_INFO,
+  passport.authenticate('access-token', { session: false }) as RequestHandler,
   asyncHandler(async (request: Request, response: Response) => {
     const validation = uuidScheme.safeParse(request.params.trackId);
     if (!validation.success) {
@@ -33,6 +37,7 @@ router.get(
 );
 router.get(
   ROUTES.TRACKS.GET_TRACKS,
+  passport.authenticate('access-token', { session: false }) as RequestHandler,
   asyncHandler(async (request: Request, response: Response) => {
     const validation = getTracksScheme.safeParse(request.params.trackName);
     if (!validation.success) {
@@ -44,6 +49,7 @@ router.get(
 );
 router.get(
   ROUTES.TRACKS.GET_STREAM_TRACK,
+  passport.authenticate('access-token', { session: false }) as RequestHandler,
   asyncHandler(async (request: Request, response: Response) => {
     const validation = streamTrackScheme.safeParse({
       trackId: request.params.trackId,
@@ -56,23 +62,36 @@ router.get(
     response.status(200).download(databaseResponse);
   }),
 );
-router.get(
+
+export type PostTrackRequest = Request<
+  ParamsDictionary,
+  unknown,
+  Pick<Itrack, 'admin_id' | 'lyrics' | 'name'> & { artists?: string }
+> & { trackId?: string };
+router.post(
   ROUTES.TRACKS.POST_TRACK,
+  passport.authenticate('access-token', { session: false }) as RequestHandler,
   fileUploader.uploadTrackMiddleware.single('track'),
-  asyncHandler(async (request: Request, response: Response) => {
+  asyncHandler(async (request: PostTrackRequest, response: Response) => {
     const validation = createTrackScheme.safeParse({
       ...request.body,
-      track_foldername: request.file?.filename,
+      artists: JSON.parse(request.body.artists ?? '[]') as string[],
+      admin_id: request.jwtPayload.user_id,
     });
     if (!validation.success) {
       throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }
-    const databaseResponse = await trackController.createTrack(validation.data);
+    const databaseResponse = await trackController.createTrack({
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      id: request.trackId!,
+      ...validation.data,
+    });
     response.status(200).json(databaseResponse);
   }),
 );
 router.put(
   ROUTES.TRACKS.PUT_TRACK,
+  passport.authenticate('access-token', { session: false }) as RequestHandler,
   asyncHandler(async (request: Request, response: Response) => {
     const validation = updateTrackScheme.safeParse({ id: request.params.trackId, ...request.body });
     if (!validation.success) {
@@ -84,13 +103,14 @@ router.put(
 );
 router.delete(
   ROUTES.TRACKS.DELETE_TRACK,
+  passport.authenticate('access-token', { session: false }) as RequestHandler,
   asyncHandler(async (request: Request, response: Response) => {
     const validation = uuidScheme.safeParse(request.params.trackId);
     if (!validation.success) {
       throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }
     await trackController.deleteTrack(validation.data);
-    response.status(200);
+    response.status(200).end();
   }),
 );
 

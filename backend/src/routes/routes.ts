@@ -14,7 +14,7 @@ const API_BASE = '/api';
 export const ROUTES = Object.freeze({
   TRACKS: {
     GET_TRACK_INFO: `${API_BASE}/tracks/:trackId`,
-    GET_TRACKS: `${API_BASE}/tracks/:trackName`,
+    GET_TRACKS: `${API_BASE}/tracks/search/:trackName`,
     PUT_TRACK: `${API_BASE}/tracks/:trackId`,
     POST_TRACK: `${API_BASE}/tracks/`,
     DELETE_TRACK: `${API_BASE}/tracks/:trackId`,

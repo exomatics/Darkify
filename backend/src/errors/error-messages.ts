@@ -17,7 +17,9 @@ export const errorMessages = {
   }),
   track: Object.freeze({
     NotExistsById: 'Track with this id does not exist',
+    NotExistsByName: 'There is no tracks with such name',
     FfmpegError: 'Error while converting to hls',
+    FailedToCreate: 'Failed to create track',
   }),
   validation: Object.freeze({
     PasswordNoCapital: 'Password has no capital letters',

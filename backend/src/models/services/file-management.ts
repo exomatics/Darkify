@@ -8,9 +8,9 @@ import sharp from 'sharp';
 import { PATH_TO_AUDIO, PATH_TO_IMAGES } from '../../config/config.ts';
 import ValidationError from '../../errors/validation-error.ts';
 
+import type { PostTrackRequest } from '../../routes/track-route.ts';
 import type { Request } from 'express';
 import type { FileFilterCallback } from 'multer';
-
 class FileUploader {
   static init() {
     if (!fs.existsSync(PATH_TO_IMAGES)) {
@@ -28,15 +28,17 @@ class FileUploader {
       destination(request, file, callback) {
         callback(null, PATH_TO_AUDIO);
       },
-      filename(request, file, callback) {
-        callback(null, crypto.randomUUID());
+      filename(request: PostTrackRequest, file, callback) {
+        const trackId = crypto.randomUUID();
+        request.trackId = trackId;
+        callback(null, `${trackId}.mp3`);
       },
     }),
     fileFilter(request: Request, file, callback: FileFilterCallback) {
-      if (file.mimetype === 'audio/mp3') {
+      if (file.mimetype === 'audio/mpeg') {
         callback(null, true);
       } else {
-        const fileValidationError = 'file is not an mp3';
+        const fileValidationError = 'file is not a mpeg';
         callback(new ValidationError(fileValidationError));
       }
     },

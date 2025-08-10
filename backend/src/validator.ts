@@ -84,26 +84,25 @@ const updateUserSettingsScheme = z.object({
   bitrate: z.enum(Bitrate),
 });
 const trackNameScheme = z.string().max(100).nonempty();
-const trackScheme = z
-  .object({
-    id: uuidScheme,
-    lyrics: z.string(),
-    duration: z.string(),
-  })
-  .extend({ name: trackNameScheme });
+const trackScheme = z.object({
+  id: uuidScheme,
+  lyrics: z.string().optional(),
+  duration: z.string(),
+});
 const streamTrackScheme = z.object({
   trackId: uuidScheme,
   userId: uuidScheme,
 });
 
 const createTrackScheme = trackScheme
-  .extend({ track_foldername: uuidScheme, artists: z.array(z.string()) })
+  .extend({ name: trackNameScheme, admin_id: uuidScheme, artists: z.array(uuidScheme) })
   .omit({ duration: true, id: true });
 
 const getTracksScheme = trackNameScheme;
 
 const updateTrackScheme = trackScheme
-  .extend({ artists: z.array(z.string()) })
+  .extend({ name: trackNameScheme.optional(), artists: z.array(z.string()).optional() })
+  .omit({ duration: true })
   .refine(({ name, artists, lyrics }) => {
     return requireAtLeastOneCheck({ name, artists, lyrics });
   }, errorMessages.validation.SpecifyToUpdateTrack);
