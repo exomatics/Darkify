@@ -23,7 +23,7 @@ class TrackManager {
     trackId: string,
   ): Promise<
     Result<
-      Omit<Itrack, 'artists'> & { users: { id: string; visible_username: string }[] },
+      Omit<Itrack, 'artists'> & { artists: { id: string; visible_username: string }[] },
       typeof errorMessages.track.NotExistsById
     >
   > {
@@ -42,7 +42,7 @@ class TrackManager {
     }
     const trackWithArtists = {
       ...trackInfo.dataValues,
-      users: trackInfo.dataValues.users.map((trackArtists) => {
+      artists: trackInfo.dataValues.users.map((trackArtists) => {
         return { id: trackArtists.id, visible_username: trackArtists.visible_username };
       }),
     };
@@ -58,7 +58,7 @@ class TrackManager {
   async getTracksByName(trackName: string): Promise<
     Result<
       (Omit<TrackModelWithUsers['dataValues'], 'users'> & {
-        users: { id: string; visible_username: string }[];
+        artists: { id: string; visible_username: string }[];
       })[],
       typeof errorMessages.track.NotExistsByName
     >
@@ -79,7 +79,7 @@ class TrackManager {
     const tracksWithArtists = trackRecords.map((trackRecord) => {
       return {
         ...trackRecord.dataValues,
-        users: trackRecord.dataValues.users.map((trackArtists) => {
+        artists: trackRecord.dataValues.users.map((trackArtists) => {
           return { id: trackArtists.id, visible_username: trackArtists.visible_username };
         }),
       };
@@ -221,7 +221,7 @@ class TrackManager {
     trackInfo: Pick<Itrack, 'id' | 'admin_id' | 'artists' | 'name' | 'lyrics' | 'duration'>,
   ): Promise<
     Result<
-      Omit<Itrack, 'artists'> & { users: { id: string; visible_username: string }[] },
+      Omit<Itrack, 'artists'> & { artists: { id: string; visible_username: string }[] },
       typeof errorMessages.track.NotExistsById
     >
   > {
@@ -262,7 +262,7 @@ class TrackManager {
     trackInfo: Pick<Itrack, 'id' | 'admin_id' | 'artists' | 'name' | 'lyrics'>,
   ): Promise<
     Result<
-      Omit<Itrack, 'artists'> & { users: { id: string; visible_username: string }[] },
+      Omit<Itrack, 'artists'> & { artists: { id: string; visible_username: string }[] },
       typeof errorMessages.track.FfmpegError | typeof errorMessages.track.NotExistsById
     >
   > {
@@ -284,7 +284,7 @@ class TrackManager {
     trackInfo: UpdateTrack,
   ): Promise<
     Result<
-      Omit<Itrack, 'artists'> & { users: { id: string; visible_username: string }[] },
+      Omit<Itrack, 'artists'> & { artists: { id: string; visible_username: string }[] },
       typeof errorMessages.track.NotExistsById
     >
   > {
