@@ -15,7 +15,7 @@ import type { TrackModel } from '../track.ts';
 import type { UserModel } from '../user.ts';
 
 interface TrackModelWithUsers extends TrackModel {
-  dataValues: TrackModel['dataValues'] & { users: UserModel[] };
+  dataValues: TrackModel['dataValues'] & { artists: UserModel[] };
 }
 
 class TrackManager {
@@ -42,7 +42,7 @@ class TrackManager {
     }
     const trackWithArtists = {
       ...trackInfo.dataValues,
-      users: trackInfo.dataValues.users.map((trackArtists) => {
+      artists: trackInfo.dataValues.users.map((trackArtists) => {
         return { id: trackArtists.id, visible_username: trackArtists.visible_username };
       }),
     };
@@ -57,7 +57,7 @@ class TrackManager {
   }
   async getTracksByName(trackName: string): Promise<
     Result<
-      (Omit<TrackModelWithUsers['dataValues'], 'users'> & {
+      (Omit<TrackModelWithUsers['dataValues'], 'artists'> & {
         users: { id: string; visible_username: string }[];
       })[],
       typeof errorMessages.track.NotExistsByName
@@ -79,7 +79,7 @@ class TrackManager {
     const tracksWithArtists = trackRecords.map((trackRecord) => {
       return {
         ...trackRecord.dataValues,
-        users: trackRecord.dataValues.users.map((trackArtists) => {
+        artists: trackRecord.dataValues.users.map((trackArtists) => {
           return { id: trackArtists.id, visible_username: trackArtists.visible_username };
         }),
       };
