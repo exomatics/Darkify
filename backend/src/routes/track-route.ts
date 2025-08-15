@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import FormData from 'form-data';
 import passport from 'passport';
 import { z } from 'zod/v4';
 
@@ -33,6 +34,11 @@ router.get(
       throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }
     const databaseResponse = await trackController.getTrackInfo(validation.data);
+    const form = new FormData();
+    form.append('data', JSON.stringify(databaseResponse.trackInfo));
+    form.append('cover', databaseResponse.cover);
+    const headers = form.getHeaders() as Headers;
+    response.setHeaders(headers);
     response.status(200).json(databaseResponse);
   }),
 );
@@ -45,6 +51,15 @@ router.get(
       throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }
     const databaseResponse = await trackController.getTracksByName(validation.data);
+    const form = new FormData();
+    // eslint-disable-next-line github/array-foreach, unicorn/no-array-for-each, @typescript-eslint/no-misused-promises
+    databaseResponse.forEach(async (track) => {
+      const awaitedTrack = await track;
+      form.append('data', JSON.stringify(awaitedTrack.trackInfo));
+      form.append('cover', awaitedTrack.cover);
+    });
+    const headers = form.getHeaders() as Headers;
+    response.setHeaders(headers);
     response.status(200).json(databaseResponse);
   }),
 );
@@ -68,17 +83,19 @@ router.get(
 export type PostTrackRequest = Request<
   ParamsDictionary,
   unknown,
-  Pick<Itrack, 'admin_id' | 'lyrics' | 'name'> & { artists?: string }
+  Pick<Itrack, 'lyrics' | 'name'> & { artists?: string }
 > & { trackId?: string };
 router.post(
   ROUTES.TRACKS.POST_TRACK,
   passport.authenticate('access-token', { session: false }) as RequestHandler,
-  fileUploader.uploadTrackMiddleware.single('track'),
+  fileUploader.uploadTrackMiddleware.fields([{ name: 'track', maxCount: 1 }]),
+  fileUploader.uploadImageMiddleware.fields([{ name: 'cover', maxCount: 1 }]),
   asyncHandler(async (request: PostTrackRequest, response: Response) => {
     const validation = createTrackScheme.safeParse({
-      ...request.body,
       artists: JSON.parse(request.body.artists ?? '[]') as string[],
       admin_id: request.jwtPayload.user_id,
+      file: request.files['cover'][0] ?? null,
+      ...request.body,
     });
     if (!validation.success) {
       throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
@@ -88,18 +105,33 @@ router.post(
       id: request.trackId!,
       ...validation.data,
     });
-    response.status(200).json(databaseResponse);
+    const form = new FormData();
+    form.append('data', JSON.stringify(databaseResponse.trackInfo));
+    form.append('cover', databaseResponse.cover);
+    const headers = form.getHeaders() as Headers;
+    response.setHeaders(headers);
+    response.status(200).send();
   }),
 );
 router.put(
   ROUTES.TRACKS.PUT_TRACK,
   passport.authenticate('access-token', { session: false }) as RequestHandler,
+  fileUploader.uploadImageMiddleware.single('cover'),
   asyncHandler(async (request: Request, response: Response) => {
-    const validation = updateTrackScheme.safeParse({ id: request.params.trackId, ...request.body });
+    const validation = updateTrackScheme.safeParse({
+      id: request.params.trackId,
+      file: request.file,
+      ...request.body,
+    });
     if (!validation.success) {
       throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }
     const databaseResponse = await trackController.updateTrack(validation.data);
+    const form = new FormData();
+    form.append('data', JSON.stringify(databaseResponse.trackInfo));
+    form.append('cover', databaseResponse.cover);
+    const headers = form.getHeaders() as Headers;
+    response.setHeaders(headers);
     response.status(200).json(databaseResponse);
   }),
 );

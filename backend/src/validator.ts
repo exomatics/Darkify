@@ -94,14 +94,30 @@ const streamTrackScheme = z.object({
   userId: uuidScheme,
 });
 
+const trackCoverScheme = z.custom<Express.Multer.File>(
+  (value) => {
+    return value;
+  },
+  { message: errorMessages.user.GotNoFile },
+);
+
 const createTrackScheme = trackScheme
-  .extend({ name: trackNameScheme, admin_id: uuidScheme, artists: z.array(uuidScheme) })
+  .extend({
+    name: trackNameScheme,
+    admin_id: uuidScheme,
+    artists: z.array(uuidScheme),
+    file: trackCoverScheme,
+  })
   .omit({ duration: true, id: true });
 
 const getTracksScheme = trackNameScheme;
 
 const updateTrackScheme = trackScheme
-  .extend({ name: trackNameScheme.optional(), artists: z.array(z.string()).optional() })
+  .extend({
+    name: trackNameScheme.optional(),
+    artists: z.array(z.string()).optional(),
+    file: trackCoverScheme,
+  })
   .omit({ duration: true })
   .refine(({ name, artists, lyrics }) => {
     return requireAtLeastOneCheck({ name, artists, lyrics });

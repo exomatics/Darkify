@@ -9,6 +9,7 @@ import {
 import { errorMessages } from '../errors/error-messages.ts';
 import InternalError from '../errors/internal-error.ts';
 import NotFoundError from '../errors/not-found-error.ts';
+import { FileUploader } from '../models/services/file-management.ts';
 import TrackManager from '../models/services/track.ts';
 import UserManager from '../models/services/user.ts';
 import { Bitrate } from '../types/bitrate-type.ts';
@@ -16,6 +17,8 @@ import { Bitrate } from '../types/bitrate-type.ts';
 import type { Itrack, UpdateTrack } from '../interfaces/track-interface.ts';
 const track = new TrackManager();
 const user = new UserManager();
+const fileUploader = new FileUploader();
+
 export default {
   async getTrackInfo(trackId: string) {
     const modelResponse = await track.getTrackById(trackId);
@@ -44,23 +47,23 @@ export default {
     let pathToFile;
     switch (userRecord.data.bitrate) {
       case Bitrate.VeryHigh: {
-        pathToFile = `${PATH_TO_AUDIO}/${modelResponse.data.id}/${PATH_TO_320m3u8}`;
+        pathToFile = `${PATH_TO_AUDIO}/${modelResponse.data.trackInfo.id}/${PATH_TO_320m3u8}`;
         break;
       }
       case Bitrate.High: {
-        pathToFile = `${PATH_TO_AUDIO}/${modelResponse.data.id}/${PATH_TO_160m3u8}`;
+        pathToFile = `${PATH_TO_AUDIO}/${modelResponse.data.trackInfo.id}/${PATH_TO_160m3u8}`;
         break;
       }
       case Bitrate.Normal: {
-        pathToFile = `${PATH_TO_AUDIO}/${modelResponse.data.id}/${PATH_TO_96m3u8}`;
+        pathToFile = `${PATH_TO_AUDIO}/${modelResponse.data.trackInfo.id}/${PATH_TO_96m3u8}`;
         break;
       }
       case Bitrate.Low: {
-        pathToFile = `${PATH_TO_AUDIO}/${modelResponse.data.id}/${PATH_TO_24m3u8}`;
+        pathToFile = `${PATH_TO_AUDIO}/${modelResponse.data.trackInfo.id}/${PATH_TO_24m3u8}`;
         break;
       }
       case Bitrate.Auto: {
-        pathToFile = `${PATH_TO_AUDIO}/${modelResponse.data.id}/${PATH_TO_AUTO_BITRATE}`;
+        pathToFile = `${PATH_TO_AUDIO}/${modelResponse.data.trackInfo.id}/${PATH_TO_AUTO_BITRATE}`;
         break;
       }
       default: {
@@ -69,8 +72,11 @@ export default {
     }
     return pathToFile;
   },
-  async createTrack(trackInfo: Omit<Itrack, 'duration' | 'play_count'>) {
-    const modelResponse = await track.createTrack(trackInfo);
+  async createTrack(
+    trackInfo: Omit<Itrack, 'coverId' | 'duration' | 'play_count'> & { file: Express.Multer.File },
+  ) {
+    const coverId = await fileUploader.uploadImage(trackInfo.file);
+    const modelResponse = await track.createTrack({ ...trackInfo, coverId: coverId.data });
     if (!modelResponse.success) {
       throw new InternalError(modelResponse.reason);
     }
@@ -78,7 +84,12 @@ export default {
     return modelResponse.data;
   },
   async updateTrack(trackInfo: UpdateTrack) {
-    const modelResponse = await track.updateTrack(trackInfo);
+    let coverId;
+    if (trackInfo.file) {
+      coverId = await fileUploader.uploadImage(trackInfo.file);
+    }
+    const modelResponse = await track.updateTrack({ ...trackInfo, coverId: coverId?.data });
+
     if (!modelResponse.success) {
       throw new NotFoundError(modelResponse.reason);
     }

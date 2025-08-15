@@ -11,6 +11,7 @@ const errorHandler: ErrorRequestHandler = (error, request, response, next) => {
     });
     return;
   }
+  console.dir(error, { depth: Infinity });
   logger.error(error);
 
   response.status(500).json({

@@ -17,6 +17,21 @@ class FileUploader {
       fs.mkdirSync(PATH_TO_IMAGES, { recursive: true });
     }
   }
+  uploadImageMiddleware = multer({
+    storage: multer.memoryStorage(),
+    fileFilter(request: Request, file, callback: FileFilterCallback) {
+      console.log('23232');
+      if (file.mimetype === 'image/png' || file.mimetype === 'image/jpeg') {
+        callback(null, true);
+      } else {
+        const fileValidationError = 'file is not an png or jpeg image';
+        callback(new ValidationError(fileValidationError));
+      }
+    },
+    limits: {
+      fileSize: 1000 * 1000 * 100,
+    },
+  });
   async uploadImage(fileBuffer: Express.Multer.File) {
     const fileName = crypto.randomUUID();
     const pathToFile = path.join(PATH_TO_IMAGES, `${fileName}.jpg`);
@@ -26,9 +41,11 @@ class FileUploader {
   uploadTrackMiddleware = multer({
     storage: multer.diskStorage({
       destination(request, file, callback) {
+        console.log('fsfsfsf');
         callback(null, PATH_TO_AUDIO);
       },
       filename(request: PostTrackRequest, file, callback) {
+        console.log('11111');
         const trackId = crypto.randomUUID();
         request.trackId = trackId;
         callback(null, `${trackId}.mp3`);
