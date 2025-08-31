@@ -287,10 +287,7 @@ paths:
         content:
           multipart/form-data:
             schema:
-              properties:
-                avatar:
-                  type: string
-                  format: binary
+              $ref: '#/components/schemas/PostTrackRequest'
       responses:
         '200':
           $ref: '#/components/responses/TrackInfoResponse'
@@ -320,9 +317,9 @@ paths:
       requestBody:
         required: true
         content:
-          application/json:
+          multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PutTrackInfo'
+              $ref: '#/components/schemas/PutTrackRequest'
       responses:
         '200':
           $ref: '#/components/responses/TrackInfoResponse'
@@ -481,6 +478,9 @@ components:
                 format: uuid
               visible_username:
                 type: string
+        cover_url:
+          type: string
+          format: uri-reference
         lyrics?:
           type: [string, 'null']
         play_count:
@@ -489,7 +489,31 @@ components:
           type: boolean
         duration:
           type: string
-    PutTrackInfo:
+    PostTrackRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        admin_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 100
+        artists:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+              visible_username:
+                type: string
+        lyrics?:
+          type: [string, 'null']
+    PutTrackRequest:
       type: object
       properties:
         id:
@@ -505,6 +529,9 @@ components:
           items:
             type: string
             format: uuid
+        cover:
+          type: string
+          format: binary
   parameters:
     UserIdParameter:
       in: path

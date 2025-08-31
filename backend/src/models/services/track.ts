@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 import ffmpeg from 'fluent-ffmpeg';
+import _ from 'lodash';
 import { Op } from 'sequelize';
 
 import {
@@ -27,10 +28,10 @@ class TrackManager {
   async getTrackById(trackId: string): Promise<
     Result<
       {
-        trackInfo: Omit<Itrack, 'artists' | 'coverId'> & {
+        trackInfo: Omit<Itrack, 'artists' | 'cover_id'> & {
           artists: { id: string; visible_username: string }[];
+          cover_url: string | null;
         };
-        cover: Buffer;
       },
       typeof errorMessages.track.NotExistsById
     >
@@ -50,12 +51,14 @@ class TrackManager {
     }
     const trackWithArtists = {
       trackInfo: {
-        ...trackRecord.dataValues,
+        ..._.omit(trackRecord.dataValues, 'cover_id'),
         artists: trackRecord.dataValues.users.map((trackArtists) => {
           return { id: trackArtists.id, visible_username: trackArtists.visible_username };
         }),
+        cover_url: trackRecord.dataValues.cover_id
+          ? `${STATIC_IMAGES_PATH}/${trackRecord.dataValues.cover_id}.jpg`
+          : null,
       },
-      cover: (await this.getCover(trackRecord.cover_url)) as Buffer,
     };
     return { success: true, data: trackWithArtists };
   }
@@ -68,12 +71,12 @@ class TrackManager {
   }
   async getTracksByName(trackName: string): Promise<
     Result<
-      Promise<{
-        trackInfo: Omit<Itrack, 'artists' | 'coverId'> & {
+      {
+        trackInfo: Omit<Itrack, 'artists' | 'cover_id'> & {
           artists: { id: string; visible_username: string }[];
+          cover_url: string | null;
         };
-        cover: Buffer;
-      }>[],
+      }[],
       typeof errorMessages.track.NotExistsByName
     >
   > {
@@ -90,15 +93,17 @@ class TrackManager {
     if (trackRecords.length === 0) {
       return { success: false, reason: errorMessages.track.NotExistsByName };
     }
-    const tracksWithArtists = trackRecords.map(async (trackRecord) => {
+    const tracksWithArtists = trackRecords.map((trackRecord) => {
       return {
         trackInfo: {
-          ...trackRecord.dataValues,
+          ..._.omit(trackRecord.dataValues, 'cover_id'),
           artists: trackRecord.dataValues.users.map((trackArtists) => {
             return { id: trackArtists.id, visible_username: trackArtists.visible_username };
           }),
+          cover_url: trackRecord.dataValues.cover_id
+            ? `${STATIC_IMAGES_PATH}/${trackRecord.dataValues.cover_id}.jpg`
+            : null,
         },
-        cover: (await this.getCover(trackRecord.cover_url)) as Buffer,
       };
     });
     return { success: true, data: tracksWithArtists };
@@ -237,15 +242,14 @@ class TrackManager {
   async createTrackRecord(
     trackInfo: Pick<
       Itrack,
-      'coverId' | 'id' | 'admin_id' | 'artists' | 'name' | 'lyrics' | 'duration'
+      'cover_id' | 'id' | 'admin_id' | 'artists' | 'name' | 'lyrics' | 'duration'
     >,
   ): Promise<
     Result<
       {
-        trackInfo: Omit<Itrack, 'artists' | 'coverId'> & {
+        trackInfo: Omit<Itrack, 'artists' | 'cover_id'> & {
           artists: { id: string; visible_username: string }[];
         };
-        cover: Buffer;
       },
       typeof errorMessages.track.NotExistsById
     >
@@ -263,7 +267,7 @@ class TrackManager {
             play_count: 0,
             lyrics: trackInfo.lyrics ?? null,
             duration: trackInfo.duration,
-            cover_url: trackInfo.coverId,
+            cover_id: trackInfo.cover_id,
           },
           { transaction },
         );
@@ -285,14 +289,13 @@ class TrackManager {
     }
   }
   async createTrack(
-    trackInfo: Pick<Itrack, 'coverId' | 'id' | 'admin_id' | 'artists' | 'name' | 'lyrics'>,
+    trackInfo: Pick<Itrack, 'cover_id' | 'id' | 'admin_id' | 'artists' | 'name' | 'lyrics'>,
   ): Promise<
     Result<
       {
-        trackInfo: Omit<Itrack, 'artists' | 'coverId'> & {
+        trackInfo: Omit<Itrack, 'artists' | 'cover_id'> & {
           artists: { id: string; visible_username: string }[];
         };
-        cover: Buffer;
       },
       typeof errorMessages.track.FfmpegError | typeof errorMessages.track.NotExistsById
     >
@@ -314,10 +317,9 @@ class TrackManager {
   async updateTrack(trackInfo: UpdateTrack): Promise<
     Result<
       {
-        trackInfo: Omit<Itrack, 'artists' | 'coverId'> & {
+        trackInfo: Omit<Itrack, 'artists' | 'cover_id'> & {
           artists: { id: string; visible_username: string }[];
         };
-        cover: Buffer;
       },
       typeof errorMessages.track.NotExistsById
     >
@@ -341,7 +343,7 @@ class TrackManager {
             {
               name: trackInfo.name ?? trackRecord.data.name,
               lyrics: trackInfo.lyrics ?? trackRecord.data.lyrics,
-              cover_url: trackInfo.coverId ?? trackRecord.data.cover_url,
+              cover_id: trackInfo.cover_id ?? trackRecord.data.cover_id,
             },
             { transaction },
           );
@@ -350,6 +352,7 @@ class TrackManager {
         await trackRecord.data.update({
           name: trackInfo.name ?? trackRecord.data.name,
           lyrics: trackInfo.lyrics ?? trackRecord.data.lyrics,
+          cover_id: trackInfo.cover_id ?? trackRecord.data.cover_id,
         });
       }
     } catch {
@@ -371,13 +374,6 @@ class TrackManager {
 
     await trackRecord.data.update({ deleted: true });
     return { success: true, data: null };
-  }
-  async getCover(trackId: string) {
-    const trackRecord = await this.getTrackRecordById(trackId);
-    if (!trackRecord.success) {
-      return trackRecord;
-    }
-    return fs.readFileSync(path.join(STATIC_IMAGES_PATH, trackRecord.data.cover_url));
   }
 }
 

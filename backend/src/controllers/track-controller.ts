@@ -73,10 +73,19 @@ export default {
     return pathToFile;
   },
   async createTrack(
-    trackInfo: Omit<Itrack, 'coverId' | 'duration' | 'play_count'> & { file: Express.Multer.File },
+    trackInfo: Omit<Itrack, 'cover_id' | 'duration' | 'play_count'> & {
+      file: Express.Multer.File[] | null;
+    },
   ) {
-    const coverId = await fileUploader.uploadImage(trackInfo.file);
-    const modelResponse = await track.createTrack({ ...trackInfo, coverId: coverId.data });
+    // if(!trackInfo.file){
+    //   // throw new
+    // }
+    let coverId;
+    if (trackInfo.file) {
+      coverId = await fileUploader.uploadImage(trackInfo.file[0]);
+      coverId = coverId.data;
+    }
+    const modelResponse = await track.createTrack({ ...trackInfo, cover_id: coverId ?? null });
     if (!modelResponse.success) {
       throw new InternalError(modelResponse.reason);
     }
@@ -87,8 +96,9 @@ export default {
     let coverId;
     if (trackInfo.file) {
       coverId = await fileUploader.uploadImage(trackInfo.file);
+      coverId = coverId.data;
     }
-    const modelResponse = await track.updateTrack({ ...trackInfo, coverId: coverId?.data });
+    const modelResponse = await track.updateTrack({ ...trackInfo, cover_id: coverId ?? null });
 
     if (!modelResponse.success) {
       throw new NotFoundError(modelResponse.reason);

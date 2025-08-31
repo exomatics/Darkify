@@ -48,7 +48,7 @@ database.playlistModel.belongsToMany(database.trackModel, {
 });
 database.trackModel.belongsToMany(database.playlistModel, {
   through: database.playlistTrackModel,
-  foreignKey: 'track_id',
+  foreignKey: 'tracks_id',
   otherKey: 'playlist_id',
 });
 database.userModel.hasMany(database.userFollowersModel, { foreignKey: 'user_id' });

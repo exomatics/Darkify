@@ -10,7 +10,7 @@ class TrackModel extends Model<InferAttributes<TrackModel>, InferCreationAttribu
   declare play_count: number;
   declare deleted?: boolean;
   declare duration: string;
-  declare cover_url: string;
+  declare cover_id: string | null;
 }
 const trackModel = (sequelize: Sequelize) => {
   return sequelize.define<TrackModel>(
@@ -44,7 +44,7 @@ const trackModel = (sequelize: Sequelize) => {
         type: DataTypes.STRING,
         allowNull: false,
       },
-      cover_url: {
+      cover_id: {
         type: DataTypes.UUID,
         unique: true,
       },

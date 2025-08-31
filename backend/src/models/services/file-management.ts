@@ -10,7 +10,50 @@ import ValidationError from '../../errors/validation-error.ts';
 
 import type { PostTrackRequest } from '../../routes/track-route.ts';
 import type { Request } from 'express';
-import type { FileFilterCallback } from 'multer';
+import type { FileFilterCallback, StorageEngine } from 'multer';
+class TrackAndCoverStorage implements StorageEngine {
+  private memoryStorage: StorageEngine;
+  private trackDiskStorage: StorageEngine;
+  constructor() {
+    this.memoryStorage = multer.memoryStorage();
+    this.trackDiskStorage = multer.diskStorage({
+      destination(request, file, callback) {
+        callback(null, PATH_TO_AUDIO);
+      },
+      filename(request: PostTrackRequest, file, callback) {
+        const trackId = crypto.randomUUID();
+        request.trackId = trackId;
+        callback(null, `${trackId}.mp3`);
+      },
+    });
+  }
+  _handleFile(
+    request: Request,
+    file: Express.Multer.File,
+    callback: (error?: unknown, info?: Partial<Express.Multer.File>) => void,
+  ) {
+    if (file.fieldname === 'cover') {
+      this.memoryStorage._handleFile(request, file, callback);
+    }
+    if (file.fieldname === 'track') {
+      this.trackDiskStorage._handleFile(request, file, callback);
+    }
+  }
+  _removeFile(
+    request: Request,
+    file: Express.Multer.File,
+    callback: (error: Error | null) => void,
+  ) {
+    if (file.fieldname === 'cover') {
+      this.memoryStorage._removeFile(request, file, callback);
+    } else if (file.fieldname === 'track') {
+      this.trackDiskStorage._removeFile(request, file, callback);
+    } else {
+      callback(null);
+    }
+  }
+}
+
 class FileUploader {
   static init() {
     if (!fs.existsSync(PATH_TO_IMAGES)) {
@@ -20,7 +63,6 @@ class FileUploader {
   uploadImageMiddleware = multer({
     storage: multer.memoryStorage(),
     fileFilter(request: Request, file, callback: FileFilterCallback) {
-      console.log('23232');
       if (file.mimetype === 'image/png' || file.mimetype === 'image/jpeg') {
         callback(null, true);
       } else {
@@ -32,20 +74,18 @@ class FileUploader {
       fileSize: 1000 * 1000 * 100,
     },
   });
-  async uploadImage(fileBuffer: Express.Multer.File) {
+  async uploadImage(file: Express.Multer.File) {
     const fileName = crypto.randomUUID();
     const pathToFile = path.join(PATH_TO_IMAGES, `${fileName}.jpg`);
-    await sharp(fileBuffer.buffer).toFormat('jpg').toFile(pathToFile);
+    await sharp(file.buffer).toFormat('jpg').toFile(pathToFile);
     return { success: true, data: fileName };
   }
   uploadTrackMiddleware = multer({
     storage: multer.diskStorage({
       destination(request, file, callback) {
-        console.log('fsfsfsf');
         callback(null, PATH_TO_AUDIO);
       },
       filename(request: PostTrackRequest, file, callback) {
-        console.log('11111');
         const trackId = crypto.randomUUID();
         request.trackId = trackId;
         callback(null, `${trackId}.mp3`);
@@ -57,6 +97,29 @@ class FileUploader {
       } else {
         const fileValidationError = 'file is not a mpeg';
         callback(new ValidationError(fileValidationError));
+      }
+    },
+    limits: {
+      fileSize: 1000 * 1000 * 100,
+    },
+  });
+  uploadTrackOrCoverMiddleware = multer({
+    storage: new TrackAndCoverStorage(),
+    fileFilter: (_request, file, callback) => {
+      if (file.fieldname === 'cover') {
+        if (file.mimetype === 'image/png' || file.mimetype === 'image/jpeg') {
+          callback(null, true);
+        } else {
+          callback(new ValidationError('file is not a png or jpeg image'));
+        }
+      } else if (file.fieldname === 'track') {
+        if (file.mimetype === 'audio/mpeg') {
+          callback(null, true);
+        } else {
+          callback(new ValidationError('file is not a mpeg'));
+        }
+      } else {
+        callback(new ValidationError('Unexpected field'));
       }
     },
     limits: {

@@ -106,7 +106,7 @@ const createTrackScheme = trackScheme
     name: trackNameScheme,
     admin_id: uuidScheme,
     artists: z.array(uuidScheme),
-    file: trackCoverScheme,
+    file: trackCoverScheme.array().nullable(),
   })
   .omit({ duration: true, id: true });
 
@@ -116,11 +116,11 @@ const updateTrackScheme = trackScheme
   .extend({
     name: trackNameScheme.optional(),
     artists: z.array(z.string()).optional(),
-    file: trackCoverScheme,
+    file: trackCoverScheme.nullable(),
   })
   .omit({ duration: true })
-  .refine(({ name, artists, lyrics }) => {
-    return requireAtLeastOneCheck({ name, artists, lyrics });
+  .refine(({ name, artists, lyrics, file }) => {
+    return requireAtLeastOneCheck({ name, artists, lyrics, file });
   }, errorMessages.validation.SpecifyToUpdateTrack);
 
 export {

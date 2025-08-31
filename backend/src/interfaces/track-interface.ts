@@ -7,15 +7,15 @@ interface Itrack {
   play_count: number;
   deleted?: boolean;
   duration: string;
-  coverId: string;
+  cover_id: string | null;
 }
 interface UpdateTrack {
   id: string;
   name?: string;
   artists?: string[];
   lyrics?: string | null;
-  coverId?: string;
-  file?: Express.Multer.File;
+  cover_id?: string | null;
+  file: Express.Multer.File | null;
 }
 
 export { Itrack, UpdateTrack };
