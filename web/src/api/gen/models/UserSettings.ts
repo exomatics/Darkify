@@ -4,6 +4,7 @@
 /* eslint-disable */
 import type { Bitrate } from './Bitrate';
 export type UserSettings = {
-  user_id?: string;
-  bitrate?: Bitrate;
+    user_id?: string;
+    bitrate?: Bitrate;
 };
+

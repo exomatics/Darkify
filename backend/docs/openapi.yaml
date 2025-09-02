@@ -279,7 +279,7 @@ paths:
                 avatar:
                   type: string
                   format: binary
-  /api/tracks/:
+  /tracks/:
     post:
       tags: [Track]
       summary: Upload track
@@ -296,7 +296,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
-  /api/tracks/{trackId}:
+  /tracks/{trackId}:
     get:
       tags: [Track]
       summary: Get trackInfo by id
@@ -337,7 +337,7 @@ paths:
           $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/Unauthorized'
-  /api/tracks/search/{trackName}:
+  /tracks/search/{trackName}:
     get:
       summary: Get all tracks by trackName. Case insensitive
       tags: [Track]
@@ -356,7 +356,7 @@ paths:
           $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/Unauthorized'
-  /api/tracks/stream/{trackId}:
+  /tracks/stream/{trackId}:
     get:
       summary: Get m3u8 file for streaming. Depends on user's chosen bitrate
       tags: [Track]
@@ -492,15 +492,15 @@ components:
     PostTrackRequest:
       type: object
       properties:
-        id:
-          type: string
-          format: uuid
-        admin_id:
-          type: string
-          format: uuid
         name:
           type: string
           maxLength: 100
+        cover:
+          type: string
+          format: binary
+        track:
+          type: string
+          format: binary
         artists:
           type: array
           items:
