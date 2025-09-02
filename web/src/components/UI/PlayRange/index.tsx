@@ -1,5 +1,6 @@
 import styled from 'styled-components';
 import { TextSmall } from '../Text';
+import React from "react";
 
 const StyledPlayRange = styled.div`
   display: flex;
@@ -21,6 +22,7 @@ const StyledPlayRange = styled.div`
   }
   .time {
     color: ${({ theme }) => theme.colors.fg.secondary};
+    width: 30px;
   }
 `;
 
@@ -28,15 +30,26 @@ export const PlayRange = ({
   currentPercent,
   currentTime,
   totalTime,
+  onSeek
 }: {
   currentPercent: number;
   currentTime: string;
   totalTime: string;
+  onSeek: (percent: number) => void;
 }) => {
+
+  const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
+
+    const progressBar = e.currentTarget;
+    const rect = progressBar.getBoundingClientRect();
+    const percent = (e.clientX - rect.left) / rect.width;
+    onSeek(percent);
+  };
+
   return (
     <StyledPlayRange className="play-range">
       <TextSmall className="time">{currentTime}</TextSmall>
-      <div className="range">
+      <div onClick={handleProgressClick} className="range">
         <div className="passed" style={{ width: currentPercent * 100 + '%' }}></div>
       </div>
       <TextSmall className="time">{totalTime}</TextSmall>

@@ -4,13 +4,13 @@ import {BACKEND_BASE} from "../../api/api.ts";
 import {formatDuration} from "./lib.ts";
 import {Icons} from "../UI/Icons";
 
-export const Track = ({number, track}: {
+export const Track = ({number, track, onPlay}: {
   number: number,
   track: TrackInfo
+  onPlay?: () => void;
 }) => {
-  console.log(track)
   return <StyledTrack>
-    <div className="number">
+    <div onClick={onPlay} className="number">
       <div className="no-icon">
         {number}
       </div>
