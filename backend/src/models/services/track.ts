@@ -7,6 +7,8 @@ import { Op } from 'sequelize';
 
 import {
   BITRATE_OPTIONS,
+  DEFAULT_LIMIT,
+  DEFAULT_OFFSET,
   PATH_TO_AUDIO,
   STATIC_AUDIO_PATH,
   STATIC_IMAGES_PATH,
@@ -23,19 +25,19 @@ import type { UserModel } from '../user.ts';
 interface TrackModelWithUsers extends TrackModel {
   dataValues: TrackModel['dataValues'] & { users: UserModel[] };
 }
+interface GetTracksByNameType {
+  rows: TrackModelWithUsers[];
+  count: number;
+}
 
+type TrackResult = Omit<Itrack, 'artists' | 'cover_id' | 'admin_id'> & {
+  artists: { id: string; visible_username: string }[];
+  cover_url: string | null;
+};
 class TrackManager {
-  async getTrackById(trackId: string): Promise<
-    Result<
-      {
-        trackInfo: Omit<Itrack, 'artists' | 'cover_id'> & {
-          artists: { id: string; visible_username: string }[];
-          cover_url: string | null;
-        };
-      },
-      typeof errorMessages.track.NotExistsById
-    >
-  > {
+  async getTrackById(
+    trackId: string,
+  ): Promise<Result<TrackResult, typeof errorMessages.track.NotExistsById>> {
     const trackRecord = (await database.trackModel.findOne({
       where: { id: trackId, deleted: false },
       include: [
@@ -50,15 +52,13 @@ class TrackManager {
       return { success: false, reason: errorMessages.track.NotExistsById };
     }
     const trackWithArtists = {
-      trackInfo: {
-        ..._.omit(trackRecord.dataValues, 'cover_id'),
-        artists: trackRecord.dataValues.users.map((trackArtists) => {
-          return { id: trackArtists.id, visible_username: trackArtists.visible_username };
-        }),
-        cover_url: trackRecord.dataValues.cover_id
-          ? `${STATIC_IMAGES_PATH}/${trackRecord.dataValues.cover_id}.jpg`
-          : null,
-      },
+      ..._.omit(trackRecord.dataValues, 'cover_id', 'users', 'admin_id'),
+      artists: trackRecord.dataValues.users.map((trackArtists) => {
+        return { id: trackArtists.id, visible_username: trackArtists.visible_username };
+      }),
+      cover_url: trackRecord.dataValues.cover_id
+        ? `${STATIC_IMAGES_PATH}/${trackRecord.dataValues.cover_id}.jpg`
+        : null,
     };
     return { success: true, data: trackWithArtists };
   }
@@ -69,18 +69,14 @@ class TrackManager {
     }
     await trackRecord.data.update({ play_count: ++trackRecord.data.play_count });
   }
-  async getTracksByName(trackName: string): Promise<
-    Result<
-      {
-        trackInfo: Omit<Itrack, 'artists' | 'cover_id'> & {
-          artists: { id: string; visible_username: string }[];
-          cover_url: string | null;
-        };
-      }[],
-      typeof errorMessages.track.NotExistsByName
-    >
+  async getTracksByName(
+    trackName: string,
+    limit: number = DEFAULT_LIMIT,
+    offset: number = DEFAULT_OFFSET,
+  ): Promise<
+    Result<{ rows: TrackResult[]; count: number }, typeof errorMessages.track.NotExistsByName>
   > {
-    const trackRecords = (await database.trackModel.findAll({
+    const trackRecords = (await database.trackModel.findAndCountAll({
       where: { name: { [Op.iLike]: `%${trackName}%` }, deleted: false },
       include: [
         {
@@ -89,24 +85,24 @@ class TrackManager {
           attributes: ['id', 'visible_username'],
         },
       ],
-    })) as TrackModelWithUsers[] | [];
-    if (trackRecords.length === 0) {
+      offset,
+      limit,
+    })) as GetTracksByNameType | { rows: []; count: number };
+    if (trackRecords.rows.length === 0) {
       return { success: false, reason: errorMessages.track.NotExistsByName };
     }
-    const tracksWithArtists = trackRecords.map((trackRecord) => {
+    const tracksWithArtists = trackRecords.rows.map((trackRecord) => {
       return {
-        trackInfo: {
-          ..._.omit(trackRecord.dataValues, 'cover_id'),
-          artists: trackRecord.dataValues.users.map((trackArtists) => {
-            return { id: trackArtists.id, visible_username: trackArtists.visible_username };
-          }),
-          cover_url: trackRecord.dataValues.cover_id
-            ? `${STATIC_IMAGES_PATH}/${trackRecord.dataValues.cover_id}.jpg`
-            : null,
-        },
+        ..._.omit(trackRecord.dataValues, 'cover_id', 'users', 'admin_id'),
+        artists: trackRecord.dataValues.users.map((trackArtists) => {
+          return { id: trackArtists.id, visible_username: trackArtists.visible_username };
+        }),
+        cover_url: trackRecord.dataValues.cover_id
+          ? `${STATIC_IMAGES_PATH}/${trackRecord.dataValues.cover_id}.jpg`
+          : null,
       };
     });
-    return { success: true, data: tracksWithArtists };
+    return { success: true, data: { rows: tracksWithArtists, count: trackRecords.count } };
   }
   async getTrackRecordById(
     trackId: string,
@@ -244,16 +240,7 @@ class TrackManager {
       Itrack,
       'cover_id' | 'id' | 'admin_id' | 'artists' | 'name' | 'lyrics' | 'duration'
     >,
-  ): Promise<
-    Result<
-      {
-        trackInfo: Omit<Itrack, 'artists' | 'cover_id'> & {
-          artists: { id: string; visible_username: string }[];
-        };
-      },
-      typeof errorMessages.track.NotExistsById
-    >
-  > {
+  ): Promise<Result<TrackResult, typeof errorMessages.track.NotExistsById>> {
     try {
       const trackArtists = trackInfo.artists.map((value) => {
         return { track_id: trackInfo.id, is_admin: false, artist_id: value };
@@ -292,11 +279,7 @@ class TrackManager {
     trackInfo: Pick<Itrack, 'cover_id' | 'id' | 'admin_id' | 'artists' | 'name' | 'lyrics'>,
   ): Promise<
     Result<
-      {
-        trackInfo: Omit<Itrack, 'artists' | 'cover_id'> & {
-          artists: { id: string; visible_username: string }[];
-        };
-      },
+      TrackResult,
       typeof errorMessages.track.FfmpegError | typeof errorMessages.track.NotExistsById
     >
   > {
@@ -314,16 +297,9 @@ class TrackManager {
 
     return { success: true, data: trackRecord.data };
   }
-  async updateTrack(trackInfo: UpdateTrack): Promise<
-    Result<
-      {
-        trackInfo: Omit<Itrack, 'artists' | 'cover_id'> & {
-          artists: { id: string; visible_username: string }[];
-        };
-      },
-      typeof errorMessages.track.NotExistsById
-    >
-  > {
+  async updateTrack(
+    trackInfo: UpdateTrack,
+  ): Promise<Result<TrackResult, typeof errorMessages.track.NotExistsById>> {
     const trackRecord = await this.getTrackRecordById(trackInfo.id);
     if (!trackRecord.success) {
       return trackRecord;
