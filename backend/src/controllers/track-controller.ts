@@ -1,4 +1,6 @@
 import {
+  DEFAULT_LIMIT,
+  DEFAULT_OFFSET,
   PATH_TO_160m3u8,
   PATH_TO_24m3u8,
   PATH_TO_320m3u8,
@@ -27,12 +29,22 @@ export default {
     }
     return modelResponse.data;
   },
-  async getTracksByName(trackName: string) {
-    const modelResponse = await track.getTracksByName(trackName);
+  async getTracksByName(
+    trackName: string,
+    limit: number = DEFAULT_LIMIT,
+    offset: number = DEFAULT_OFFSET,
+  ) {
+    const modelResponse = await track.getTracksByName(trackName, limit, offset);
     if (!modelResponse.success) {
       return [];
     }
-    return modelResponse.data;
+    const { rows, count } = modelResponse.data;
+    return {
+      next: offset + rows.length + 1 <= count ? offset + rows.length : null,
+      offset,
+      total: count,
+      items: rows,
+    };
   },
   async streamTrack(streamInfo: { trackId: string; userId: string }) {
     const modelResponse = await track.getTrackById(streamInfo.trackId);
@@ -47,23 +59,23 @@ export default {
     let pathToFile;
     switch (userRecord.data.bitrate) {
       case Bitrate.VeryHigh: {
-        pathToFile = `${PATH_TO_AUDIO}/${modelResponse.data.trackInfo.id}/${PATH_TO_320m3u8}`;
+        pathToFile = `${PATH_TO_AUDIO}/${modelResponse.data.id}/${PATH_TO_320m3u8}`;
         break;
       }
       case Bitrate.High: {
-        pathToFile = `${PATH_TO_AUDIO}/${modelResponse.data.trackInfo.id}/${PATH_TO_160m3u8}`;
+        pathToFile = `${PATH_TO_AUDIO}/${modelResponse.data.id}/${PATH_TO_160m3u8}`;
         break;
       }
       case Bitrate.Normal: {
-        pathToFile = `${PATH_TO_AUDIO}/${modelResponse.data.trackInfo.id}/${PATH_TO_96m3u8}`;
+        pathToFile = `${PATH_TO_AUDIO}/${modelResponse.data.id}/${PATH_TO_96m3u8}`;
         break;
       }
       case Bitrate.Low: {
-        pathToFile = `${PATH_TO_AUDIO}/${modelResponse.data.trackInfo.id}/${PATH_TO_24m3u8}`;
+        pathToFile = `${PATH_TO_AUDIO}/${modelResponse.data.id}/${PATH_TO_24m3u8}`;
         break;
       }
       case Bitrate.Auto: {
-        pathToFile = `${PATH_TO_AUDIO}/${modelResponse.data.trackInfo.id}/${PATH_TO_AUTO_BITRATE}`;
+        pathToFile = `${PATH_TO_AUDIO}/${modelResponse.data.id}/${PATH_TO_AUTO_BITRATE}`;
         break;
       }
       default: {

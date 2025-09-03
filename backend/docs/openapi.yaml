@@ -349,9 +349,19 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/TrackInfo'
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  offset:
+                    type: integer
+                  next:
+                    type: ['integer', 'null']
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TrackInfo'
+
         '400':
           $ref: '#/components/responses/ValidationError'
         '401':
@@ -460,9 +470,6 @@ components:
       type: object
       properties:
         id:
-          type: string
-          format: uuid
-        admin_id:
           type: string
           format: uuid
         name:
