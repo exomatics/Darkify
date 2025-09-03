@@ -49,8 +49,8 @@ router.get(
     ) => {
       const validation = getTracksScheme.safeParse({
         name: request.params.trackName,
-        limit: request.body.limit,
-        offset: request.body.offset,
+        limit: request.query.limit,
+        offset: request.query.offset,
       });
       if (!validation.success) {
         throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));

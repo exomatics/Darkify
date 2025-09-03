@@ -5,7 +5,6 @@ import { z } from 'zod/v4';
 import authController from '../controllers/auth-controller.ts';
 import ValidationError from '../errors/validation-error.ts';
 import asyncHandler from '../middleware/async-handler.ts';
-import { rateLimiter } from '../middleware/rate-limiter.ts';
 import { registerScheme, refreshTokenScheme, loginScheme } from '../validator.ts';
 
 import { ROUTES } from './routes.ts';
@@ -35,7 +34,6 @@ router.post(
 );
 router.post(
   ROUTES.USERS.POST_LOGIN,
-  rateLimiter,
   asyncHandler(
     async (
       request: Request<ParamsDictionary, unknown, Pick<IUser, 'username' | 'email' | 'password'>>,
@@ -63,7 +61,6 @@ router.post(
 
 router.post(
   ROUTES.USERS.POST_REGISTER,
-  rateLimiter,
   asyncHandler(
     async (
       request: Request<

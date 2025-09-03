@@ -346,21 +346,8 @@ paths:
       tags: [Track]
       parameters:
         - $ref: '#/components/parameters/TrackNameParameter'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                limit:
-                  type: number
-                  maximum: 100
-                  default: 5
-                offset:
-                  type: number
-                  default: 0
-
+        - $ref: '#/components/parameters/PaginationLimitParameter'
+        - $ref: '#/components/parameters/PaginationOffsetParameter'
       responses:
         '200':
           description: array of trackInfo
@@ -562,6 +549,19 @@ components:
       schema:
         type: string
         format: uuid
+    PaginationLimitParameter:
+      in: query
+      name: limit
+      schema:
+        type: number
+        maximum: 100
+        default: 5
+    PaginationOffsetParameter:
+      in: query
+      name: offset
+      schema:
+        type: number
+        default: 0
 
     PlaylistIdParameter:
       in: path
