@@ -455,9 +455,6 @@ components:
     UserSettings:
       type: object
       properties:
-        user_id:
-          type: string
-          format: uuid
         bitrate:
           $ref: '#/components/schemas/Bitrate'
     UserPreview:
