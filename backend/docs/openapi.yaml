@@ -320,6 +320,7 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/PutTrackRequest'
+
       responses:
         '200':
           $ref: '#/components/responses/TrackInfoResponse'
@@ -330,6 +331,8 @@ paths:
     delete:
       summary: Delete track by id
       tags: [Track]
+      parameters:
+        - $ref: '#/components/parameters/TrackIdParameter'
       responses:
         '200':
           $ref: '#/components/responses/SuccessStatus'
@@ -343,6 +346,21 @@ paths:
       tags: [Track]
       parameters:
         - $ref: '#/components/parameters/TrackNameParameter'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                limit:
+                  type: number
+                  maximum: 100
+                  default: 5
+                offset:
+                  type: number
+                  default: 0
+
       responses:
         '200':
           description: array of trackInfo
@@ -488,11 +506,11 @@ components:
         cover_url:
           type: string
           format: uri-reference
-        lyrics?:
+        lyrics:
           type: [string, 'null']
         play_count:
           type: number
-        deleted?:
+        deleted:
           type: boolean
         duration:
           type: string
@@ -518,18 +536,15 @@ components:
                 format: uuid
               visible_username:
                 type: string
-        lyrics?:
+        lyrics:
           type: [string, 'null']
     PutTrackRequest:
       type: object
       properties:
-        id:
-          type: string
-          format: uuid
         name:
           type: string
           maxLength: 100
-        lyrics?:
+        lyrics:
           type: [string, 'null']
         artists:
           type: array

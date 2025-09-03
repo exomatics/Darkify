@@ -8,6 +8,10 @@ const uuidScheme = z.uuid();
 function requireAtLeastOneCheck(object: Record<string | number | symbol, unknown>) {
   return Object.values(object).some((value) => value !== undefined);
 }
+const paginationScheme = z.object({
+  limit: z.number().max(100).nonnegative().optional(),
+  offset: z.number().nonnegative().optional(),
+});
 const hashScheme = z
   .string()
   .regex(/^(0x|0h)?[0-9A-F]+$/i)
@@ -110,7 +114,10 @@ const createTrackScheme = trackScheme
   })
   .omit({ duration: true, id: true });
 
-const getTracksScheme = trackNameScheme;
+const getTracksScheme = z.object({
+  name: trackNameScheme,
+  ...paginationScheme.shape,
+});
 
 const updateTrackScheme = trackScheme
   .extend({

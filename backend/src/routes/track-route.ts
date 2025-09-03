@@ -39,14 +39,32 @@ router.get(
 router.get(
   ROUTES.TRACKS.GET_TRACKS,
   passport.authenticate('access-token', { session: false }) as RequestHandler,
-  asyncHandler(async (request: Request, response: Response) => {
-    const validation = getTracksScheme.safeParse(request.params.trackName);
-    if (!validation.success) {
-      throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
-    }
-    const databaseResponse = await trackController.getTracksByName(validation.data);
-    response.status(200).json(databaseResponse);
-  }),
+  asyncHandler(
+    async (
+      request: Request<
+        ParamsDictionary,
+        unknown,
+        { name: Pick<Itrack, 'name'>; offset?: number; limit: number }
+      >,
+      response: Response,
+    ) => {
+      const validation = getTracksScheme.safeParse({
+        name: request.params.trackName,
+        limit: request.body.limit,
+        offset: request.body.offset,
+      });
+      if (!validation.success) {
+        throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
+      }
+      const databaseResponse = await trackController.getTracksByName(
+        validation.data.name,
+        validation.data.limit,
+        validation.data.offset,
+      );
+
+      response.status(200).json(databaseResponse);
+    },
+  ),
 );
 router.get(
   ROUTES.TRACKS.GET_STREAM_TRACK,

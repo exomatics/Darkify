@@ -25,10 +25,6 @@ import type { UserModel } from '../user.ts';
 interface TrackModelWithUsers extends TrackModel {
   dataValues: TrackModel['dataValues'] & { users: UserModel[] };
 }
-interface GetTracksByNameType {
-  rows: TrackModelWithUsers[];
-  count: number;
-}
 
 type TrackResult = Omit<Itrack, 'artists' | 'cover_id' | 'admin_id'> & {
   artists: { id: string; visible_username: string }[];
@@ -76,7 +72,7 @@ class TrackManager {
   ): Promise<
     Result<{ rows: TrackResult[]; count: number }, typeof errorMessages.track.NotExistsByName>
   > {
-    const trackRecords = (await database.trackModel.findAndCountAll({
+    const trackRecords = (await database.trackModel.findAll({
       where: { name: { [Op.iLike]: `%${trackName}%` }, deleted: false },
       include: [
         {
@@ -87,11 +83,14 @@ class TrackManager {
       ],
       offset,
       limit,
-    })) as GetTracksByNameType | { rows: []; count: number };
-    if (trackRecords.rows.length === 0) {
+    })) as TrackModelWithUsers[] | [];
+    const totalRecordsNumber = await database.trackModel.count({
+      where: { name: { [Op.iLike]: `%${trackName}%` }, deleted: false },
+    });
+    if (trackRecords.length === 0) {
       return { success: false, reason: errorMessages.track.NotExistsByName };
     }
-    const tracksWithArtists = trackRecords.rows.map((trackRecord) => {
+    const tracksWithArtists = trackRecords.map((trackRecord) => {
       return {
         ..._.omit(trackRecord.dataValues, 'cover_id', 'users', 'admin_id'),
         artists: trackRecord.dataValues.users.map((trackArtists) => {
@@ -102,7 +101,7 @@ class TrackManager {
           : null,
       };
     });
-    return { success: true, data: { rows: tracksWithArtists, count: trackRecords.count } };
+    return { success: true, data: { rows: tracksWithArtists, count: totalRecordsNumber } };
   }
   async getTrackRecordById(
     trackId: string,
