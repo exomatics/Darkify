@@ -114,7 +114,7 @@ export const HeaderSearch = () => {
         navigate(latestLocation.current);
       }
     },
-    [location.pathname, navigate],
+    [location.pathname, navigate, setSearchParams],
   );
 
   return (

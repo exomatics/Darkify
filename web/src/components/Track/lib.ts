@@ -1,5 +1,5 @@
 export function formatDuration(duration: string) {
-  const [time, ms] = duration.split('.');
+  const [time] = duration.split('.');
   const parts = time.split(':').map(Number);
 
   // [hours, minutes, seconds]

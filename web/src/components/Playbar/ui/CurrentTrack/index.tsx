@@ -1,5 +1,4 @@
 import styled from 'styled-components';
-import mockCover from './mock.png';
 import { TextSub } from '../../../UI/Text';
 import { TrackInfo } from '../../../../api/gen';
 import { BACKEND_BASE } from '../../../../api/api.ts';

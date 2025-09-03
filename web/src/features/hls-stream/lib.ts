@@ -1,4 +1,5 @@
-import { BACKEND_BASE } from '../../api/api.ts';
+import {BACKEND_BASE} from '../../api/api.ts';
+import Hls, {Events, FragLoadedData, FragLoadingData} from "hls.js";
 
 export const processHLSContent = (hlsContent: string): string => {
   return hlsContent.replace(/^\/files\/audio\/.+\.ts$/gm, (match) => `${BACKEND_BASE}${match}`);
@@ -23,16 +24,16 @@ export const getHLSConfig = () => ({
   manifestLoadingTimeOut: 10000,
 });
 
-export const setupHLSLogging = (hls: any) => {
-  hls.on('hlsFragLoading', (event, data) => {
+export const setupHLSLogging = (hls: Hls) => {
+  hls.on(Events.FRAG_LOADING, (_: Events.FRAG_LOADING, data: FragLoadingData) => {
     console.log('Loading fragment:', data.frag.url);
   });
 
-  hls.on('hlsFragLoaded', (event, data) => {
+  hls.on(Events.FRAG_LOADED, (_: Events.FRAG_LOADED, data: FragLoadedData) => {
     console.log('Fragment loaded:', data.frag.url);
   });
 
-  hls.on('hlsManifestParsed', () => {
+  hls.on(Events.MANIFEST_PARSED, () => {
     console.log('HLS manifest parsed successfully');
   });
 };

@@ -48,7 +48,7 @@ export const useUser = () => {
   useEffect(() => {
     const doLogin = async () => {
       const token = getStoredToken();
-      if (token) {
+      if (token && !isAuthenticated) {
         setToken(token);
         const userInfo = await api.user.getUsersMe();
         setCurrentUser(userInfo);
@@ -58,7 +58,7 @@ export const useUser = () => {
       setIsInitialized(true);
     };
     doLogin().then(() => void 0);
-  }, []);
+  }, [isAuthenticated, setCurrentToken, setCurrentUser, setIsAuthenticated, setIsInitialized]);
 
   const login = async (emailOrUsername: string, password: string) => {
     const user = await authService.login(emailOrUsername, password);
