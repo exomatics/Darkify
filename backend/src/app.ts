@@ -2,6 +2,7 @@ import fs from 'node:fs';
 
 import cors from 'cors';
 import express from 'express';
+import { rateLimit } from 'express-rate-limit';
 import passport from 'passport';
 import swaggerUi from 'swagger-ui-express';
 import YAML from 'yaml';
@@ -31,6 +32,14 @@ app.use(
   }),
 );
 app.use(express.json());
+app.use(
+  rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    standardHeaders: true,
+    legacyHeaders: false,
+  }),
+);
 app.use('/swagger', swaggerUi.serve, swaggerUi.setup(openapiDocument));
 app.use('/docs', express.static(PATH_TO_OPENAPI));
 app.use(STATIC_DIRECTORY_PATH, express.static(PATH_TO_UPLOADS));
