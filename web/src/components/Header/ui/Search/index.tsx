@@ -1,7 +1,7 @@
 import styled, { css } from 'styled-components';
 import { Icons } from '../../../UI/Icons';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {useLocation, useNavigate, useSearchParams} from "react-router";
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useLocation, useNavigate, useSearchParams } from 'react-router';
 
 const StyledSearch = styled.div<{ $active: boolean }>`
   display: flex;
@@ -78,10 +78,10 @@ const StyledSearch = styled.div<{ $active: boolean }>`
 export const HeaderSearch = () => {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [active, setActive] = useState(false);
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const location = useLocation();
   const latestLocation = useRef<string | null>(null);
-  const [, setSearchParams] = useSearchParams()
+  const [, setSearchParams] = useSearchParams();
 
   useEffect(() => {
     const input = inputRef.current;
@@ -99,20 +99,23 @@ export const HeaderSearch = () => {
     };
   }, []);
 
-  const inputHandler: React.FormEventHandler<HTMLInputElement> = useCallback((e) => {
-    console.log(e.target.value)
-    if(e.target.value.trim().length > 0) {
-      setSearchParams({search: e.target.value})
-      if(location.pathname !== '/search') {
-        latestLocation.current = location.pathname
-        navigate('/search')
-      console.log(location.pathname)
+  const inputHandler: React.FormEventHandler<HTMLInputElement> = useCallback(
+    (e) => {
+      console.log(e.target.value);
+      if (e.target.value.trim().length > 0) {
+        setSearchParams({ search: e.target.value });
+        if (location.pathname !== '/search') {
+          latestLocation.current = location.pathname;
+          navigate('/search');
+          console.log(location.pathname);
+        }
+      } else {
+        console.log(latestLocation.current);
+        navigate(latestLocation.current);
       }
-    } else {
-      console.log(latestLocation.current)
-      navigate(latestLocation.current)
-    }
-  }, [location.pathname, navigate])
+    },
+    [location.pathname, navigate],
+  );
 
   return (
     <StyledSearch $active={active} onClick={() => inputRef?.current?.focus()}>

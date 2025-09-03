@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 import { TextSmall } from '../Text';
-import React from "react";
+import React from 'react';
 
 const StyledPlayRange = styled.div`
   display: flex;
@@ -30,16 +30,14 @@ export const PlayRange = ({
   currentPercent,
   currentTime,
   totalTime,
-  onSeek
+  onSeek,
 }: {
   currentPercent: number;
   currentTime: string;
   totalTime: string;
   onSeek: (percent: number) => void;
 }) => {
-
   const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
-
     const progressBar = e.currentTarget;
     const rect = progressBar.getBoundingClientRect();
     const percent = (e.clientX - rect.left) / rect.width;

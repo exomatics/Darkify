@@ -1,39 +1,38 @@
-import styled from "styled-components";
-import {TrackInfo} from "../../api/gen";
-import {BACKEND_BASE} from "../../api/api.ts";
-import {formatDuration} from "./lib.ts";
-import {Icons} from "../UI/Icons";
+import styled from 'styled-components';
+import { TrackInfo } from '../../api/gen';
+import { BACKEND_BASE } from '../../api/api.ts';
+import { formatDuration } from './lib.ts';
+import { Icons } from '../UI/Icons';
 
-export const Track = ({number, track, onPlay}: {
-  number: number,
-  track: TrackInfo
+export const Track = ({
+  number,
+  track,
+  onPlay,
+}: {
+  number: number;
+  track: TrackInfo;
   onPlay?: () => void;
 }) => {
-  return <StyledTrack>
-    <div onClick={onPlay} className="number">
-      <div className="no-icon">
-        {number}
+  return (
+    <StyledTrack>
+      <div onClick={onPlay} className="number">
+        <div className="no-icon">{number}</div>
+        <div className="icon">
+          <Icons.Big.PlayOnly />
+        </div>
       </div>
-      <div className="icon">
-        <Icons.Big.PlayOnly />
+      <img src={BACKEND_BASE + track.cover_url} alt="" className="cover" />
+      <div className="info">
+        <div className="title">{track.name}</div>
+        <div className="artists">
+          {track.artists?.map((artist) => <div className="artist">{artist.visible_username}</div>)}
+        </div>
       </div>
-    </div>
-    <img src={BACKEND_BASE + track.cover_url} alt="" className="cover"/>
-    <div className="info">
-      <div className="title">{track.name}</div>
-      <div className="artists">
-        {track.artists?.map(artist => <div
-          className='artist'>{artist.visible_username}</div>)}
-      </div>
-    </div>
-    <div className="album">
-      Album Name
-    </div>
-    <div className="duration">
-      {formatDuration(track.duration)}
-    </div>
-  </StyledTrack>
-}
+      <div className="album">Album Name</div>
+      <div className="duration">{formatDuration(track.duration)}</div>
+    </StyledTrack>
+  );
+};
 
 const StyledTrack = styled.div`
   display: flex;
@@ -54,7 +53,7 @@ const StyledTrack = styled.div`
     cursor: pointer;
   }
   &:hover {
-    background: ${({theme}) => theme.colors.bg.primary};
+    background: ${({ theme }) => theme.colors.bg.primary};
     .no-icon {
       display: none;
     }
@@ -69,7 +68,7 @@ const StyledTrack = styled.div`
     display: flex;
     justify-content: center;
     align-items: center;
-    color: ${({theme}) => theme.colors.fg.secondary};
+    color: ${({ theme }) => theme.colors.fg.secondary};
   }
 
   .cover {
@@ -89,15 +88,15 @@ const StyledTrack = styled.div`
 
   .artist {
     font-size: 14px;
-    color: ${({theme}) => theme.colors.fg.secondary};
+    color: ${({ theme }) => theme.colors.fg.secondary};
   }
 
   .album {
-   color: ${({theme}) => theme.colors.fg.secondary};
+    color: ${({ theme }) => theme.colors.fg.secondary};
     width: 300px;
   }
 
   .duration {
-    color: ${({theme}) => theme.colors.fg.secondary};
+    color: ${({ theme }) => theme.colors.fg.secondary};
   }
-`
+`;

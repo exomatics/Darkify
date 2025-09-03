@@ -1,14 +1,10 @@
 import { useEffect, useRef } from 'react';
-import {useAudioStore} from './store.ts';
+import { useAudioStore } from './store.ts';
 
 const AudioPlayer = () => {
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  const {
-    initAudioElement,
-    setCurrentTime,
-    setIsPlaying
-  } = useAudioStore();
+  const { initAudioElement, setCurrentTime, setIsPlaying } = useAudioStore();
 
   useEffect(() => {
     if (audioRef.current) {
@@ -23,14 +19,14 @@ const AudioPlayer = () => {
   };
 
   return (
-      <audio
-        ref={audioRef}
-        preload="metadata"
-        crossOrigin="anonymous"
-        onTimeUpdate={handleTimeUpdate}
-        onPlay={() => setIsPlaying(true)}
-        onPause={() => setIsPlaying(false)}
-      />
+    <audio
+      ref={audioRef}
+      preload="metadata"
+      crossOrigin="anonymous"
+      onTimeUpdate={handleTimeUpdate}
+      onPlay={() => setIsPlaying(true)}
+      onPause={() => setIsPlaying(false)}
+    />
   );
 };
 
