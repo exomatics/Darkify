@@ -45,10 +45,6 @@ export const setupHLSLogging = (hls: any) => {
 export function timeToSeconds(timeString: string): number {
   const parts = timeString.split(':');
 
-  if (parts.length !== 3) {
-    throw new Error('Invalid time format. Expected HH:MM:SS.ms or HH:MM:SS');
-  }
-
   const hours = parseInt(parts[0], 10);
   const minutes = parseInt(parts[1], 10);
 

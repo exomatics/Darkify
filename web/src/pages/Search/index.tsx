@@ -17,16 +17,13 @@ export const Search = () => {
     enabled: !!search
   })
 
-  const onPlay = useCallback(async (trackId) => {
-    const stream = await api.track.getTracksStream(trackId)
+  const onPlay = useCallback((trackId) => {
     streamingStore.playTrack(trackId)
-    console.log(stream)
-  })
+  }, [])
 
   if (!tracks) return null;
   return <div>
     {tracks.map(({trackInfo}, index) => {
-      console.log('info', trackInfo)
       return <Track number={index + 1} track={trackInfo} onPlay={() => onPlay(trackInfo.id)} />
     })}
   </div>;
