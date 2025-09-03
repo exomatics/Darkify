@@ -17,9 +17,12 @@ export const Search = () => {
     enabled: !!search,
   });
 
-  const onPlay = useCallback((trackId) => {
-    streamingStore.playTrack(trackId);
-  }, [streamingStore]);
+  const onPlay = useCallback(
+    (trackId) => {
+      streamingStore.playTrack(trackId);
+    },
+    [streamingStore],
+  );
 
   if (!tracks?.items) return null;
   return (

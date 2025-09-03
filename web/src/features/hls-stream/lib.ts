@@ -1,5 +1,5 @@
-import {BACKEND_BASE} from '../../api/api.ts';
-import Hls, {Events, FragLoadedData, FragLoadingData} from "hls.js";
+import { BACKEND_BASE } from '../../api/api.ts';
+import Hls, { Events, FragLoadedData, FragLoadingData } from 'hls.js';
 
 export const processHLSContent = (hlsContent: string): string => {
   return hlsContent.replace(/^\/files\/audio\/.+\.ts$/gm, (match) => `${BACKEND_BASE}${match}`);
