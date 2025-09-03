@@ -1,8 +1,8 @@
 import styled from 'styled-components';
 import mockCover from './mock.png';
 import { TextSub } from '../../../UI/Text';
-import {TrackInfo} from "../../../../api/gen";
-import {BACKEND_BASE} from "../../../../api/api.ts";
+import { TrackInfo } from '../../../../api/gen';
+import { BACKEND_BASE } from '../../../../api/api.ts';
 
 const StyledCurrentTrack = styled.div`
   display: flex;
@@ -27,13 +27,15 @@ const StyledCurrentTrack = styled.div`
   }
 `;
 
-export const CurrentTrack = ({currentTrack}: {currentTrack: TrackInfo | null}) => {
+export const CurrentTrack = ({ currentTrack }: { currentTrack: TrackInfo | null }) => {
   return (
     <StyledCurrentTrack className="current-track-info">
       <img className="cover" src={BACKEND_BASE + currentTrack?.cover_url} />
       <div className="info">
         <TextSub className="track-title">{currentTrack?.name ?? ''}</TextSub>
-        <TextSub className="artist-title">{currentTrack?.artists?.map(artist => artist.visible_username)}</TextSub>
+        <TextSub className="artist-title">
+          {currentTrack?.artists?.map((artist) => artist.visible_username)}
+        </TextSub>
         <TextSub className="album-title">Album Name</TextSub>
       </div>
     </StyledCurrentTrack>

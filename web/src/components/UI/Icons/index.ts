@@ -78,7 +78,7 @@ export const Icons = {
     AddFriend,
     Playing,
     UserFilled,
-    PlayOnly
+    PlayOnly,
   },
 };
 

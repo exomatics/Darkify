@@ -24,7 +24,10 @@ const openapiDocument = YAML.parse(openapiFile) as Record<string, unknown>;
 const app = express();
 app.disable('x-powered-by');
 // eslint-disable-next-line sonarjs/cors
-app.use(cors());
+app.use(cors({
+  origin: true,
+  credentials: true,
+}));
 app.use(express.json());
 app.use('/swagger', swaggerUi.serve, swaggerUi.setup(openapiDocument));
 app.use('/docs', express.static(PATH_TO_OPENAPI));

@@ -1,13 +1,8 @@
-import {BACKEND_BASE} from "../../api/api.ts";
-
+import { BACKEND_BASE } from '../../api/api.ts';
 
 export const processHLSContent = (hlsContent: string): string => {
-  return hlsContent.replace(
-    /^\/files\/audio\/.+\.ts$/gm,
-    (match) => `${BACKEND_BASE}${match}`
-  );
+  return hlsContent.replace(/^\/files\/audio\/.+\.ts$/gm, (match) => `${BACKEND_BASE}${match}`);
 };
-
 
 export const getHLSConfig = () => ({
   enableWorker: true,
@@ -29,25 +24,21 @@ export const getHLSConfig = () => ({
 });
 
 export const setupHLSLogging = (hls: any) => {
-    hls.on('hlsFragLoading', (event, data) => {
-      console.log('Loading fragment:', data.frag.url);
-    });
+  hls.on('hlsFragLoading', (event, data) => {
+    console.log('Loading fragment:', data.frag.url);
+  });
 
-    hls.on('hlsFragLoaded', (event, data) => {
-      console.log('Fragment loaded:', data.frag.url);
-    });
+  hls.on('hlsFragLoaded', (event, data) => {
+    console.log('Fragment loaded:', data.frag.url);
+  });
 
-    hls.on('hlsManifestParsed', () => {
-      console.log('HLS manifest parsed successfully');
-    });
+  hls.on('hlsManifestParsed', () => {
+    console.log('HLS manifest parsed successfully');
+  });
 };
 
 export function timeToSeconds(timeString: string): number {
   const parts = timeString.split(':');
-
-  if (parts.length !== 3) {
-    throw new Error('Invalid time format. Expected HH:MM:SS.ms or HH:MM:SS');
-  }
 
   const hours = parseInt(parts[0], 10);
   const minutes = parseInt(parts[1], 10);
