@@ -494,6 +494,9 @@ components:
           type: [string, 'null']
         play_count:
           type: number
+        creation_date:
+          type: string
+          format: date
         deleted:
           type: boolean
         duration:
