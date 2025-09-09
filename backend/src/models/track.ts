@@ -11,7 +11,7 @@ class TrackModel extends Model<InferAttributes<TrackModel>, InferCreationAttribu
   declare deleted?: boolean;
   declare duration: string;
   declare cover_id: string | null;
-  declare creation_date: Date;
+  declare creation_date?: Date;
 }
 const trackModel = (sequelize: Sequelize) => {
   return sequelize.define<TrackModel>(
