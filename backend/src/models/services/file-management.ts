@@ -59,6 +59,9 @@ class FileUploader {
     if (!fs.existsSync(PATH_TO_IMAGES)) {
       fs.mkdirSync(PATH_TO_IMAGES, { recursive: true });
     }
+    if (!fs.existsSync(PATH_TO_AUDIO)) {
+      fs.mkdirSync(PATH_TO_AUDIO, { recursive: true });
+    }
   }
   uploadImageMiddleware = multer({
     storage: multer.memoryStorage(),
