@@ -5,6 +5,7 @@ import { z } from 'zod/v4';
 import trackController from '../controllers/track-controller.ts';
 import ValidationError from '../errors/validation-error.ts';
 import asyncHandler from '../middleware/async-handler.ts';
+import { rateLimiters } from '../middleware/rate-limiter.ts';
 import { FileUploader } from '../models/services/file-management.ts';
 import {
   createTrackScheme,
@@ -67,6 +68,7 @@ router.get(
 );
 router.get(
   ROUTES.TRACKS.GET_STREAM_TRACK,
+  rateLimiters.streamLimiter,
   passport.authenticate('access-token', { session: false }) as RequestHandler,
   asyncHandler(async (request: Request, response: Response) => {
     const validation = streamTrackScheme.safeParse({

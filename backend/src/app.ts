@@ -2,7 +2,6 @@ import fs from 'node:fs';
 
 import cors from 'cors';
 import express from 'express';
-import { rateLimit } from 'express-rate-limit';
 import passport from 'passport';
 import swaggerUi from 'swagger-ui-express';
 import YAML from 'yaml';
@@ -12,6 +11,7 @@ import { STATIC_DIRECTORY_PATH, PATH_TO_OPENAPI, PATH_TO_UPLOADS } from './confi
 import logger from './config/logger.ts';
 import errorHandler from './middleware/error-handler.ts';
 import { jwtProcess } from './middleware/jwt-processing.ts';
+import { rateLimiters } from './middleware/rate-limiter.ts';
 import { FileUploader } from './models/services/file-management.ts';
 import authRouter from './routes/auth-route.ts';
 import trackRouter from './routes/track-route.ts';
@@ -32,14 +32,8 @@ app.use(
   }),
 );
 app.use(express.json());
-app.use(
-  rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 100,
-    standardHeaders: true,
-    legacyHeaders: false,
-  }),
-);
+app.use(rateLimiters.globalLimiter);
+
 app.use('/swagger', swaggerUi.serve, swaggerUi.setup(openapiDocument));
 app.use('/docs', express.static(PATH_TO_OPENAPI));
 app.use(STATIC_DIRECTORY_PATH, express.static(PATH_TO_UPLOADS));
