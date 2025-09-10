@@ -8,6 +8,8 @@ class PlaylistTrackModel extends Model<
 > {
   declare playlist_id: string;
   declare tracks_id: string;
+  declare order?: number;
+  declare date_added?: Date;
 }
 const playlistTrackModel = (sequelize: Sequelize) => {
   return sequelize.define<PlaylistTrackModel>(
@@ -24,6 +26,14 @@ const playlistTrackModel = (sequelize: Sequelize) => {
         allowNull: false,
         unique: true,
         primaryKey: true,
+      },
+      order: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+      },
+      date_added: {
+        type: DataTypes.DATEONLY,
+        defaultValue: DataTypes.NOW,
       },
     },
     {

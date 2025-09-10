@@ -7,10 +7,11 @@ class PlaylistModel extends Model<
   InferCreationAttributes<PlaylistModel>
 > {
   declare id: string;
-  declare track: string;
   declare name: string;
+  declare tracks_count?: number;
   declare description: string;
-  declare cover_url: string;
+  declare cover_id: string;
+  declare likes?: string;
   declare owner: string;
   declare restrictions: string;
 }
@@ -23,27 +24,33 @@ const playlistModel = (sequelize: Sequelize) => {
         allowNull: false,
         primaryKey: true,
       },
-      track: {
-        type: DataTypes.UUID,
-        unique: true,
-      },
       name: {
         type: DataTypes.STRING(100),
+        allowNull: false,
+      },
+      tracks_count: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
         allowNull: false,
       },
       description: {
         type: DataTypes.STRING(300),
       },
-      cover_url: {
-        type: DataTypes.TEXT,
-        allowNull: false,
+      cover_id: {
+        type: DataTypes.UUID,
+        unique: true,
+      },
+      likes: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
       },
       owner: {
         type: DataTypes.UUID,
         unique: true,
+        allowNull: false,
       },
       restrictions: {
-        type: DataTypes.UUID,
+        type: DataTypes.ENUM({ values: ['private', 'public', 'unlisted'] }),
         unique: true,
       },
     },

@@ -13,10 +13,10 @@ import verifyPassword from '../../utils/password-verification.ts';
 import { FileUploader } from './file-management.ts';
 
 import type { IUser } from '../../interfaces/user-interface.ts';
-import type { PlaylistModel } from '../playlist.ts';
 import type { UserFollowingModel } from '../user-following.ts';
 import type { UserModel } from '../user.ts';
 import type { InferAttributes, InferCreationAttributes, Model } from 'sequelize';
+import PlaylistManager from './playlist.ts';
 type Result<TOk = void, TError extends string = string> =
   | { success: true; data: TOk }
   | { success: false; reason: TError };
@@ -25,6 +25,8 @@ interface ResultUserData {
   visible_username: string;
   avatar_url: string | null;
 }
+
+const playlist = new PlaylistManager();
 
 class UserManager {
   async getUserById(
@@ -212,15 +214,7 @@ class UserManager {
       throw new InternalError('failed to unfollow user');
     }
   }
-  async isPlaylistExist(
-    playlistId: string,
-  ): Promise<Result<PlaylistModel, typeof errorMessages.playlist.NotExistsById>> {
-    const playlistRecord = await database.playlistModel.findByPk(playlistId);
-    if (!playlistRecord) {
-      return { success: false, reason: errorMessages.playlist.NotExistsById };
-    }
-    return { success: true, data: playlistRecord };
-  }
+
   async followPlaylist(
     userId: string,
     playlistId: string,
@@ -230,9 +224,9 @@ class UserManager {
       typeof errorMessages.playlist.NotExistsById | typeof errorMessages.user.AlreadyFollowsPlaylist
     >
   > {
-    const platlistRecord = await this.isPlaylistExist(playlistId);
-    if (!platlistRecord.success) {
-      return platlistRecord;
+    const playlistRecord = await playlist.getPlaylistById(playlistId);
+    if (!playlistRecord.success) {
+      return playlistRecord;
     }
     const playlistFollowersRecord = await database.playlistFollowersModel.findOne({
       where: { user_id: userId, playlist_id: playlistId },
@@ -240,7 +234,17 @@ class UserManager {
     if (playlistFollowersRecord) {
       return { success: false, reason: errorMessages.user.AlreadyFollowsPlaylist };
     }
-    await database.playlistFollowersModel.create({ user_id: userId, playlist_id: playlistId });
+    try {
+      await database.sequelize.transaction(async (transaction) => {
+        await database.playlistFollowersModel.create({ user_id: userId, playlist_id: playlistId });
+        await database.playlistModel.update(
+          { tracks_count: playlistRecord.data.likes + 1 },
+          { where: { id: playlistRecord.data.id }, transaction: transaction },
+        );
+      });
+    } catch {
+      throw new InternalError('failed to follow the playlist');
+    }
     return { success: true, data: null };
   }
   async unfollowPlaylist(
@@ -252,9 +256,9 @@ class UserManager {
       typeof errorMessages.playlist.NotExistsById | typeof errorMessages.user.NotFollowsPlaylist
     >
   > {
-    const platlistRecord = await this.isPlaylistExist(playlistId);
-    if (!platlistRecord.success) {
-      return platlistRecord;
+    const playlistRecord = await playlist.getPlaylistById(playlistId);
+    if (!playlistRecord.success) {
+      return playlistRecord;
     }
     const playlistFollowersRecord = await database.playlistFollowersModel.findOne({
       where: { user_id: userId, playlist_id: playlistId },
@@ -262,7 +266,18 @@ class UserManager {
     if (!playlistFollowersRecord) {
       return { success: false, reason: errorMessages.user.NotFollowsPlaylist };
     }
-    await playlistFollowersRecord.destroy();
+    try {
+      await database.sequelize.transaction(async (transaction) => {
+        await playlistFollowersRecord.destroy();
+        await database.playlistModel.update(
+          { tracks_count: playlistRecord.data.likes - 1 },
+          { where: { id: playlistRecord.data.id }, transaction: transaction },
+        );
+      });
+    } catch {
+      throw new InternalError('failed to follow the playlist');
+    }
+
     return { success: true, data: null };
   }
   async deleteUser(userId: string): Promise<Result<null, typeof errorMessages.user.NotExistsById>> {

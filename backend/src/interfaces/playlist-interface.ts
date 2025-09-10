@@ -1,9 +1,8 @@
 export interface IPlaylist {
   id: string;
-  tracks: string;
   name: string;
   description: string;
-  coverUrl: string;
+  cover_id: string;
   owner: string;
   restrictions: string;
 }

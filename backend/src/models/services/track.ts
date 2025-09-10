@@ -6,7 +6,7 @@ class TrackManagerModel {
   async getTrackById(trackId: string) {
     const trackInfo = await database.trackModel.findByPk(trackId);
     if (trackInfo === null) {
-      throw new NotFoundError(errorMessages.track.NotExistById);
+      throw new NotFoundError(errorMessages.track.NotExistsById);
     }
     return trackInfo.dataValues;
   }
