@@ -13,6 +13,8 @@ export type { OpenAPIConfig } from './core/OpenAPI';
 export type { AccessToken } from './models/AccessToken';
 export { Bitrate } from './models/Bitrate';
 export type { LoginRequest } from './models/LoginRequest';
+export type { PaginationLimitParameter } from './models/PaginationLimitParameter';
+export type { PaginationOffsetParameter } from './models/PaginationOffsetParameter';
 export type { Password } from './models/Password';
 export type { PlaylistIdParameter } from './models/PlaylistIdParameter';
 export type { PostTrackRequest } from './models/PostTrackRequest';
