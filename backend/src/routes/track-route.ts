@@ -50,16 +50,16 @@ router.get(
     ) => {
       const validation = getTracksScheme.safeParse({
         name: request.params.trackName,
-        limit: request.query.limit,
-        offset: request.query.offset,
+        limit: +(request.query.limit ?? 5),
+        offset: +(request.query.offset ?? 0),
       });
       if (!validation.success) {
         throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
       }
       const databaseResponse = await trackController.getTracksByName(
         validation.data.name,
-        validation.data.limit,
-        validation.data.offset,
+        +(validation.data.limit ?? 5),
+        +(validation.data.offset ?? 0),
       );
 
       response.status(200).json(databaseResponse);
