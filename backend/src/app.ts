@@ -7,7 +7,13 @@ import swaggerUi from 'swagger-ui-express';
 import YAML from 'yaml';
 
 import passportConfiguration from './config/authentication.ts';
-import { STATIC_DIRECTORY_PATH, PATH_TO_OPENAPI, PATH_TO_UPLOADS } from './config/config.ts';
+import {
+  STATIC_DIRECTORY_PATH,
+  PATH_TO_OPENAPI,
+  PATH_TO_UPLOADS,
+  STATIC_IMAGES_PATH,
+  STATIC_AUDIO_PATH,
+} from './config/config.ts';
 import logger from './config/logger.ts';
 import errorHandler from './middleware/error-handler.ts';
 import { jwtProcess } from './middleware/jwt-processing.ts';
@@ -37,6 +43,8 @@ app.use(rateLimiters.globalLimiter);
 app.use('/swagger', swaggerUi.serve, swaggerUi.setup(openapiDocument));
 app.use('/docs', express.static(PATH_TO_OPENAPI));
 app.use(STATIC_DIRECTORY_PATH, express.static(PATH_TO_UPLOADS));
+app.use(new RegExp(`${STATIC_IMAGES_PATH}.*`), rateLimiters.filesLimiter);
+app.use(new RegExp(`${STATIC_AUDIO_PATH}.*/.*/.*`), rateLimiters.filesLimiter);
 
 passportConfiguration(passport);
 app.use(passport.initialize());
