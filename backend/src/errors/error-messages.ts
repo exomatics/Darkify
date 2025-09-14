@@ -16,7 +16,10 @@ export const errorMessages = {
     NotExistsById: 'Playlist with this id does not exist',
   }),
   track: Object.freeze({
-    NotExistById: 'Track with this id does not exist',
+    NotExistsById: 'Track with this id does not exist',
+    NotExistsByName: 'There is no tracks with such name',
+    FfmpegError: 'Error while converting to hls',
+    FailedToCreate: 'Failed to create track',
   }),
   validation: Object.freeze({
     PasswordNoCapital: 'Password has no capital letters',
@@ -25,6 +28,7 @@ export const errorMessages = {
     PasswordHasSpaces: 'Password must not contain spaces',
     PasswordNoSpecialSymbols: 'Password must have at least on special symbol !@#$%^&*',
     SpecifyUsernameOrEmail: 'Either email or username need to be filled in',
+    SpecifyToUpdateTrack: 'Specify what you want to update',
   }),
   init: Object.freeze({
     KeysAlreadyGenerated: 'Key pair already exists. Skipping generation.',

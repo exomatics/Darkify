@@ -8,6 +8,10 @@ const uuidScheme = z.uuid();
 function requireAtLeastOneCheck(object: Record<string | number | symbol, unknown>) {
   return Object.values(object).some((value) => value !== undefined);
 }
+const paginationScheme = z.object({
+  limit: z.number().max(100).nonnegative().optional(),
+  offset: z.number().nonnegative().optional(),
+});
 const hashScheme = z
   .string()
   .regex(/^(0x|0h)?[0-9A-F]+$/i)
@@ -39,6 +43,7 @@ const passwordScheme = z
   );
 const loginScheme = z
   .object({
+    //username or email in one field
     username: usernameScheme.optional(),
     password: passwordScheme,
     email: emailScheme.optional(),
@@ -82,6 +87,48 @@ const updateUserSettingsScheme = z.object({
   userId: uuidScheme,
   bitrate: z.enum(Bitrate),
 });
+const trackNameScheme = z.string().max(100).nonempty();
+const trackScheme = z.object({
+  id: uuidScheme,
+  lyrics: z.string().optional(),
+  duration: z.string(),
+});
+const streamTrackScheme = z.object({
+  trackId: uuidScheme,
+  userId: uuidScheme,
+});
+
+const trackCoverScheme = z.custom<Express.Multer.File>(
+  (value) => {
+    return value;
+  },
+  { message: errorMessages.user.GotNoFile },
+);
+
+const createTrackScheme = trackScheme
+  .extend({
+    name: trackNameScheme,
+    admin_id: uuidScheme,
+    artists: z.array(uuidScheme),
+    file: trackCoverScheme.array().nullable(),
+  })
+  .omit({ duration: true, id: true });
+
+const getTracksScheme = z.object({
+  name: trackNameScheme,
+  ...paginationScheme.shape,
+});
+
+const updateTrackScheme = trackScheme
+  .extend({
+    name: trackNameScheme.optional(),
+    artists: z.array(z.string()).optional(),
+    file: trackCoverScheme.nullable(),
+  })
+  .omit({ duration: true })
+  .refine(({ name, artists, lyrics, file }) => {
+    return requireAtLeastOneCheck({ name, artists, lyrics, file });
+  }, errorMessages.validation.SpecifyToUpdateTrack);
 
 export {
   uuidScheme,
@@ -94,4 +141,8 @@ export {
   userFollowScheme,
   playlistFollowScheme,
   userAvatarScheme,
+  getTracksScheme,
+  createTrackScheme,
+  updateTrackScheme,
+  streamTrackScheme,
 };

@@ -1,11 +1,11 @@
 import { Router } from 'express';
-import multer from 'multer';
 import passport from 'passport';
 import { z } from 'zod/v4';
 
 import userController from '../controllers/user-controller.ts';
 import ValidationError from '../errors/validation-error.ts';
 import asyncHandler from '../middleware/async-handler.ts';
+import { FileUploader } from '../models/services/file-management.ts';
 import {
   uuidScheme,
   updateUserScheme,
@@ -20,22 +20,8 @@ import { ROUTES } from './routes.ts';
 import type { IUser } from '../interfaces/user-interface.ts';
 import type { Request, RequestHandler, Response } from 'express';
 import type { ParamsDictionary } from 'express-serve-static-core';
-import type { FileFilterCallback } from 'multer';
 
-const uploadImage = multer({
-  storage: multer.memoryStorage(),
-  fileFilter(request: Request, file, callback: FileFilterCallback) {
-    if (file.mimetype === 'image/png' || file.mimetype === 'image/jpeg') {
-      callback(null, true);
-    } else {
-      const fileValidationError = 'file is not an png or jpeg image';
-      callback(new ValidationError(fileValidationError));
-    }
-  },
-  limits: {
-    fileSize: 1000 * 1000 * 100,
-  },
-});
+const fileUploader = new FileUploader();
 const router = Router();
 
 router.get(
@@ -213,7 +199,7 @@ router.post(
     if (!validation.success) {
       throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }
-
+    //pW9(_%1]
     const databaseResponse = await userController.unfollowPlaylist(
       validation.data.user_id,
       validation.data.playlist_id,
@@ -223,7 +209,7 @@ router.post(
 );
 router.put(
   ROUTES.USERS.PUT_ME_AVATAR,
-  uploadImage.single('avatar'),
+  fileUploader.uploadImageMiddleware.single('avatar'),
   passport.authenticate('access-token', { session: false }) as RequestHandler,
   asyncHandler(async (request: Request, response: Response) => {
     const validation = userAvatarScheme.safeParse({

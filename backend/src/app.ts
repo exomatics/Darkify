@@ -7,10 +7,17 @@ import swaggerUi from 'swagger-ui-express';
 import YAML from 'yaml';
 
 import passportConfiguration from './config/authentication.ts';
-import { STATIC_DIRECTORY_PATH, PATH_TO_OPENAPI, PATH_TO_IMAGES } from './config/config.ts';
+import {
+  STATIC_DIRECTORY_PATH,
+  PATH_TO_OPENAPI,
+  PATH_TO_UPLOADS,
+  STATIC_IMAGES_PATH,
+  STATIC_AUDIO_PATH,
+} from './config/config.ts';
 import logger from './config/logger.ts';
 import errorHandler from './middleware/error-handler.ts';
 import { jwtProcess } from './middleware/jwt-processing.ts';
+import { rateLimiters } from './middleware/rate-limiter.ts';
 import { FileUploader } from './models/services/file-management.ts';
 import authRouter from './routes/auth-route.ts';
 import trackRouter from './routes/track-route.ts';
@@ -23,12 +30,22 @@ const openapiDocument = YAML.parse(openapiFile) as Record<string, unknown>;
 
 const app = express();
 app.disable('x-powered-by');
-// eslint-disable-next-line sonarjs/cors
-app.use(cors());
+
+app.use(
+  cors({
+    origin: true,
+    credentials: true,
+  }),
+);
 app.use(express.json());
+app.use(rateLimiters.globalLimiter);
+
 app.use('/swagger', swaggerUi.serve, swaggerUi.setup(openapiDocument));
 app.use('/docs', express.static(PATH_TO_OPENAPI));
-app.use(STATIC_DIRECTORY_PATH, express.static(PATH_TO_IMAGES));
+app.use(STATIC_DIRECTORY_PATH, express.static(PATH_TO_UPLOADS));
+app.use(new RegExp(`${STATIC_IMAGES_PATH}.*`), rateLimiters.filesLimiter);
+app.use(new RegExp(`${STATIC_AUDIO_PATH}.*/.*/.*`), rateLimiters.filesLimiter);
+
 passportConfiguration(passport);
 app.use(passport.initialize());
 app.use(jwtProcess);

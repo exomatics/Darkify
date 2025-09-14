@@ -3,6 +3,7 @@ import { Sequelize } from 'sequelize';
 import { playlistFollowersModel } from '../models/playlist-followers.ts';
 import { playlistTrackModel } from '../models/playlist-tracks.ts';
 import { playlistModel } from '../models/playlist.ts';
+import { trackArtistsModel } from '../models/track-artists.ts';
 import { trackModel } from '../models/track.ts';
 import { userFollowersModel } from '../models/user-followers.ts';
 import { userFollowingModel } from '../models/user-following.ts';
@@ -34,6 +35,7 @@ const database: Idb = {
   playlistFollowersModel: playlistFollowersModel(sequelize),
   playlistTrackModel: playlistTrackModel(sequelize),
   trackModel: trackModel(sequelize),
+  trackArtistsModel: trackArtistsModel(sequelize),
   userModel: userModel(sequelize),
   userFollowersModel: userFollowersModel(sequelize),
   userFollowingModel: userFollowingModel(sequelize),
@@ -42,11 +44,11 @@ const database: Idb = {
 database.playlistModel.belongsToMany(database.trackModel, {
   through: database.playlistTrackModel,
   foreignKey: 'playlist_id',
-  otherKey: 'track_id',
+  otherKey: 'track_filename',
 });
 database.trackModel.belongsToMany(database.playlistModel, {
   through: database.playlistTrackModel,
-  foreignKey: 'track_id',
+  foreignKey: 'tracks_id',
   otherKey: 'playlist_id',
 });
 database.userModel.hasMany(database.userFollowersModel, { foreignKey: 'user_id' });
@@ -61,8 +63,16 @@ database.userModel.hasMany(database.playlistModel, { foreignKey: 'owner' });
 database.playlistModel.belongsTo(database.userModel, { foreignKey: 'owner' });
 
 // Связь между User и Track
-database.userModel.hasMany(database.trackModel, { foreignKey: 'artist' });
-database.trackModel.belongsTo(database.userModel, { foreignKey: 'artist' });
+database.userModel.belongsToMany(database.trackModel, {
+  foreignKey: 'artist_id',
+  through: database.trackArtistsModel,
+  otherKey: 'track_id',
+});
+database.trackModel.belongsToMany(database.userModel, {
+  foreignKey: 'track_id',
+  through: database.trackArtistsModel,
+  otherKey: 'artist_id',
+});
 // Связь между Playlist и PlaylistFollowers
 database.playlistModel.hasMany(database.playlistFollowersModel, { foreignKey: 'playlist_id' });
 database.playlistFollowersModel.belongsTo(database.playlistModel, { foreignKey: 'playlist_id' });

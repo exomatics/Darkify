@@ -1,6 +1,7 @@
 import styled from 'styled-components';
-import mockCover from './mock.png';
 import { TextSub } from '../../../UI/Text';
+import { TrackInfo } from '../../../../api/gen';
+import { BACKEND_BASE } from '../../../../api/api.ts';
 
 const StyledCurrentTrack = styled.div`
   display: flex;
@@ -11,6 +12,11 @@ const StyledCurrentTrack = styled.div`
     line-height: 1;
     justify-content: space-between;
   }
+  .cover {
+    width: 51px;
+    height: 51px;
+    border-radius: 6px;
+  }
   .track-title {
     color: ${({ theme }) => theme.colors.fg.primary};
   }
@@ -20,14 +26,16 @@ const StyledCurrentTrack = styled.div`
   }
 `;
 
-export const CurrentTrack = () => {
+export const CurrentTrack = ({ currentTrack }: { currentTrack: TrackInfo | null }) => {
   return (
     <StyledCurrentTrack className="current-track-info">
-      <img className="cover" src={mockCover} />
+      <img className="cover" src={BACKEND_BASE + currentTrack?.cover_url} />
       <div className="info">
-        <TextSub className="track-title">Get Lucky</TextSub>
-        <TextSub className="artist-title">Daft Punk</TextSub>
-        <TextSub className="album-title">Random Access Memories</TextSub>
+        <TextSub className="track-title">{currentTrack?.name ?? ''}</TextSub>
+        <TextSub className="artist-title">
+          {currentTrack?.artists?.map((artist) => artist.visible_username)}
+        </TextSub>
+        <TextSub className="album-title">Album Name</TextSub>
       </div>
     </StyledCurrentTrack>
   );

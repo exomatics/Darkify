@@ -279,6 +279,113 @@ paths:
                 avatar:
                   type: string
                   format: binary
+  /tracks/:
+    post:
+      tags: [Track]
+      summary: Upload track
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PostTrackRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/TrackInfoResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /tracks/{trackId}:
+    get:
+      tags: [Track]
+      summary: Get trackInfo by id
+      parameters:
+        - $ref: '#/components/parameters/TrackIdParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/TrackInfoResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    put:
+      tags: [Track]
+      summary: Update trackInfo by id
+      parameters:
+        - $ref: '#/components/parameters/TrackIdParameter'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PutTrackRequest'
+
+      responses:
+        '200':
+          $ref: '#/components/responses/TrackInfoResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    delete:
+      summary: Delete track by id
+      tags: [Track]
+      parameters:
+        - $ref: '#/components/parameters/TrackIdParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/SuccessStatus'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /tracks/search/{trackName}:
+    get:
+      summary: Get all tracks by trackName. Case insensitive
+      tags: [Track]
+      parameters:
+        - $ref: '#/components/parameters/TrackNameParameter'
+        - $ref: '#/components/parameters/PaginationLimitParameter'
+        - $ref: '#/components/parameters/PaginationOffsetParameter'
+      responses:
+        '200':
+          description: array of trackInfo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  offset:
+                    type: integer
+                  next:
+                    type: ['integer', 'null']
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TrackInfo'
+
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /tracks/stream/{trackId}:
+    get:
+      summary: Get m3u8 file for streaming. Depends on user's chosen bitrate
+      tags: [Track]
+      parameters:
+        - $ref: '#/components/parameters/TrackIdParameter'
+      responses:
+        '200':
+          description: m3u8 playlist file
+          content:
+            application/vnd.apple.mpegurl:
+              schema:
+                type: string
+                format: binary
+
 components:
   securitySchemes:
     bearerAuth:
@@ -348,9 +455,6 @@ components:
     UserSettings:
       type: object
       properties:
-        user_id:
-          type: string
-          format: uuid
         bitrate:
           $ref: '#/components/schemas/Bitrate'
     UserPreview:
@@ -364,7 +468,79 @@ components:
         avatar_url:
           type: string
           format: uri-reference
-
+    TrackInfo:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 100
+        artists:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+              visible_username:
+                type: string
+        cover_url:
+          type: string
+          format: uri-reference
+        lyrics:
+          type: [string, 'null']
+        play_count:
+          type: number
+        creation_date:
+          type: string
+          format: date
+        deleted:
+          type: boolean
+        duration:
+          type: string
+    PostTrackRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 100
+        cover:
+          type: string
+          format: binary
+        track:
+          type: string
+          format: binary
+        artists:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+              visible_username:
+                type: string
+        lyrics:
+          type: [string, 'null']
+    PutTrackRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 100
+        lyrics:
+          type: [string, 'null']
+        artists:
+          type: array
+          items:
+            type: string
+            format: uuid
+        cover:
+          type: string
+          format: binary
   parameters:
     UserIdParameter:
       in: path
@@ -373,6 +549,19 @@ components:
       schema:
         type: string
         format: uuid
+    PaginationLimitParameter:
+      in: query
+      name: limit
+      schema:
+        type: number
+        maximum: 100
+        default: 5
+    PaginationOffsetParameter:
+      in: query
+      name: offset
+      schema:
+        type: number
+        default: 0
 
     PlaylistIdParameter:
       in: path
@@ -380,7 +569,20 @@ components:
       required: true
       schema:
         type: string
+    TrackIdParameter:
+      in: path
+      name: trackId
+      required: true
+      schema:
+        type: string
         format: uuid
+    TrackNameParameter:
+      in: path
+      name: trackName
+      required: true
+      schema:
+        type: string
+        maxLength: 100
 
   responses:
     ValidationError:
@@ -418,3 +620,10 @@ components:
 
     SuccessStatus:
       description: Successful response with no data
+
+    TrackInfoResponse:
+      description: trackInfo
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TrackInfo'

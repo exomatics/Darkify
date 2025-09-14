@@ -6,9 +6,9 @@
  * User's bitrate option. Can be low, normal, high, veryHigh or auto.
  */
 export enum Bitrate {
-  LOW = 'low',
-  NORMAL = 'normal',
-  HIGH = 'high',
-  VERY_HIGH = 'veryHigh',
-  AUTO = 'auto',
+    LOW = 'low',
+    NORMAL = 'normal',
+    HIGH = 'high',
+    VERY_HIGH = 'veryHigh',
+    AUTO = 'auto',
 }

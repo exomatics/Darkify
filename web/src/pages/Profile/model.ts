@@ -9,7 +9,7 @@ export const useLocalModel = () => {
 
   const updateInfoMutation = useMutation({
     mutationFn: (info: { visible_username?: string }) =>
-      api.user.putUsersMe({ visibleUsername: info.visible_username }),
+      api.user.putUsersMe({ visible_username: info.visible_username }),
   });
 
   const updateAvatarMutation = useMutation({

@@ -26,7 +26,7 @@ export const Profile = () => {
 
   useEffect(() => {
     setAvatarUrl(userInfo?.avatar_url ?? '');
-  }, [userInfo?.avatar_url]);
+  }, [setAvatarUrl, userInfo?.avatar_url]);
 
   const onSubmit: SubmitHandler<UserInfoForm> = (data) => {
     setVisibleUsername(data.visible_username);

@@ -3,7 +3,8 @@
 /* tslint:disable */
 /* eslint-disable */
 export type UserPreview = {
-  user_id?: string;
-  visible_username?: string;
-  avatar_url?: string;
+    user_id?: string;
+    visible_username?: string;
+    avatar_url?: string;
 };
+

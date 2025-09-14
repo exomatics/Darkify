@@ -4,10 +4,14 @@ import type { InferAttributes, InferCreationAttributes, Sequelize } from 'sequel
 
 class TrackModel extends Model<InferAttributes<TrackModel>, InferCreationAttributes<TrackModel>> {
   declare id: string;
+  declare admin_id: string;
   declare name: string;
-  declare artist: string;
   declare lyrics: string | null;
-  declare number_of_play: number;
+  declare play_count: number;
+  declare deleted?: boolean;
+  declare duration: string;
+  declare cover_id: string | null;
+  declare creation_date?: Date;
 }
 const trackModel = (sequelize: Sequelize) => {
   return sequelize.define<TrackModel>(
@@ -18,20 +22,36 @@ const trackModel = (sequelize: Sequelize) => {
         allowNull: false,
         primaryKey: true,
       },
-      name: {
-        type: DataTypes.STRING(100),
+      admin_id: {
+        type: DataTypes.UUID,
         allowNull: false,
       },
-      artist: {
-        type: DataTypes.UUID,
+      name: {
+        type: DataTypes.STRING(100),
         allowNull: false,
       },
       lyrics: {
         type: DataTypes.TEXT,
       },
-      number_of_play: {
-        type: DataTypes.BIGINT,
+      play_count: {
+        type: DataTypes.INTEGER,
         allowNull: false,
+      },
+      deleted: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+      },
+      duration: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      cover_id: {
+        type: DataTypes.UUID,
+        unique: true,
+      },
+      creation_date: {
+        type: DataTypes.DATEONLY,
+        defaultValue: DataTypes.NOW,
       },
     },
     {
