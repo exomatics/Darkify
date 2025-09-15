@@ -1,88 +1,23 @@
-import styled from 'styled-components';
 import { Icons } from '../../../UI/Icons';
-import { TextSub } from '../../../UI/Text';
 import { IconButton } from '../../../UI/IconButton';
 import { NavLink } from 'react-router';
 
-const StyledLibraryButton = styled(NavLink)`
-  height: 54px;
-  display: flex;
-  padding: 15px 23px;
-  align-items: center;
-  cursor: pointer;
-  border-radius: 10px;
-  width: 248px;
-  background: transparent;
-  border: none;
-  text-decoration: none;
-
-  .label {
-    color: ${({ theme }) => theme.colors.fg.secondary};
-    opacity: 0.3;
-    margin-left: 20px;
-  }
-  .library-icon {
-    width: 20px;
-    svg path,
-    svg rect,
-    svg circle {
-      transition: 300ms stroke;
-    }
-  }
-  .hover-actions {
-    display: flex;
-    margin-left: auto;
-    opacity: 0;
-    transition: 300ms opacity;
-    button {
-      width: 35px;
-      height: 35px;
-      svg {
-        transform: scale(1.2);
-      }
-    }
-  }
-  &:hover {
-    .library-icon {
-      svg path,
-      svg rect,
-      svg circle {
-        stroke: ${({ theme }) => theme.colors.fg.primary};
-      }
-    }
-    .label {
-      opacity: 0.5;
-    }
-    .hover-actions {
-      opacity: 1;
-    }
-  }
-  &.active {
-    .library-icon {
-      svg path,
-      svg rect,
-      svg circle {
-        stroke: ${({ theme }) => theme.colors.fg.primary};
-      }
-    }
-    .label {
-      opacity: 1;
-      color: ${({ theme }) => theme.colors.fg.primary};
-    }
-  }
-`;
-
 export const LibraryButton = () => {
   return (
-    <StyledLibraryButton to="/library">
-      <div className="library-icon">
-        <Icons.Big.Library />
+    <NavLink
+      className="group h-14 flex py-3.5 px-6 items-center cursor-pointer rounded-xl w-[248px] bg-transparent border-none"
+      to="/library"
+    >
+      <div className="w-5">
+        <Icons.Big.Library className="transition-colors group-hover:text-fg-primary text-fg-secondary" />
       </div>
-      <TextSub className="label">My Library</TextSub>
-      <div className="hover-actions">
-        <IconButton icon="More" onClick={() => {}} />
-        <IconButton icon="Add" onClick={() => {}} />
+      <span className="text-sub transition-colors group-hover:text-fg-primary text-fg-secondary ml-5">
+        My Library
+      </span>
+      <div className="flex ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
+        <IconButton className="w-9 h-9" iconScale={1.3} icon="More" onClick={() => {}} />
+        <IconButton className="w-9 h-9" iconScale={1.3} icon="Add" onClick={() => {}} />
       </div>
-    </StyledLibraryButton>
+    </NavLink>
   );
 };

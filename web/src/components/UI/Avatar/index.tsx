@@ -1,46 +1,19 @@
-import styled from 'styled-components';
 import { Icons } from '../Icons';
 import { BACKEND_BASE } from '../../../api/api.ts';
 
-const StyledAvatarIcon = styled.div`
-  border-radius: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  overflow: hidden;
-  cursor: pointer;
-
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-`;
-
 export const Avatar = ({ src, size = 15 }: { src?: string; size?: number }) => {
   return (
-    <StyledAvatarIcon style={{ width: size + 'px', height: size + 'px' }}>
+    <div
+      className="rounded-full flex justify-center items-center overflow-hidden cursor-pointer"
+      style={{ width: size + 'px', height: size + 'px' }}
+    >
       {src ? (
-        <img src={BACKEND_BASE + src} />
+        <img alt="Avatar" className="w-full h-full object-cover" src={BACKEND_BASE + src} />
       ) : (
-        <StyledEmptyAvatar>
-          <Icons.Big.UserFilled />
-        </StyledEmptyAvatar>
+        <div className="bg-bg-secondary w-full h-full flex justify-center items-center">
+          <Icons.Big.UserFilled className="w-1/2 h-1/2" />
+        </div>
       )}
-    </StyledAvatarIcon>
+    </div>
   );
 };
-
-const StyledEmptyAvatar = styled.div`
-  background-color: ${({ theme }) => theme.colors.bg.secondary};
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  svg {
-    width: 50%;
-    height: 50%;
-  }
-`;

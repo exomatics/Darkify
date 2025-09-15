@@ -1,4 +1,3 @@
-import { StyledHeader } from './styles';
 import { Actions } from './ui/Actions';
 import { BigHeaderButton } from './ui/BigHeaderButton';
 import { LibraryButton } from './ui/LibraryButton';
@@ -6,9 +5,9 @@ import { HeaderSearch } from './ui/Search';
 
 export const Header = () => {
   return (
-    <StyledHeader>
+    <div style={{ gridArea: 'header' }} className="flex items-center">
       <LibraryButton />
-      <div className="primary-buttons">
+      <div className="flex items-center gap-2.5">
         <BigHeaderButton to="/home" icon="Home" activeIcon="HomeFilled" label="Home" />
         <BigHeaderButton
           to="/discover"
@@ -19,6 +18,6 @@ export const Header = () => {
       </div>
       <HeaderSearch />
       <Actions />
-    </StyledHeader>
+    </div>
   );
 };

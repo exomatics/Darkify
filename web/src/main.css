@@ -1,1 +1,57 @@
 @import "tailwindcss";
+
+@theme {
+  --color-primary: oklch(0.7697 0.2124 148.67); /* 1ED760 */
+  --color-fg-primary: oklch(0.9067 0 0); /* E0E0E0 */
+  --color-fg-secondary: oklch(0.6301 0 0); /* 898989 */
+  --color-fg-tertiary: oklch(0.3171 0 0); /* 323232 */
+  --color-fg-light-primary: oklch(0.2178 0 0); /* 1A1A1A */
+  --color-fg-light-secondary: oklch(0.5382 0 0); /* 6E6E6E */
+  --color-bg-primary: oklch(0.1776 0 0); /* 111111 */
+  --color-bg-secondary: oklch(0.2435 0 0); /* 202020 */
+  --color-bg-main: oklch(0.1221 0 0); /* 060606 */
+  --color-bg-playbar: oklch(0.34 0.0189 264.28); /* 333842 */
+  --color-bg-light-main: oklch(0.9551 0 0); /* f0f0f0 */
+  --color-primary-light: oklch(0.7034 0.1981 148.28); /* 13BF51 */
+  --text-h3: 1.25rem;
+  --text-h4: 1.125rem;
+  --text-sub: 0.875rem;
+  --text-small: 0.75rem;
+  --text-paragraph: 1rem;
+  --font-weight-h3: 800;
+  --font-weight-h4: 500;
+}
+
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Satoshi', sans-serif;
+    letter-spacing: 0.03em;
+  }
+
+  html {
+    background-color: var(--color-bg-main);
+    color: var(--color-fg-primary);
+  }
+
+  img {
+    max-width: 100%;
+    max-height: 100%;
+  }
+
+  ::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--color-bg-secondary);
+    border-radius: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background-color: transparent;
+  }
+}
+

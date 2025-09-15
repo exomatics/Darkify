@@ -1,22 +1,4 @@
-import styled from 'styled-components';
 import { BigIconNameType, Icons } from '../Icons';
-
-const StyledIconButton = styled.button<{ $iconScale: number }>`
-  width: 30px;
-  height: 30px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: transparent;
-  border: none;
-  cursor: pointer;
-  svg {
-    height: 40%;
-    width: 40%;
-    object-fit: contain;
-    transform: scale(${({ $iconScale }) => $iconScale});
-  }
-`;
 
 export const IconButton = ({
   icon,
@@ -31,12 +13,17 @@ export const IconButton = ({
 }) => {
   const IconComponent = Icons.Big[icon];
   return (
-    <StyledIconButton
-      $iconScale={iconScale ?? 1}
-      className={`icon-button ${className}`}
+    <button
+      className={
+        className +
+        ' w-8 h-8 flex justify-center items-center bg-transparent border-none cursor-pointer'
+      }
       onClick={onClick}
     >
-      <IconComponent />
-    </StyledIconButton>
+      <IconComponent
+        className="w-[40%] h-[40%] object-contain"
+        style={{ transform: `scale(${String(iconScale ?? 1)}` }}
+      />
+    </button>
   );
 };
