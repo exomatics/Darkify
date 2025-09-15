@@ -7,7 +7,7 @@ class PlaylistTrackModel extends Model<
   InferCreationAttributes<PlaylistTrackModel>
 > {
   declare playlist_id: string;
-  declare tracks_id: string;
+  declare track_id: string;
   declare order?: number;
   declare date_added?: Date;
 }
@@ -21,7 +21,7 @@ const playlistTrackModel = (sequelize: Sequelize) => {
         unique: true,
         primaryKey: true,
       },
-      tracks_id: {
+      track_id: {
         type: DataTypes.UUID,
         allowNull: false,
         unique: true,

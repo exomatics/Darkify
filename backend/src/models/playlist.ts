@@ -1,6 +1,8 @@
 import { DataTypes, Model } from 'sequelize';
 
 import type { InferAttributes, InferCreationAttributes, Sequelize } from 'sequelize';
+import { Restrictions } from '../types/restrictions-type.ts';
+import { Type } from '../types/playlist-type.ts';
 
 class PlaylistModel extends Model<
   InferAttributes<PlaylistModel>,
@@ -13,7 +15,8 @@ class PlaylistModel extends Model<
   declare cover_id: string;
   declare likes?: string;
   declare owner: string;
-  declare restrictions: string;
+  declare restrictions: Restrictions;
+  declare type: Type;
 }
 const playlistModel = (sequelize: Sequelize) => {
   return sequelize.define<PlaylistModel>(
@@ -51,6 +54,10 @@ const playlistModel = (sequelize: Sequelize) => {
       },
       restrictions: {
         type: DataTypes.ENUM({ values: ['private', 'public', 'unlisted'] }),
+        unique: true,
+      },
+      type: {
+        type: DataTypes.ENUM({ values: ['general', 'liked'] }),
         unique: true,
       },
     },
