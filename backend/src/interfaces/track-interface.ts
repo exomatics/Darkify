@@ -1,7 +1,21 @@
-export interface Itrack {
+interface Itrack {
   id: string;
+  admin_id: string;
   name: string;
-  artist: string;
-  lyrics: string | null;
-  number_of_play: number;
+  artists: string[];
+  lyrics?: string | null;
+  play_count: number;
+  deleted?: boolean;
+  duration: string;
+  cover_id: string | null;
 }
+interface UpdateTrack {
+  id: string;
+  name?: string;
+  artists?: string[];
+  lyrics?: string | null;
+  cover_id?: string | null;
+  file: Express.Multer.File | null;
+}
+
+export { Itrack, UpdateTrack };

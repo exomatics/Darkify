@@ -1,6 +1,7 @@
 import eslint from '@eslint/js';
 import github from 'eslint-plugin-github';
-import pluginImport from 'eslint-plugin-import';
+import { importX } from 'eslint-plugin-import-x';
+import { createTypeScriptImportResolver } from 'eslint-import-resolver-typescript';
 import noLoopsPlugin from 'eslint-plugin-no-loops';
 import pluginSecurity from 'eslint-plugin-security';
 import sonarjs from 'eslint-plugin-sonarjs';
@@ -13,14 +14,17 @@ export default tseslint.config(
   eslint.configs.recommended,
   tseslint.configs.strictTypeChecked,
   tseslint.configs.strict,
+  importX.flatConfigs.recommended,
+  importX.flatConfigs.typescript,
   tseslint.configs.stylisticTypeChecked,
   github.getFlatConfigs().recommended,
   pluginSecurity.configs.recommended,
   eslintPluginUnicorn.configs['flat/recommended'],
   sonarjs.configs.recommended,
+
   {
     plugins: {
-      import: pluginImport,
+      'import-x': importX,
       'unused-imports': unusedImports,
       'no-loops': noLoopsPlugin,
     },
@@ -33,7 +37,9 @@ export default tseslint.config(
       'no-unused-vars': 'off',
       'unicorn/no-null': 'off',
       camelcase: 'off',
+      'import-x/no-named-as-default-member': 'off',
       'security/detect-non-literal-fs-filename': 'off',
+      'sonarjs/no-hardcoded-passwords': 'off',
       '@typescript-eslint/no-explicit-any': 'error',
       'unused-imports/no-unused-imports': 'error',
       'unused-imports/no-unused-vars': [
@@ -94,17 +100,18 @@ export default tseslint.config(
     },
   },
   {
-    ignores: ['eslint.config.mjs', 'prettier.config.js'],
+    ignores: ['eslint.config.mjs', 'prettier.config.js', './uploads/*'],
   },
   {
     files: ['./src/**/*.ts'],
     settings: {
-      node: true,
-      'import/resolver': {
+      'import-x/resolver-next': createTypeScriptImportResolver({
         node: {
           extensions: ['.ts', '.jsx', '.tsx', '.json'],
         },
-      },
+        alwaysTryTypes: true,
+        project: './tsconfig.json',
+      }),
     },
   },
   {

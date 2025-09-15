@@ -1,21 +1,25 @@
-import { z } from 'zod';
+import { z } from 'zod/v4';
 
 import database from './config/database.ts';
 import { errorMessages } from './errors/error-messages.ts';
 import NotFoundError from './errors/not-found-error.ts';
-
-const uuidScheme = z.string().uuid();
+import { Bitrate } from './types/bitrate-type.ts';
+const uuidScheme = z.uuid();
 function requireAtLeastOneCheck(object: Record<string | number | symbol, unknown>) {
   return Object.values(object).some((value) => value !== undefined);
 }
+const paginationScheme = z.object({
+  limit: z.number().max(100).nonnegative().optional(),
+  offset: z.number().nonnegative().optional(),
+});
 const hashScheme = z
   .string()
   .regex(/^(0x|0h)?[0-9A-F]+$/i)
   .length(128);
 const usernameScheme = z.string().max(25);
-const emailScheme = z.string().email();
-const userIdScheme = uuidScheme.refine(async (userId) => {
-  const fullUserInfo = await database.userModel.findByPk(userId);
+const emailScheme = z.email();
+const userIdScheme = uuidScheme.refine(async (user_id) => {
+  const fullUserInfo = await database.userModel.findByPk(user_id);
   if (!fullUserInfo) {
     throw new NotFoundError(errorMessages.user.NotExistsById);
   }
@@ -39,6 +43,7 @@ const passwordScheme = z
   );
 const loginScheme = z
   .object({
+    //username or email in one field
     username: usernameScheme.optional(),
     password: passwordScheme,
     email: emailScheme.optional(),
@@ -47,7 +52,7 @@ const loginScheme = z
     return requireAtLeastOneCheck({ username, email });
   }, errorMessages.validation.SpecifyUsernameOrEmail);
 const refreshTokenScheme = z.object({
-  userId: uuidScheme,
+  user_id: uuidScheme,
   hash: hashScheme,
 });
 const registerScheme = z.object({
@@ -55,17 +60,17 @@ const registerScheme = z.object({
   email: emailScheme,
 });
 const userFollowScheme = z.object({
-  userId: uuidScheme,
-  followId: uuidScheme,
+  user_id: uuidScheme,
+  follow_id: uuidScheme,
 });
 const playlistFollowScheme = z.object({
-  userId: uuidScheme,
-  playlistId: uuidScheme,
+  user_id: uuidScheme,
+  playlist_id: uuidScheme,
 });
 const userAvatarScheme = z.object({
-  userId: uuidScheme,
+  user_id: uuidScheme,
   file: z.custom<Express.Multer.File>(
-    (value: Express.Multer.File) => {
+    (value) => {
       return value;
     },
     { message: errorMessages.user.GotNoFile },
@@ -74,9 +79,56 @@ const userAvatarScheme = z.object({
 const visibleUsernameScheme = z.string().max(25);
 
 const updateUserScheme = z.object({
-  userId: uuidScheme,
-  visibleUsername: visibleUsernameScheme,
+  user_id: uuidScheme,
+  visible_username: visibleUsernameScheme,
 });
+
+const updateUserSettingsScheme = z.object({
+  userId: uuidScheme,
+  bitrate: z.enum(Bitrate),
+});
+const trackNameScheme = z.string().max(100).nonempty();
+const trackScheme = z.object({
+  id: uuidScheme,
+  lyrics: z.string().optional(),
+  duration: z.string(),
+});
+const streamTrackScheme = z.object({
+  trackId: uuidScheme,
+  userId: uuidScheme,
+});
+
+const trackCoverScheme = z.custom<Express.Multer.File>(
+  (value) => {
+    return value;
+  },
+  { message: errorMessages.user.GotNoFile },
+);
+
+const createTrackScheme = trackScheme
+  .extend({
+    name: trackNameScheme,
+    admin_id: uuidScheme,
+    artists: z.array(uuidScheme),
+    file: trackCoverScheme.array().nullable(),
+  })
+  .omit({ duration: true, id: true });
+
+const getTracksScheme = z.object({
+  name: trackNameScheme,
+  ...paginationScheme.shape,
+});
+
+const updateTrackScheme = trackScheme
+  .extend({
+    name: trackNameScheme.optional(),
+    artists: z.array(z.string()).optional(),
+    file: trackCoverScheme.nullable(),
+  })
+  .omit({ duration: true })
+  .refine(({ name, artists, lyrics, file }) => {
+    return requireAtLeastOneCheck({ name, artists, lyrics, file });
+  }, errorMessages.validation.SpecifyToUpdateTrack);
 
 export {
   uuidScheme,
@@ -84,8 +136,13 @@ export {
   refreshTokenScheme,
   registerScheme,
   updateUserScheme,
+  updateUserSettingsScheme,
   userIdScheme,
   userFollowScheme,
   playlistFollowScheme,
   userAvatarScheme,
+  getTracksScheme,
+  createTrackScheme,
+  updateTrackScheme,
+  streamTrackScheme,
 };

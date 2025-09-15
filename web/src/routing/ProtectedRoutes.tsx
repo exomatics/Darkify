@@ -1,11 +1,11 @@
 import { Navigate, Outlet } from 'react-router';
-import { useAuth } from '../features/auth/authService';
+import { useUser } from '../features/auth/authService';
 import { AuthorizedLayout } from './AuthorizedLayout';
 
 export const ProtectedRoutesOutlet = () => {
-  const { currentUser } = useAuth();
+  const { isAuthenticated } = useUser();
 
-  return currentUser ? (
+  return isAuthenticated ? (
     <AuthorizedLayout>
       <Outlet />
     </AuthorizedLayout>

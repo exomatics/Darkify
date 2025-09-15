@@ -4,7 +4,8 @@
 /* eslint-disable */
 import type { Password } from './Password';
 export type LoginRequest = {
-  username?: string;
-  email?: string;
-  password: Password;
+    username?: string;
+    email?: string;
+    password: Password;
 };
+

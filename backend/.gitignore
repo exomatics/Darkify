@@ -36,3 +36,4 @@ jspm_packages/
 
 config/*.local.js
 /uploads/images/*
+/uploads/audio/*
