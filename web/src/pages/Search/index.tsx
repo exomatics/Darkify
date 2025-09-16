@@ -1,9 +1,9 @@
 import { useSearchParams } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
-import { api } from '../../api/api.ts';
-import { Track } from '../../components/Track';
+import { api } from '@/api/api.ts';
+import { Track } from '@/components/Track';
 import { useCallback } from 'react';
-import { useAudioStore } from '../../features/hls-stream/store.ts';
+import { useAudioStore } from '@/features/hls-stream/store.ts';
 
 export const Search = () => {
   const [searchParams] = useSearchParams();

@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
 import Hls from 'hls.js';
-import { TrackInfo } from '../../api/gen';
-import { api } from '../../api/api.ts';
+import { TrackInfo } from '@/api/gen';
+import { api } from '@/api/api.ts';
 import { getHLSConfig, processHLSContent, setupHLSLogging, timeToSeconds } from './lib.ts';
 
 type AudioStore = {

@@ -4,6 +4,7 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 import svgr from 'vite-plugin-svgr';
 import { VitePWA } from 'vite-plugin-pwa';
 import tailwindcss from '@tailwindcss/vite';
+import path from 'path';
 
 export default defineConfig({
   base: '/',
@@ -52,6 +53,11 @@ export default defineConfig({
     include: ['react', 'react-dom'],
     esbuildOptions: {
       target: 'es2020',
+    },
+  },
+  resolve: {
+    alias: {
+      '@': path.resolve(import.meta.dirname, './src'),
     },
   },
 });
