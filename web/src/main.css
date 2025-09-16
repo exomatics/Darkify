@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @theme {
   --color-primary: oklch(0.7697 0.2124 148.67); /* 1ED760 */
@@ -54,4 +54,3 @@
     background-color: transparent;
   }
 }
-

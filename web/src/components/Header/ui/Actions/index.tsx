@@ -12,10 +12,26 @@ export const Actions = () => {
 
   return (
     <div className="ml-auto flex items-center gap-3">
-      <IconButton iconScale={1.5} icon="Notifications" onClick={() => {}} />
-      <IconButton iconScale={1.5} icon="Lock" onClick={() => {}} />
-      <IconButton iconScale={1.8} className="friends" icon="Friends" onClick={() => {}} />
-      <IconButton iconScale={1.5} icon="Settings" onClick={() => {}} />
+      <IconButton
+        className="text-fg-secondary"
+        iconScale={1.5}
+        icon="Notifications"
+        onClick={() => {}}
+      />
+      <IconButton className="text-fg-secondary" iconScale={1.5} icon="Lock" onClick={() => {}} />
+      <IconButton
+        className="text-fg-secondary"
+        iconScale={1.8}
+        className="friends"
+        icon="Friends"
+        onClick={() => {}}
+      />
+      <IconButton
+        className="text-fg-secondary"
+        iconScale={1.5}
+        icon="Settings"
+        onClick={() => {}}
+      />
       <div ref={avatarRef} onClick={() => setIsVisibleProfileDropdown(true)}>
         <Avatar size={32} src={avatarUrl ?? ''} />
       </div>

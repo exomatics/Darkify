@@ -1,5 +1,4 @@
 import { Icons } from '../UI/Icons';
-import { StyledSidebar } from './styles';
 import { SidebarElement } from './ui/SidebarElement';
 
 export type SidebarElementDataBase = {

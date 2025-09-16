@@ -33,14 +33,20 @@ export const SidebarElement = ({
         to={to}
         onClick={handleClick}
       >
-        <IconComponent className="group-hover:text-fg-primary" />
-        <span className="text-sub text-fg-secondary group-hover:text-fg-primary">{children}</span>
+        <IconComponent className="transition-colors text-fg-secondary group-hover:text-fg-primary" />
+        <span className="transition-colors text-sub text-fg-secondary group-hover:text-fg-primary">
+          {children}
+        </span>
         {expandable && (
           <div
             className="ml-auto transition-transform"
             style={{ transform: expanded ? 'rotate(90deg)' : 'rotate(0deg)' }}
           >
-            <IconButton icon="Expand" onClick={() => console.log('test')} />
+            <IconButton
+              className="text-fg-secondary group-hover:text-fg-primary"
+              icon="Expand"
+              onClick={() => console.log('test')}
+            />
           </div>
         )}
       </NavLink>

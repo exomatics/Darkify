@@ -13,7 +13,7 @@ export const useLocalModel = () => {
   });
 
   const updateAvatarMutation = useMutation({
-    mutationFn: (formData: FormData) => api.user.putUsersMeAvatar(formData),
+    mutationFn: (formData: { avatar: File }) => api.user.putUsersMeAvatar(formData),
   });
 
   return {
