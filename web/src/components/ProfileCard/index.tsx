@@ -20,7 +20,13 @@ export const ProfileCard = ({ onClick }: { onClick: () => void }) => {
         >
           Profile
         </div>
-        <div className="p-3 w-full rounded-md cursor-pointer transition-colors hover:bg-bg-primary">
+        <div
+          onClick={() => {
+            navigate('/settings');
+            onClick();
+          }}
+          className="p-3 w-full rounded-md cursor-pointer transition-colors hover:bg-bg-primary"
+        >
           Settings
         </div>
         <div

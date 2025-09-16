@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router';
 import App from './App.tsx';
 import { setupAxiosInterceptors } from './api/interceptors.ts';
 import './main.css';
+import { Toaster } from '@/components/UI/sonner.tsx';
 
 setupAxiosInterceptors();
 
@@ -12,6 +13,7 @@ if (!rootElement.innerHTML) {
   createRoot(rootElement).render(
     <StrictMode>
       <BrowserRouter>
+        <Toaster />
         <App />
       </BrowserRouter>
     </StrictMode>,
