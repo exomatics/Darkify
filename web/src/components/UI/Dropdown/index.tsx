@@ -19,7 +19,6 @@ import type {
   Placement,
   ShiftOptions,
 } from '@floating-ui/react';
-import { StyledDropdown } from '../../Header/ui/Actions/styles.ts';
 
 type DropdownProps = {
   anchorRef: React.MutableRefObject<HTMLElement | null>;
@@ -108,7 +107,8 @@ export const Dropdown = ({
 
   return isMounted ? (
     <FloatingPortal>
-      <StyledDropdown
+      <div
+        className="bg-[#20202088] backdrop-blur-md rounded-md p-2"
         role="dialog"
         aria-modal="true"
         aria-hidden={!visible}
@@ -119,7 +119,7 @@ export const Dropdown = ({
         {...getFloatingProps()}
       >
         {children}
-      </StyledDropdown>
+      </div>
     </FloatingPortal>
   ) : (
     <FloatingPortal>

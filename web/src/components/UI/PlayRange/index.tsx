@@ -1,41 +1,18 @@
-import styled from 'styled-components';
-import { TextSmall } from '../Text';
 import React from 'react';
-
-const StyledPlayRange = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 9px;
-
-  .range {
-    width: 317px;
-    height: 3px;
-    border-radius: 3px;
-    background: rgba(137, 137, 137, 0.27);
-    cursor: pointer;
-    .passed {
-      width: 50%;
-      background-color: ${({ theme }) => theme.colors.fg.primary};
-      height: 3px;
-      border-radius: 3px;
-    }
-  }
-  .time {
-    color: ${({ theme }) => theme.colors.fg.secondary};
-    width: 30px;
-  }
-`;
+import clsx from 'clsx';
 
 export const PlayRange = ({
   currentPercent,
   currentTime,
   totalTime,
   onSeek,
+  className,
 }: {
   currentPercent: number;
   currentTime: string;
   totalTime: string;
   onSeek: (percent: number) => void;
+  className?: string;
 }) => {
   const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const progressBar = e.currentTarget;
@@ -45,12 +22,18 @@ export const PlayRange = ({
   };
 
   return (
-    <StyledPlayRange className="play-range">
-      <TextSmall className="time">{currentTime}</TextSmall>
-      <div onClick={handleProgressClick} className="range">
-        <div className="passed" style={{ width: currentPercent * 100 + '%' }}></div>
+    <div className={clsx('flex items-center gap-2', className)}>
+      <span className="text-small text-fg-secondary ">{currentTime}</span>
+      <div
+        onClick={handleProgressClick}
+        className="w-[317px] h-[3px] rounded-full bg-[#89898955] cursor-pointer"
+      >
+        <div
+          className="bg-fg-primary h-[3px] rounded-full transition-all"
+          style={{ width: currentPercent * 100 + '%' }}
+        ></div>
       </div>
-      <TextSmall className="time">{totalTime}</TextSmall>
-    </StyledPlayRange>
+      <span className="text-small text-fg-secondary">{totalTime}</span>
+    </div>
   );
 };

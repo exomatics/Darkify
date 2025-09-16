@@ -1,79 +1,7 @@
-import styled, { css } from 'styled-components';
 import { Icons } from '../../../UI/Icons';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router';
-
-const StyledSearch = styled.div<{ $active: boolean }>`
-  display: flex;
-  align-items: center;
-  width: 350px;
-  height: 46px;
-  cursor: pointer;
-  padding-left: 21px;
-  padding-right: 21px;
-  border-radius: 10px;
-  transition: 300ms background;
-  margin-left: 10px;
-
-  .icon {
-    width: 22px;
-    height: 22px;
-  }
-  input {
-    background: transparent;
-    height: 100%;
-    flex: 1;
-    padding-left: 15px;
-    outline: none;
-    border: none;
-    color: ${({ theme }) => theme.colors.fg.primary};
-    font-size: 14px;
-    letter-spacing: 3%;
-    cursor: pointer;
-  }
-  .icon {
-    svg path,
-    svg rect,
-    svg circle {
-      transition: 300ms stroke;
-    }
-  }
-  input::placeholder {
-    transition: 300ms color;
-  }
-  &:hover {
-    input::placeholder {
-      color: ${({ theme }) => theme.colors.fg.primary};
-    }
-    .icon {
-      svg path,
-      svg rect,
-      svg circle {
-        stroke: ${({ theme }) => theme.colors.fg.primary};
-      }
-    }
-  }
-
-  ${({ $active }) =>
-    $active &&
-    css`
-      background-color: ${({ theme }) => theme.colors.bg.primary};
-      input::placeholder {
-        color: ${({ theme }) => theme.colors.fg.primary};
-      }
-      .icon {
-        svg path,
-        svg rect,
-        svg circle {
-          stroke: ${({ theme }) => theme.colors.fg.primary};
-        }
-      }
-      cursor: text;
-      input {
-        cursor: text;
-      }
-    `}
-`;
+import clsx from 'clsx';
 
 export const HeaderSearch = () => {
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -118,11 +46,28 @@ export const HeaderSearch = () => {
   );
 
   return (
-    <StyledSearch $active={active} onClick={() => inputRef?.current?.focus()}>
-      <div className="icon">
-        <Icons.Big.Search />
+    <div
+      className={clsx(
+        'group flex items-center w-[350px] h-12 cursor-pointer px-5 rounded-xl transition-colors ml-3',
+        active ? 'bg-bg-primary' : '',
+      )}
+      onClick={() => inputRef?.current?.focus()}
+    >
+      <div className="w-5 h-5">
+        <Icons.Big.Search
+          className={clsx(
+            'transition-colors group-hover:text-fg-primary',
+            active ? 'text-fg-primary' : 'text-fg-secondary',
+          )}
+        />
       </div>
-      <input onInput={inputHandler} ref={inputRef} type="text" placeholder="Search" />
-    </StyledSearch>
+      <input
+        className="group-hover:placeholder:text-fg-primary bg-transparent h-full flex-1 pl-4 outline-none border-none text-fg-primary text-base cursor-text focus:placeholder:text-fg-primary placeholder:transition-colors"
+        onInput={inputHandler}
+        ref={inputRef}
+        type="text"
+        placeholder="Search"
+      />
+    </div>
   );
 };

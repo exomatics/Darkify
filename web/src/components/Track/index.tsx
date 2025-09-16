@@ -1,4 +1,3 @@
-import styled from 'styled-components';
 import { TrackInfo } from '../../api/gen';
 import { BACKEND_BASE } from '../../api/api.ts';
 import { formatDuration } from './lib.ts';
@@ -14,89 +13,25 @@ export const Track = ({
   onPlay?: () => void;
 }) => {
   return (
-    <StyledTrack>
-      <div onClick={onPlay} className="number">
-        <div className="no-icon">{number}</div>
-        <div className="icon">
+    <div className="group flex gap-3 items-center h-[71px] rounded-md pl-4 hover:bg-bg-primary cursor-pointer">
+      <div
+        onClick={onPlay}
+        className="w-[42px] h-[42px] flex justify-center items-center text-fg-secondary"
+      >
+        <div className="block group-hover:hidden">{number}</div>
+        <div className="hidden group-hover:flex justify-center items-center w-3 h-auto cursor-pointer">
           <Icons.Big.PlayOnly />
         </div>
       </div>
-      <img src={BACKEND_BASE + track.cover_url} alt="" className="cover" />
-      <div className="info">
+      <img src={BACKEND_BASE + track.cover_url} alt="" className="w-14 h-14 rounded-md" />
+      <div className="h-full flex flex-col justify-center gap-1 w-[400px]">
         <div className="title">{track.name}</div>
-        <div className="artists">
+        <div className="text-sub text-fg-secondary">
           {track.artists?.map((artist) => <div className="artist">{artist.visible_username}</div>)}
         </div>
       </div>
-      <div className="album">Album Name</div>
-      <div className="duration">{formatDuration(track.duration)}</div>
-    </StyledTrack>
+      <div className="text-fg-secondary w-[300px]">Album Name</div>
+      <div className="text-fg-secondary">{formatDuration(track.duration)}</div>
+    </div>
   );
 };
-
-const StyledTrack = styled.div`
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  height: 71px;
-  border-radius: 6px;
-  padding-left: 15px;
-  .no-icon {
-    display: block;
-  }
-  .icon {
-    display: none;
-    justify-content: center;
-    align-items: center;
-    width: 14px;
-    height: auto;
-    cursor: pointer;
-  }
-  &:hover {
-    background: ${({ theme }) => theme.colors.bg.primary};
-    .no-icon {
-      display: none;
-    }
-    .icon {
-      display: flex;
-    }
-  }
-
-  .number {
-    width: 42px;
-    height: 42px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: ${({ theme }) => theme.colors.fg.secondary};
-  }
-
-  .cover {
-    width: 51px;
-    height: 51px;
-    border-radius: 3px;
-  }
-
-  .info {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 4px;
-    width: 400px;
-  }
-
-  .artist {
-    font-size: 14px;
-    color: ${({ theme }) => theme.colors.fg.secondary};
-  }
-
-  .album {
-    color: ${({ theme }) => theme.colors.fg.secondary};
-    width: 300px;
-  }
-
-  .duration {
-    color: ${({ theme }) => theme.colors.fg.secondary};
-  }
-`;

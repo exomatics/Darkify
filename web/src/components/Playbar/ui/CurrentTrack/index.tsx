@@ -1,42 +1,24 @@
-import styled from 'styled-components';
-import { TextSub } from '../../../UI/Text';
 import { TrackInfo } from '../../../../api/gen';
 import { BACKEND_BASE } from '../../../../api/api.ts';
+import clsx from 'clsx';
 
-const StyledCurrentTrack = styled.div`
-  display: flex;
-  gap: 10px;
-  .info {
-    display: flex;
-    flex-direction: column;
-    line-height: 1;
-    justify-content: space-between;
-  }
-  .cover {
-    width: 51px;
-    height: 51px;
-    border-radius: 6px;
-  }
-  .track-title {
-    color: ${({ theme }) => theme.colors.fg.primary};
-  }
-  .artist-title,
-  .album-title {
-    color: ${({ theme }) => theme.colors.fg.secondary};
-  }
-`;
-
-export const CurrentTrack = ({ currentTrack }: { currentTrack: TrackInfo | null }) => {
+export const CurrentTrack = ({
+  currentTrack,
+  className,
+}: {
+  currentTrack: TrackInfo | null;
+  className?: string;
+}) => {
   return (
-    <StyledCurrentTrack className="current-track-info">
-      <img className="cover" src={BACKEND_BASE + currentTrack?.cover_url} />
-      <div className="info">
-        <TextSub className="track-title">{currentTrack?.name ?? ''}</TextSub>
-        <TextSub className="artist-title">
+    <div className={clsx(className, 'flex gap-2')}>
+      <img className="w-14 h-14 rounded-md" src={BACKEND_BASE + currentTrack?.cover_url} />
+      <div className="flex flex-col leading-none justify-between">
+        <span className="text-fg-primary text-sub">{currentTrack?.name ?? ''}</span>
+        <span className="text-fg-secondary text-sub">
           {currentTrack?.artists?.map((artist) => artist.visible_username)}
-        </TextSub>
-        <TextSub className="album-title">Album Name</TextSub>
+        </span>
+        <span className="text-fg-secondary text-sub">Album Name</span>
       </div>
-    </StyledCurrentTrack>
+    </div>
   );
 };

@@ -1,5 +1,4 @@
 import { Icons } from '../UI/Icons';
-import { StyledSidebar } from './styles';
 import { SidebarElement } from './ui/SidebarElement';
 
 export type SidebarElementDataBase = {
@@ -106,10 +105,10 @@ const sidebarElements: SidebarElementData[] = [
 
 export const Sidebar = () => {
   return (
-    <StyledSidebar>
+    <div className="p-3 flex flex-col gap-3 max-w-[248px]" style={{ gridArea: 'sidebar' }}>
       {sidebarElements.map((element) => (
         <SidebarElement
-          to={element.to ?? '/afsdjlkfjsdkl'}
+          to={element.to ?? '/'}
           key={element.label}
           icon={element.icon}
           expandable={element.expandable}
@@ -118,6 +117,6 @@ export const Sidebar = () => {
           {element.label}
         </SidebarElement>
       ))}
-    </StyledSidebar>
+    </div>
   );
 };
