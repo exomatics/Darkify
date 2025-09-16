@@ -37,9 +37,11 @@ import ArrowRight from './assets/big/arrow-right.svg?react';
 import ArrowLeft from './assets/big/arrow-left.svg?react';
 import UserFilled from './assets/big/user-filled.svg?react';
 import PlayOnly from './assets/big/play-only.svg?react';
+import PauseOnly from './assets/big/pause-only.svg?react';
 
 export const Icons = {
   Big: {
+    PauseOnly,
     ArrowLeft,
     ArrowRight,
     Close,

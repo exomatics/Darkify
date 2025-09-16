@@ -13,32 +13,49 @@ import {
   ContextMenuTrigger,
 } from '@/components/UI/context-menu.tsx';
 import { Input } from '@/components/UI/input.tsx';
+import { useAudioStore } from '@/features/hls-stream/store.ts';
+import clsx from 'clsx';
 
 export const Track = ({
   number,
   track,
   onPlay,
+  onPauseToggle,
 }: {
   number: number;
   track: TrackInfo;
   onPlay?: () => void;
+  onPauseToggle?: () => void;
 }) => {
+  const currentTrackId = useAudioStore((store) => store.currentTrack?.id);
+  const isPlaying = useAudioStore((store) => store.isPlaying);
+  const addToQueue = useAudioStore((store) => store.addToQueue);
+
+  const isCurrentTrack = currentTrackId === track.id;
+  const isPlayingCurrentTrack = isCurrentTrack && isPlaying;
+
   return (
     <ContextMenu>
       <ContextMenuTrigger>
         <div className="group flex gap-3 items-center h-[71px] rounded-md pl-4 hover:bg-bg-primary cursor-pointer">
           <div
-            onClick={onPlay}
+            onClick={isCurrentTrack ? onPauseToggle : onPlay}
             className="w-[42px] h-[42px] flex justify-center items-center text-fg-secondary"
           >
-            <div className="block group-hover:hidden">{number}</div>
-            <div className="hidden group-hover:flex justify-center items-center w-3 h-auto cursor-pointer">
-              <Icons.Big.PlayOnly />
-            </div>
+            {isPlayingCurrentTrack ? (
+              <Icons.Big.PauseOnly className="w-3" />
+            ) : (
+              <>
+                <div className="block group-hover:hidden">{number}</div>
+                <div className="hidden group-hover:flex justify-center items-center w-3 h-auto cursor-pointer">
+                  <Icons.Big.PlayOnly />
+                </div>
+              </>
+            )}
           </div>
           <img src={BACKEND_BASE + track.cover_url} alt="" className="w-14 h-14 rounded-md" />
           <div className="h-full flex flex-col justify-center gap-1 w-[400px]">
-            <div className="title">{track.name}</div>
+            <div className={clsx({ 'text-primary': isCurrentTrack })}>{track.name}</div>
             <div className="text-sub text-fg-secondary">
               {track.artists?.map((artist) => (
                 <div className="artist">{artist.visible_username}</div>
@@ -50,7 +67,7 @@ export const Track = ({
         </div>
       </ContextMenuTrigger>
       <ContextMenuContent>
-        <ContextMenuItem>Add to queue</ContextMenuItem>
+        <ContextMenuItem onClick={() => addToQueue(track)}>Add to queue</ContextMenuItem>
         <ContextMenuSeparator />
         <ContextMenuItem>Go to artist</ContextMenuItem>
         <ContextMenuItem>Go to album</ContextMenuItem>
