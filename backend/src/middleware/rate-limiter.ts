@@ -5,7 +5,7 @@ import { ROUTES } from '../routes/routes.ts';
 
 export const rateLimiters = {
   globalLimiter: rateLimit({
-    windowMs: 15 * 60 * 1000,
+    windowMs: 3 * 60 * 1000,
     max: 100,
     standardHeaders: true,
     legacyHeaders: false,
@@ -17,11 +17,11 @@ export const rateLimiters = {
   }),
 
   authLimiter: rateLimit({
-    windowMs: 10 * 60 * 1000,
+    windowMs: 5 * 60 * 1000,
     max: 5,
     message: {
       error: 'Too many authentication attempts',
-      retryAfter: '10 minutes',
+      retryAfter: '5 minutes',
     },
     standardHeaders: true,
     legacyHeaders: false,
