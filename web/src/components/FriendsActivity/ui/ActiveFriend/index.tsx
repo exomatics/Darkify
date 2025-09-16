@@ -1,58 +1,22 @@
-import styled from 'styled-components';
 import mockAvatar from './mock.jpg';
-import { TextSmall, TextSub } from '../../../UI/Text';
 import { Icons } from '../../../UI/Icons';
-
-const StyledActiveFriend = styled.div`
-  display: flex;
-  gap: 12px;
-  .avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 100%;
-  }
-  .info {
-    line-height: 1;
-    display: flex;
-    gap: 5px;
-    flex-direction: column;
-    justify-content: center;
-  }
-  .music {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-  }
-  .playing-icon {
-    width: 10px;
-  }
-  .artist-title {
-    color: ${({ theme }) => theme.colors.fg.secondary};
-  }
-  .dot {
-    width: 3px;
-    height: 3px;
-    background-color: ${({ theme }) => theme.colors.fg.secondary};
-    border-radius: 100%;
-    margin-top: 2px;
-  }
-`;
+import { Avatar } from '../../../UI/Avatar';
 
 export const ActiveFriend = () => {
   return (
-    <StyledActiveFriend>
-      <img className="avatar" src={mockAvatar} />
-      <div className="info">
-        <TextSmall>MirRom</TextSmall>
-        <div className="music">
-          <div className="playing-icon">
+    <div className="flex gap-3">
+      <Avatar size={40} src={mockAvatar} />
+      <div className="leading-none flex gap-2 flex-col justify-center">
+        <span className="text-small">MirRom</span>
+        <div className="flex gap-3 items-center">
+          <div className="w-3 h-3">
             <Icons.Big.Playing />
           </div>
-          <TextSub>In The End</TextSub>
-          <div className="dot"></div>
-          <TextSub className="artist-title">Linking Park</TextSub>
+          <span className="text-sub">In The End</span>
+          <div className="w-1 h-1 bg-fg-secondary rounded-full mt-[2px]"></div>
+          <span className="text-fg-secondary terxt-sub">Linking Park</span>
         </div>
       </div>
-    </StyledActiveFriend>
+    </div>
   );
 };

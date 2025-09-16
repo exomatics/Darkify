@@ -1,5 +1,5 @@
 import React from 'react';
-import { Layout, MainContent } from '../../styles/layout';
+import { Layout, MainContent } from '../../styles/layout.tsx';
 import { Header } from '../../components/Header';
 import { Sidebar } from '../../components/Sidebar';
 import { Playbar } from '../../components/Playbar';
