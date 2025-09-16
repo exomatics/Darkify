@@ -7,6 +7,9 @@ import AudioPlayer from '../../features/hls-stream/Player.tsx';
 import { useAudioStore } from '../../features/hls-stream/store.ts';
 import { formatDuration } from '../Track/lib.ts';
 import clsx from 'clsx';
+import { Icons } from '@/components/UI/Icons';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/UI/popover.tsx';
+import { Volume } from '@/components/UI/Volume';
 
 export const Playbar = () => {
   const { currentTrack, currentTime, duration, isPlaying, togglePlayPause, seekTo } =
@@ -49,7 +52,14 @@ export const Playbar = () => {
         currentTime={currentTime ? formatTime(currentTime) : ''}
         totalTime={currentTrack?.duration ? formatDuration(currentTrack?.duration) : ''}
       />
-      <IconButton icon="Sound" iconScale={1.8} onClick={() => console.log('sound')} />
+      <Popover>
+        <PopoverTrigger>
+          <Icons.Big.Sound className="w-6 cursor-pointer" />
+        </PopoverTrigger>
+        <PopoverContent className="w-4 bg-bg-main">
+          <Volume />
+        </PopoverContent>
+      </Popover>
       <CurrentTrack className="ml-7" currentTrack={currentTrack} />
       <div className="ml-auto flex gap-3 items-center">
         <IconButton

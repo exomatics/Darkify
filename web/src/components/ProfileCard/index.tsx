@@ -12,7 +12,7 @@ export const ProfileCard = ({ onClick }: { onClick: () => void }) => {
       <div className="mt-3 text-xl font-medium">{visibleUsername ?? 'Your Name'}</div>
       <div className="mt-3 self-stretch">
         <div
-          className="p-3 w-full rounded-md cursor-pointer transition-colors hover:bg-bg-primary"
+          className="p-3 w-full rounded-md cursor-pointer transition-colors hover:bg-bg-primary text-left"
           onClick={() => {
             navigate('/profile');
             onClick();
@@ -25,13 +25,13 @@ export const ProfileCard = ({ onClick }: { onClick: () => void }) => {
             navigate('/settings');
             onClick();
           }}
-          className="p-3 w-full rounded-md cursor-pointer transition-colors hover:bg-bg-primary"
+          className="p-3 w-full rounded-md cursor-pointer transition-colors hover:bg-bg-primary text-left"
         >
           Settings
         </div>
         <div
           onClick={logout}
-          className="p-3 w-full rounded-md cursor-pointer transition-colors hover:bg-bg-primary"
+          className="p-3 w-full rounded-md cursor-pointer transition-colors hover:bg-bg-primary text-left"
         >
           Log Out
         </div>
