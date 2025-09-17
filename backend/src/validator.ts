@@ -4,6 +4,9 @@ import database from './config/database.ts';
 import { errorMessages } from './errors/error-messages.ts';
 import NotFoundError from './errors/not-found-error.ts';
 import { Bitrate } from './types/bitrate-type.ts';
+import { Restrictions } from './types/restrictions-type.ts';
+import { Type } from './types/playlist-type.ts';
+import { Order, sortBy } from './interfaces/playlist-interface.ts';
 const uuidScheme = z.uuid();
 function requireAtLeastOneCheck(object: Record<string | number | symbol, unknown>) {
   return Object.values(object).some((value) => value !== undefined);
@@ -12,6 +15,12 @@ const paginationScheme = z.object({
   limit: z.number().max(100).nonnegative().optional(),
   offset: z.number().nonnegative().optional(),
 });
+const fileScheme = z.custom<Express.Multer.File>(
+  (value) => {
+    return value;
+  },
+  { message: errorMessages.user.GotNoFile },
+);
 const hashScheme = z
   .string()
   .regex(/^(0x|0h)?[0-9A-F]+$/i)
@@ -69,12 +78,7 @@ const playlistFollowScheme = z.object({
 });
 const userAvatarScheme = z.object({
   user_id: uuidScheme,
-  file: z.custom<Express.Multer.File>(
-    (value) => {
-      return value;
-    },
-    { message: errorMessages.user.GotNoFile },
-  ),
+  file: fileScheme,
 });
 const visibleUsernameScheme = z.string().max(25);
 
@@ -98,19 +102,12 @@ const streamTrackScheme = z.object({
   userId: uuidScheme,
 });
 
-const trackCoverScheme = z.custom<Express.Multer.File>(
-  (value) => {
-    return value;
-  },
-  { message: errorMessages.user.GotNoFile },
-);
-
 const createTrackScheme = trackScheme
   .extend({
     name: trackNameScheme,
     admin_id: uuidScheme,
     artists: z.array(uuidScheme),
-    file: trackCoverScheme.array().nullable(),
+    file: fileScheme.array().nullable(),
   })
   .omit({ duration: true, id: true });
 
@@ -123,12 +120,60 @@ const updateTrackScheme = trackScheme
   .extend({
     name: trackNameScheme.optional(),
     artists: z.array(z.string()).optional(),
-    file: trackCoverScheme.nullable(),
+    file: fileScheme.nullable(),
   })
   .omit({ duration: true })
   .refine(({ name, artists, lyrics, file }) => {
     return requireAtLeastOneCheck({ name, artists, lyrics, file });
   }, errorMessages.validation.SpecifyToUpdateTrack);
+
+const playlistScheme = z.object({
+  playlistId: uuidScheme,
+  name: z.string().max(100).nonempty(),
+  description: z.string().max(300).nonempty(),
+  cover_id: uuidScheme,
+  owner: uuidScheme,
+  restrictions: z.enum(Restrictions),
+  type: z.enum(Type),
+});
+
+const getPlaylistsScheme = z.object({
+  ...playlistScheme.pick({ name: true }).shape,
+  ...paginationScheme.shape,
+});
+
+const getPlaylistInfo = playlistScheme.pick({ playlistId: true });
+
+const updatePlaylistScheme = z.object({
+  playlistId: uuidScheme,
+  trackId: uuidScheme,
+  userId: uuidScheme,
+});
+
+const updatePlaylistInfoScheme = playlistScheme.pick({
+  playlistId: true,
+  name: true,
+  description: true,
+});
+const updatePlaylistRestrictions = playlistScheme.pick({
+  playlistId: true,
+  restrictions: true,
+});
+const updatePlaylistCoverScheme = z.object({
+  playlistId: uuidScheme,
+  file: fileScheme,
+});
+const getAllFromPlaylistScheme = z.object({
+  playlistId: uuidScheme,
+  sort: z.object({ sort: sortBy, order: Order }),
+  ...paginationScheme.shape,
+});
+
+const reorderPlaylistScheme = z.object({
+  playlistId: uuidScheme,
+  trackId: uuidScheme,
+  order: z.int().positive(),
+});
 
 export {
   uuidScheme,
@@ -145,4 +190,12 @@ export {
   createTrackScheme,
   updateTrackScheme,
   streamTrackScheme,
+  getPlaylistsScheme,
+  getPlaylistInfo,
+  updatePlaylistScheme,
+  updatePlaylistRestrictions,
+  updatePlaylistInfoScheme,
+  updatePlaylistCoverScheme,
+  getAllFromPlaylistScheme,
+  reorderPlaylistScheme,
 };
