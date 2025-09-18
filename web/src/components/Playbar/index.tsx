@@ -36,6 +36,7 @@ export const Playbar = () => {
       style={{ gridArea: 'playbar' }}
       className={clsx(
         isPlaying ? 'bg-bg-playbar' : 'bg-bg-secondary',
+        currentTrack ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none',
         'mt-1 rounded-xl px-5 flex items-center transition-colors',
       )}
     >
