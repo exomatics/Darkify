@@ -4,16 +4,26 @@ import { PlayRange } from '../UI/PlayRange';
 import { CurrentTrack } from './ui/CurrentTrack';
 import djIcon from './assets/dj.png';
 import AudioPlayer from '../../features/hls-stream/Player.tsx';
-import { useAudioStore } from '../../features/hls-stream/store.ts';
+import { LoopMode, useAudioStore } from '@/features/hls-stream/store.ts';
 import { formatDuration } from '../Track/lib.ts';
 import clsx from 'clsx';
+import { Toggle } from '@/components/UI/toggle.tsx';
 import { Icons } from '@/components/UI/Icons';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/UI/popover.tsx';
 import { Volume } from '@/components/UI/Volume';
 
 export const Playbar = () => {
-  const { currentTrack, currentTime, duration, isPlaying, togglePlayPause, seekTo } =
-    useAudioStore();
+  const {
+    currentTrack,
+    currentTime,
+    duration,
+    isPlaying,
+    togglePlayPause,
+    seekTo,
+    nextTrack,
+    loopMode,
+    setLoopMode,
+  } = useAudioStore();
 
   const formatTime = (seconds: number): string => {
     if (!seconds || isNaN(seconds) || !isFinite(seconds)) return '0:00';
@@ -21,7 +31,6 @@ export const Playbar = () => {
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
-
   const progressPercent = currentTime / duration;
 
   return (
@@ -29,21 +38,32 @@ export const Playbar = () => {
       style={{ gridArea: 'playbar' }}
       className={clsx(
         isPlaying ? 'bg-bg-playbar' : 'bg-bg-secondary',
+        currentTrack ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none',
         'mt-1 rounded-xl px-5 flex items-center transition-colors',
       )}
     >
       <AudioPlayer />
       <PlayButton onClick={() => togglePlayPause()} played={isPlaying} />
       <div className="flex gap-3 ml-3">
-        <IconButton
-          icon="Prev"
-          onClick={() => {
-            console.log('prev');
+        <Toggle onClick={() => nextTrack()} className="scale-110" pressed={false}>
+          <Icons.Big.Prev className="scale-90" />
+        </Toggle>
+        <Toggle onClick={() => nextTrack()} className="scale-110" pressed={false}>
+          <Icons.Big.Next className="scale-90" />
+        </Toggle>
+        <Toggle className="scale-110" pressed={false}>
+          <Icons.Big.Shuffle />
+        </Toggle>
+        <Toggle
+          className="scale-110"
+          onPressedChange={(value) => {
+            console.log('123', value);
+            return value ? setLoopMode(LoopMode.LoopOne) : setLoopMode(LoopMode.NoLoop);
           }}
-        />
-        <IconButton icon="Next" onClick={() => console.log('next')} />
-        <IconButton icon="Shuffle" iconScale={1.6} onClick={() => console.log('shuffle')} />
-        <IconButton icon="Loop" iconScale={1.6} onClick={() => console.log('loop')} />
+          pressed={loopMode === LoopMode.LoopOne}
+        >
+          <Icons.Big.Loop />
+        </Toggle>
       </div>
       <PlayRange
         className="ml-2 mr-2"

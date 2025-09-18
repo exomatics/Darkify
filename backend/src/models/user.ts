@@ -1,6 +1,7 @@
 import { DataTypes, Model } from 'sequelize';
 
-import type { Bitrate } from '../types/bitrate-type.ts';
+import { Bitrate } from '../types/bitrate-type.ts';
+
 import type { InferAttributes, InferCreationAttributes, Sequelize } from 'sequelize';
 
 class UserModel extends Model<InferAttributes<UserModel>, InferCreationAttributes<UserModel>> {
@@ -55,7 +56,7 @@ const userModel = (sequelize: Sequelize) => {
         unique: true,
       },
       bitrate: {
-        type: DataTypes.ENUM({ values: ['low', 'normal', 'high', 'very-high', 'auto'] }),
+        type: DataTypes.ENUM(...Object.values(Bitrate)),
         defaultValue: 'high',
       },
     },

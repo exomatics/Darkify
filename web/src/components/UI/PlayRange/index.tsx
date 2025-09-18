@@ -1,5 +1,5 @@
-import React from 'react';
 import clsx from 'clsx';
+import { Slider } from '@/components/ui/slider';
 
 export const PlayRange = ({
   currentPercent,
@@ -14,26 +14,19 @@ export const PlayRange = ({
   onSeek: (percent: number) => void;
   className?: string;
 }) => {
-  const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    const progressBar = e.currentTarget;
-    const rect = progressBar.getBoundingClientRect();
-    const percent = (e.clientX - rect.left) / rect.width;
-    onSeek(percent);
+  const onValueChange = (value: [number]) => {
+    onSeek(value[0] / 100);
   };
 
   return (
     <div className={clsx('flex items-center gap-2', className)}>
-      <span className="text-small text-fg-secondary ">{currentTime}</span>
-      <div
-        onClick={handleProgressClick}
-        className="w-[317px] h-[3px] rounded-full bg-[#89898955] cursor-pointer"
-      >
-        <div
-          className="bg-fg-primary h-[3px] rounded-full transition-all"
-          style={{ width: currentPercent * 100 + '%' }}
-        ></div>
+      <span className="text-small text-fg-secondary tabular-nums">
+        {currentTime.length ? currentTime : '0:00'}
+      </span>
+      <div className="w-[300px]">
+        <Slider onValueChange={onValueChange} value={[currentPercent * 100]} max={100} step={1} />
       </div>
-      <span className="text-small text-fg-secondary">{totalTime}</span>
+      <span className="text-small text-fg-secondary tabular-nums">{totalTime}</span>
     </div>
   );
 };
