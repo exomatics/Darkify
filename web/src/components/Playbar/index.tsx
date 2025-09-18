@@ -4,7 +4,7 @@ import { PlayRange } from '../UI/PlayRange';
 import { CurrentTrack } from './ui/CurrentTrack';
 import djIcon from './assets/dj.png';
 import AudioPlayer from '../../features/hls-stream/Player.tsx';
-import { LoopMode, useAudioStore } from '../../features/hls-stream/store.ts';
+import { LoopMode, useAudioStore } from '@/features/hls-stream/store.ts';
 import { formatDuration } from '../Track/lib.ts';
 import clsx from 'clsx';
 import { Toggle } from '@/components/UI/toggle.tsx';
@@ -29,7 +29,6 @@ export const Playbar = () => {
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
-  console.log(loopMode);
   const progressPercent = currentTime / duration;
 
   return (
