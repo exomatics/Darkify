@@ -15,6 +15,7 @@ import {
 import { Input } from '@/components/UI/input.tsx';
 import { useAudioStore } from '@/features/hls-stream/store.ts';
 import clsx from 'clsx';
+import MusicBarsIcon from '@/components/MusicBarsIcon.tsx';
 
 export const Track = ({
   number,
@@ -43,7 +44,14 @@ export const Track = ({
             className="w-[42px] h-[42px] flex justify-center items-center text-fg-secondary"
           >
             {isPlayingCurrentTrack ? (
-              <Icons.Big.PauseOnly className="w-3" />
+              <>
+                <div className="group-hover:hidden">
+                  <MusicBarsIcon />
+                </div>
+                <div className="hidden group-hover:block">
+                  <Icons.Big.PauseOnly className="w-3" />
+                </div>
+              </>
             ) : (
               <>
                 <div className="block group-hover:hidden">{number}</div>
