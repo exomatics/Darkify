@@ -23,6 +23,7 @@ export default {
       avatar_url: userRecord.data.avatar_url
         ? `${STATIC_IMAGES_PATH}/${userRecord.data.avatar_url}.jpg`
         : null,
+      is_artist: userRecord.data.is_artist,
       followers: followersCount.data,
     };
     return requiredUserInfo;
