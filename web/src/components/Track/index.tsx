@@ -61,7 +61,13 @@ export const Track = ({
               </>
             )}
           </div>
-          <img src={BACKEND_BASE + track.cover_url} alt="" className="w-14 h-14 rounded-md" />
+          <img
+            src={
+              track.cover_url?.startsWith('/') ? BACKEND_BASE + track.cover_url : track.cover_url
+            }
+            alt=""
+            className="w-14 h-14 rounded-md"
+          />
           <div className="h-full flex flex-col justify-center gap-1 w-[400px]">
             <div className={clsx({ 'text-primary': isCurrentTrack })}>{track.name}</div>
             <div className="text-sub text-fg-secondary">
