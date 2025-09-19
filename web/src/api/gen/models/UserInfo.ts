@@ -5,6 +5,7 @@
 export type UserInfo = {
     user_id?: string;
     visible_username?: string;
+    is_artist?: boolean;
     avatar_url?: string;
     followers?: number;
 };
