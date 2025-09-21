@@ -11,7 +11,7 @@ const errorHandler: ErrorRequestHandler = (error, request, response, next) => {
     });
     return;
   }
-  logger.error(error);
+  console.dir(error, { depth: Infinity });
 
   response.status(500).json({
     message: 'Internal Server Error',

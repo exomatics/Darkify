@@ -1,18 +1,23 @@
+import crypto from 'node:crypto';
+
+import sequelize, { Op } from 'sequelize';
+
+import { DEFAULT_LIMIT, DEFAULT_OFFSET } from '../../config/config.ts';
 import database from '../../config/database.ts';
 import { errorMessages } from '../../errors/error-messages.ts';
 import InternalError from '../../errors/internal-error.ts';
-import { IPlaylist, IUpdateTrack } from '../../interfaces/playlist-interface.ts';
-import { Op } from 'sequelize';
-import { DEFAULT_LIMIT, DEFAULT_OFFSET } from '../../config/config.ts';
-import { Restrictions } from '../../types/restrictions-type.ts';
-import sequelize from 'sequelize';
-import { Type } from '../../types/playlist-type.ts';
-import { number, success } from 'zod/v4';
+import { Type, Restrictions } from '../../interfaces/playlist-interface.ts';
+
+import type {
+  ICreatePlaylist,
+  IPlaylist,
+  IUpdateTrack,
+} from '../../interfaces/playlist-interface.ts';
 
 class PlaylistManager {
-  async createPlaylist(playlistInfo: IPlaylist) {
-    const playlistRecord = database.playlistModel.create({
-      id: playlistInfo.playlistId,
+  async createPlaylist(playlistInfo: ICreatePlaylist) {
+    const playlistRecord = await database.playlistModel.create({
+      id: crypto.randomUUID(),
       name: playlistInfo.name,
       description: playlistInfo.description ?? null,
       cover_id: playlistInfo.cover_id ?? null,
@@ -116,16 +121,31 @@ class PlaylistManager {
       return playlistRecord;
     }
 
-    const playlistTracks = await database.playlistTrackModel.findAndCountAll({
-      where: { playlist_id: playlistInfo.playlistId, '$track.deleted$': { [Op.ne]: 'deleted' } },
+    const playlistTracks = await database.playlistModel.findAndCountAll({
+      where: { id: playlistInfo.playlistId, '$track.deleted$': { [Op.ne]: 'deleted' } },
+      attributes: [[sequelize.col('user.visible_username'), 'artist_name']],
       order: [[playlistInfo.sort.sortBy ?? 'order', playlistInfo.sort.order ?? 'ASC']],
-      include: {
-        model: database.trackModel,
-        attributes: ['delete'],
-        through: { attributes: ['track_id'] },
-      },
-      offset: offset,
-      limit: limit,
+      include: [
+        {
+          //I can bet my tooth that it doesn't fucking work
+          //also through and attributes are fucking shit
+          model: database.trackModel,
+          attributes: ['delete', 'name', 'duration'],
+          include: { model: database.trackArtistsModel, attributes: ['artist_id'] },
+        },
+        //trackArtists and user probably will need to go to other query
+        {
+          model: database.trackArtistsModel,
+          attributes: ['artist_id'],
+        },
+        {
+          model: database.userModel,
+          attributes: ['visible_username'],
+          through: { attributes: ['artist_id'] },
+        },
+      ],
+      offset,
+      limit,
     });
 
     return { success: true, data: { rows: playlistTracks.rows, count: playlistTracks.count } };
@@ -137,17 +157,18 @@ class PlaylistManager {
   ) {
     const playlistsRecords = await database.playlistModel.findAndCountAll({
       where: {
-        name: { [Op.iLike]: `%${[playlistInfo.name]}%` },
+        name: { [Op.iLike]: `%${playlistInfo.name}%` },
         [Op.or]: { restrictions: Restrictions.public, owner: playlistInfo.userId },
       },
-      order: [[sequelize.literal(`owner = ${playlistInfo.userId}`), 'DESC']],
-      offset: offset,
-      limit: limit,
+      order: [[sequelize.literal(`owner = '${playlistInfo.userId}'`), 'DESC']],
+      offset,
+      limit,
     });
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //check how order works
     return { success: true, data: playlistsRecords };
   }
+
   async updateRestrictionsById(
     playlistInfo: Pick<IPlaylist, 'playlistId' | 'restrictions'> & { userId: string },
   ) {
@@ -187,25 +208,32 @@ class PlaylistManager {
       return playlistRecord;
     }
 
-    const tracksDuration = await database.playlistTrackModel.findAll({
-      where: { playlist_id: playlistInfo.playlistId },
-      include: {
-        model: database.trackModel,
-        attributes: ['duration'],
-        through: { attributes: ['track_id'] },
-      },
-      attributes: ['duration'],
+    const playlistAndTrackRecord = await database.playlistModel.findAll({
+      where: { id: playlistInfo.playlistId },
+      include: [
+        {
+          model: database.trackModel,
+          attributes: ['duration'],
+        },
+      ],
     });
-
+    const songsCount = await database.playlistTrackModel.count({
+      where: { playlist_id: playlistInfo.playlistId },
+    });
     let totalDuration = 0;
-    tracksDuration.map((track) => {
+    // eslint-disable-next-line github/array-foreach, unicorn/no-array-for-each
+    playlistAndTrackRecord.forEach((track) => {
       totalDuration += Number(track.duration);
     });
+
     const responseData = {
       name: playlistRecord.data.name,
-      description: playlistRecord.data?.description,
+      description: playlistRecord.data.description,
       totalDuration,
-      isOwner: playlistRecord.data?.owner === playlistInfo.userId,
+      owner: playlistRecord.data.owner,
+      restrictions: playlistRecord.data.restrictions,
+      songsCount,
+      isOwner: playlistRecord.data.owner === playlistInfo.userId,
     };
     return { success: true, data: responseData };
   }
@@ -231,5 +259,6 @@ class PlaylistManager {
 // createLikedSongs, likeTrack, getAllLikedSongs(pagination, sort), reorder, removeFromLikedSongs
 // depend getPlaylistById from auth(restrictions unlisted), getPlaylistsByName only public or owner of which is user,
 // updatePlaylistInfo and updateRestrictions only if user is an owner, removeTrackFromPlaylist and addTrackToPlaylist only if user is an owner
+// getnextTrack(playlist,search,likedSongs,Likedsongs from artist,)
 //playlist type. Liked; general
 export default PlaylistManager;

@@ -428,7 +428,7 @@ class UserManager {
       return { success: false, reason: errorMessages.user.NotExistsById };
     }
     const fileUploadData = await new FileUploader().uploadImage(fileBuffer);
-    await userRecord.data.update({ avatar_url: fileUploadData.data });
+    await userRecord.data.update({ avatar_url: fileUploadData });
     return {
       success: true,
       data: userRecord.data.avatar_url

@@ -1,8 +1,7 @@
 import { DataTypes, Model } from 'sequelize';
 
+import type { Restrictions, Type } from '../interfaces/playlist-interface.ts';
 import type { InferAttributes, InferCreationAttributes, Sequelize } from 'sequelize';
-import { Restrictions } from '../types/restrictions-type.ts';
-import { Type } from '../types/playlist-type.ts';
 
 class PlaylistModel extends Model<
   InferAttributes<PlaylistModel>,
@@ -11,8 +10,8 @@ class PlaylistModel extends Model<
   declare id: string;
   declare name: string;
   declare tracks_count?: number;
-  declare description: string;
-  declare cover_id: string;
+  declare description: string | null;
+  declare cover_id: string | null;
   declare likes?: string;
   declare owner: string;
   declare restrictions: Restrictions;
@@ -46,6 +45,7 @@ const playlistModel = (sequelize: Sequelize) => {
       likes: {
         type: DataTypes.INTEGER,
         defaultValue: 0,
+        allowNull: false,
       },
       owner: {
         type: DataTypes.UUID,
@@ -55,10 +55,12 @@ const playlistModel = (sequelize: Sequelize) => {
       restrictions: {
         type: DataTypes.ENUM({ values: ['private', 'public', 'unlisted'] }),
         unique: true,
+        allowNull: false,
       },
       type: {
         type: DataTypes.ENUM({ values: ['general', 'liked'] }),
         unique: true,
+        allowNull: false,
       },
     },
     {

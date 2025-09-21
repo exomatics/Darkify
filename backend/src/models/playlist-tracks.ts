@@ -18,13 +18,11 @@ const playlistTrackModel = (sequelize: Sequelize) => {
       playlist_id: {
         type: DataTypes.UUID,
         allowNull: false,
-        unique: true,
         primaryKey: true,
       },
       track_id: {
         type: DataTypes.UUID,
         allowNull: false,
-        unique: true,
         primaryKey: true,
       },
       order: {

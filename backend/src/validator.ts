@@ -3,11 +3,11 @@ import { z } from 'zod/v4';
 import database from './config/database.ts';
 import { errorMessages } from './errors/error-messages.ts';
 import NotFoundError from './errors/not-found-error.ts';
+import { Restrictions, Type, Order, sortBy } from './interfaces/playlist-interface.ts';
 import { Bitrate } from './types/bitrate-type.ts';
-import { Restrictions } from './types/restrictions-type.ts';
-import { Type } from './types/playlist-type.ts';
-import { Order, sortBy } from './interfaces/playlist-interface.ts';
+
 const uuidScheme = z.uuid();
+
 function requireAtLeastOneCheck(object: Record<string | number | symbol, unknown>) {
   return Object.values(object).some((value) => value !== undefined);
 }
@@ -130,19 +130,26 @@ const updateTrackScheme = trackScheme
 const playlistScheme = z.object({
   playlistId: uuidScheme,
   name: z.string().max(100).nonempty(),
-  description: z.string().max(300).nonempty(),
+  description: z.string().max(300).nonempty().optional(),
   cover_id: uuidScheme,
   owner: uuidScheme,
   restrictions: z.enum(Restrictions),
   type: z.enum(Type),
 });
+const createPlaylistScheme = playlistScheme
+  .omit({ playlistId: true, type: true, cover_id: true })
+  .extend({ file: fileScheme });
 
 const getPlaylistsScheme = z.object({
+  userId: uuidScheme,
   ...playlistScheme.pick({ name: true }).shape,
   ...paginationScheme.shape,
 });
 
-const getPlaylistInfo = playlistScheme.pick({ playlistId: true });
+const getPlaylistInfoScheme = z.object({
+  playlistId: uuidScheme,
+  userId: uuidScheme,
+});
 
 const updatePlaylistScheme = z.object({
   playlistId: uuidScheme,
@@ -165,7 +172,7 @@ const updatePlaylistCoverScheme = z.object({
 });
 const getAllFromPlaylistScheme = z.object({
   playlistId: uuidScheme,
-  sort: z.object({ sort: sortBy, order: Order }),
+  sort: z.object({ sortBy: z.enum(sortBy), order: z.enum(Order) }),
   ...paginationScheme.shape,
 });
 
@@ -191,7 +198,8 @@ export {
   updateTrackScheme,
   streamTrackScheme,
   getPlaylistsScheme,
-  getPlaylistInfo,
+  getPlaylistInfoScheme,
+  createPlaylistScheme,
   updatePlaylistScheme,
   updatePlaylistRestrictions,
   updatePlaylistInfoScheme,
