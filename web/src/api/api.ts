@@ -1,4 +1,4 @@
-import { ApiClient, OpenAPI } from './gen';
+import {ApiClient, OpenAPI} from './gen';
 
 let accessToken = '';
 
@@ -30,7 +30,7 @@ export let api = new ApiClient();
 
 export function initApiClient(token: string) {
   setToken(token);
-  api = new ApiClient({ BASE: 'http://localhost:3000/api', TOKEN: token });
+  api = new ApiClient({BASE: 'http://localhost:3000/api', TOKEN: token});
 }
 
 api.auth.postUsersRefreshToken();

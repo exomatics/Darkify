@@ -18,12 +18,12 @@ import { Button } from '@/components/UI/button.tsx';
 
 export function Combobox({
   elements,
-  onSearch,
-  onSelect,
+  // onSearch,
+  // onSelect,
 }: {
   elements: { value: string; label: string }[];
-  onSearch: (str: string) => void;
-  onSelect: (value: string) => void;
+  // onSearch: (str: string) => void;
+  // onSelect: (value: string) => void;
 }) {
   const [open, setOpen] = React.useState(false);
   const [value, setValue] = React.useState('');

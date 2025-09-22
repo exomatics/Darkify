@@ -1,5 +1,5 @@
-import axios, { AxiosError, AxiosRequestConfig } from 'axios';
-import { getStoredToken, setToken, initApiClient } from './api';
+import axios, {AxiosError, AxiosRequestConfig} from 'axios';
+import {getStoredToken, setToken, initApiClient} from './api';
 
 const refreshClient = axios.create({
   baseURL: 'http://localhost:3000/api',
@@ -54,14 +54,14 @@ export function setupAxiosInterceptors() {
 
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
-          queue.push({ resolve, reject, config: original });
+          queue.push({resolve, reject, config: original});
         });
       }
 
       isRefreshing = true;
       try {
-        const { data } = await refreshClient.post('/users/refresh-token');
-        const { token } = data as { token?: string };
+        const {data} = await refreshClient.post('/users/refresh-token');
+        const {token} = data as { token?: string };
 
         if (!token) throw new Error('No token in refresh response');
 

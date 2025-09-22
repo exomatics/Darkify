@@ -1,5 +1,5 @@
-import { TrackInfo } from '../../../../api/gen';
-import { BACKEND_BASE } from '../../../../api/api.ts';
+import { TrackInfo } from '@/api/gen';
+import { BACKEND_BASE } from '@/api/api.ts';
 import clsx from 'clsx';
 
 export const CurrentTrack = ({
@@ -11,7 +11,12 @@ export const CurrentTrack = ({
 }) => {
   return (
     <div className={clsx(className, 'flex gap-2')}>
-      <img className="w-14 h-14 rounded-md" src={BACKEND_BASE + currentTrack?.cover_url} />
+      <div>
+        <img
+          className="w-14 h-14 rounded-md object-cover"
+          src={BACKEND_BASE + currentTrack?.cover_url}
+        />
+      </div>
       <div className="flex flex-col leading-none justify-between">
         <span className="text-fg-primary text-sub">{currentTrack?.name ?? ''}</span>
         <span className="text-fg-secondary text-sub">
