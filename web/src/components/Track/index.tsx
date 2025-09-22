@@ -1,5 +1,4 @@
 import { TrackInfo } from '@/api/gen';
-import { BACKEND_BASE } from '@/api/api.ts';
 import { formatDuration } from './lib.ts';
 import { Icons } from '../UI/Icons';
 import {
