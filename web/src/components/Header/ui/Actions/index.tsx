@@ -36,7 +36,7 @@ export const Actions = () => {
         </PopoverTrigger>
         <PopoverContent>
           <RadixPopover.Close className="w-full">
-            <ProfileCard onClick={() => setIsVisibleProfileDropdown(false)} />
+            <ProfileCard />
           </RadixPopover.Close>
         </PopoverContent>
       </Popover>

@@ -14,7 +14,11 @@ function Input({
 
   return (
     <div>
-      {label && <Label htmlFor={id}>{label}</Label>}
+      {label && (
+        <Label className="mb-2" htmlFor={id}>
+          {label}
+        </Label>
+      )}
       <input
         ref={props.ref}
         type={type}

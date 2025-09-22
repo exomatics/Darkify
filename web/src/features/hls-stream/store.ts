@@ -124,7 +124,10 @@ export const useAudioStore = create(
 
         const hlsBlob = new Blob([processedHlsContent], { type: 'application/vnd.apple.mpegurl' });
         const hlsUrl = URL.createObjectURL(hlsBlob);
-
+        console.log(
+          '!!!!!!',
+          Hls.getMediaSource()?.isTypeSupported?.('audio/mp4;codecs="mp4a.40.2"'),
+        );
         if (Hls.isSupported() && state.audioElement) {
           const hls = new Hls(getHLSConfig());
 
