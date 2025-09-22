@@ -1,5 +1,4 @@
 import { TrackInfo } from '@/api/gen';
-import { BACKEND_BASE } from '@/api/api.ts';
 import { formatDuration } from './lib.ts';
 import { Icons } from '../UI/Icons';
 import {
@@ -16,6 +15,7 @@ import { Input } from '@/components/UI/input.tsx';
 import { useAudioStore } from '@/features/hls-stream/store.ts';
 import clsx from 'clsx';
 import MusicBarsIcon from '@/components/MusicBarsIcon.tsx';
+import { TrackCover } from '@/components/UI/TrackCover.tsx';
 
 export const Track = ({
   number,
@@ -62,13 +62,7 @@ export const Track = ({
             )}
           </div>
           <div>
-            <img
-              src={
-                track.cover_url?.startsWith('/') ? BACKEND_BASE + track.cover_url : track.cover_url
-              }
-              alt=""
-              className="w-14 h-14 rounded-md object-cover"
-            />
+            <TrackCover coverUrl={track.cover_url} />
           </div>
           <div className="h-full flex flex-col justify-center gap-1 w-[400px]">
             <div className={clsx({ 'text-primary': isCurrentTrack })}>{track.name}</div>
