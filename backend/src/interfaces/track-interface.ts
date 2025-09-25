@@ -6,7 +6,7 @@ interface Itrack {
   lyrics?: string | null;
   play_count: number;
   deleted?: boolean;
-  duration: string;
+  duration: number;
   cover_id: string | null;
 }
 interface UpdateTrack {

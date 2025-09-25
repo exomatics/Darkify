@@ -114,7 +114,7 @@ class TrackManager {
   }
   async convertToHls(
     trackFilename: string,
-  ): Promise<Result<string, typeof errorMessages.track.FfmpegError>> {
+  ): Promise<Result<number, typeof errorMessages.track.FfmpegError>> {
     const pathToTrack = path.join(PATH_TO_AUDIO, `${trackFilename}.mp3`);
 
     const pathToHls = path.join(PATH_TO_AUDIO, trackFilename);
@@ -130,7 +130,7 @@ class TrackManager {
     fs.mkdirSync(pathTo96Hls, { recursive: true });
     fs.mkdirSync(pathTo24Hls, { recursive: true });
 
-    let trackDuration = '';
+    let trackDurationInSeconds = 0;
 
     const command = new Promise((resolve, reject) => {
       ffmpeg(pathToTrack)
@@ -189,7 +189,11 @@ class TrackManager {
         ])
 
         .on('codecData', function (data) {
-          trackDuration = data.duration;
+          const trackDuration = data.duration.split(':');
+          const hours = Number(trackDuration[0]) * 60 * 60;
+          const minutes = Number(trackDuration[1]) * 60;
+          const seconds = Number(trackDuration[2]);
+          trackDurationInSeconds = Math.trunc(hours + minutes + seconds);
         })
         .on('error', (error) => {
           reject(error);
@@ -217,7 +221,7 @@ class TrackManager {
     postProccessPlaylist(path.join(pathTo96Hls, '96kbps.m3u8'), '96kbps');
     postProccessPlaylist(path.join(pathTo24Hls, '24kbps.m3u8'), '24kbps');
 
-    return { success: true, data: trackDuration };
+    return { success: true, data: trackDurationInSeconds };
   }
   createMasterPlaylist(trackFilename: string, pathToHls: string) {
     const masterPlaylistContent = `
