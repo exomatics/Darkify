@@ -9,8 +9,10 @@ import eslintPluginUnicorn from 'eslint-plugin-unicorn';
 import unusedImports from 'eslint-plugin-unused-imports';
 import tseslint from 'typescript-eslint';
 import globals from 'globals';
+import nodePlugin from 'eslint-plugin-n'
 
 export default tseslint.config(
+  nodePlugin.configs['flat/recommended-script'],
   eslint.configs.recommended,
   tseslint.configs.strictTypeChecked,
   tseslint.configs.strict,
@@ -42,6 +44,7 @@ export default tseslint.config(
       'sonarjs/no-hardcoded-passwords': 'off',
       '@typescript-eslint/no-explicit-any': 'error',
       'unused-imports/no-unused-imports': 'error',
+      'n/no-missing-import': 'warn',
       'unused-imports/no-unused-vars': [
         'warn',
         {
