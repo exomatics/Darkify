@@ -9,7 +9,7 @@ import eslintPluginUnicorn from 'eslint-plugin-unicorn';
 import unusedImports from 'eslint-plugin-unused-imports';
 import tseslint from 'typescript-eslint';
 import globals from 'globals';
-import nodePlugin from 'eslint-plugin-n'
+import nodePlugin from 'eslint-plugin-n';
 
 export default tseslint.config(
   nodePlugin.configs['flat/recommended-script'],
