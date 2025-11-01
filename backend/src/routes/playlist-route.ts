@@ -152,7 +152,6 @@ router.post(
       request: Request<ParamsDictionary, unknown, { playlistId: string }>,
       response: Response,
     ) => {
-      console.log(request.params.trackIndex, request.body.playlistId, request.jwtPayload.user_id);
       const validation = removeFromPlaylist.safeParse({
         playlistTrackId: request.params.playlistTrackId,
         playlistId: request.body.playlistId,

@@ -1,14 +1,12 @@
 import { IconButton } from '../../../UI/IconButton';
 import { Avatar } from '../../../UI/Avatar';
-import { Dropdown } from '../../../UI/Dropdown';
-import { useRef, useState } from 'react';
 import { ProfileCard } from '../../../ProfileCard';
-import { useUserStore } from '../../../../features/auth/useUserStore.ts';
+import { useUserStore } from '@/features/auth/useUserStore.ts';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/UI/popover.tsx';
+import * as RadixPopover from '@radix-ui/react-popover';
 
 export const Actions = () => {
   const avatarUrl = useUserStore((store) => store.currentUser?.avatar_url);
-  const avatarRef = useRef<HTMLDivElement>(null);
-  const [isVisibleProfileDropdown, setIsVisibleProfileDropdown] = useState(false);
 
   return (
     <div className="ml-auto flex items-center gap-3">
@@ -32,19 +30,16 @@ export const Actions = () => {
         icon="Settings"
         onClick={() => {}}
       />
-      <div ref={avatarRef} onClick={() => setIsVisibleProfileDropdown(true)}>
-        <Avatar size={32} src={avatarUrl ?? ''} />
-      </div>
-      <Dropdown
-        width="300px"
-        height="auto"
-        anchorRef={avatarRef}
-        visible={isVisibleProfileDropdown}
-        setVisible={setIsVisibleProfileDropdown}
-        offsetOptions={{ mainAxis: 10, crossAxis: -135 }}
-      >
-        <ProfileCard onClick={() => setIsVisibleProfileDropdown(false)} />
-      </Dropdown>
+      <Popover>
+        <PopoverTrigger>
+          <Avatar size={32} src={avatarUrl ?? ''} />
+        </PopoverTrigger>
+        <PopoverContent>
+          <RadixPopover.Close className="w-full">
+            <ProfileCard />
+          </RadixPopover.Close>
+        </PopoverContent>
+      </Popover>
     </div>
   );
 };

@@ -1,0 +1,24 @@
+{
+  "name": "ytdl-service",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/app.ts",
+  "scripts": {
+    "dev": "node --watch --loader ts-node/esm ./src/app.ts",
+    "start": "node --loader ts-node/esm ./src/app.ts"
+  },
+  "type": "module",
+  "keywords": [],
+  "author": "Maxim",
+  "license": "ISC",
+  "packageManager": "pnpm@10.14.0",
+  "dependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.5.2",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "ts-node": "^10.9.2",
+    "ytdl-core": "^4.11.5"
+  }
+}

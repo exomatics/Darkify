@@ -1,9 +1,15 @@
 import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
 import Hls from 'hls.js';
-import { TrackInfo } from '../../api/gen';
-import { api } from '../../api/api.ts';
+import { TrackInfo } from '@/api/gen';
+import { api } from '@/api/api.ts';
 import { getHLSConfig, processHLSContent, setupHLSLogging, timeToSeconds } from './lib.ts';
+
+export enum LoopMode {
+  NoLoop,
+  LoopOne,
+  LoopList,
+}
 
 type AudioStore = {
   currentTrack: TrackInfo | null;
@@ -13,6 +19,7 @@ type AudioStore = {
   currentTime: number;
   volume: number;
   isMuted: boolean;
+  loopMode: LoopMode;
 
   hls: Hls | null;
   audioElement: HTMLAudioElement | null;
@@ -27,6 +34,7 @@ type AudioStore = {
   setCurrentTime: (currentTime: number) => void;
   setVolume: (volume: number) => void;
   setMuted: (isMuted: boolean) => void;
+  setLoopMode: (loopMode: LoopMode) => void;
   initAudioElement: (element: HTMLAudioElement) => void;
   playTrack: (trackId: string) => Promise<void>;
   togglePlayPause: () => void;
@@ -48,6 +56,7 @@ export const useAudioStore = create(
     currentTime: 0,
     volume: 1,
     isMuted: false,
+    loopMode: LoopMode.NoLoop,
 
     hls: null,
     audioElement: null,
@@ -73,6 +82,8 @@ export const useAudioStore = create(
       }
     },
 
+    setLoopMode: (loopMode: LoopMode) => set({ loopMode }),
+
     setMuted: (isMuted: boolean) => {
       const { audioElement } = get();
       set({ isMuted });
@@ -82,7 +93,15 @@ export const useAudioStore = create(
     },
 
     initAudioElement: (element: HTMLAudioElement) => {
+      const { nextTrack } = get();
       set({ audioElement: element });
+      element.onended = () => {
+        nextTrack();
+      };
+
+      element.ontimeupdate = () => {
+        set({ currentTime: element.currentTime });
+      };
     },
 
     playTrack: async (trackId) => {
@@ -105,7 +124,10 @@ export const useAudioStore = create(
 
         const hlsBlob = new Blob([processedHlsContent], { type: 'application/vnd.apple.mpegurl' });
         const hlsUrl = URL.createObjectURL(hlsBlob);
-
+        console.log(
+          '!!!!!!',
+          Hls.getMediaSource()?.isTypeSupported?.('audio/mp4;codecs="mp4a.40.2"'),
+        );
         if (Hls.isSupported() && state.audioElement) {
           const hls = new Hls(getHLSConfig());
 
@@ -173,12 +195,17 @@ export const useAudioStore = create(
     },
 
     nextTrack: () => {
-      const { queue, currentIndex } = get();
-      const nextIndex = currentIndex + 1;
+      const { queue, playTrack, loopMode, currentTrack } = get();
 
-      if (nextIndex < queue.length) {
-        set({ currentIndex: nextIndex });
-        get().playTrack(queue[nextIndex].id);
+      if (loopMode === LoopMode.LoopOne && currentTrack?.id) {
+        playTrack(currentTrack?.id);
+        return;
+      }
+
+      const nextTrack = queue.shift();
+
+      if (nextTrack?.id) {
+        playTrack(nextTrack.id);
       }
     },
 
@@ -194,12 +221,12 @@ export const useAudioStore = create(
       }
     },
 
-    addToQueue: (track: Track) => {
+    addToQueue: (track: TrackInfo) => {
       const { queue } = get();
       set({ queue: [...queue, track] });
     },
 
-    setQueue: (tracks: Track[], startIndex = 0) => {
+    setQueue: (tracks: TrackInfo[], startIndex = 0) => {
       set({
         queue: tracks,
         currentIndex: startIndex,

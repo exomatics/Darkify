@@ -11,6 +11,8 @@ import { Discover } from './pages/Discover';
 import { useUser } from './features/auth/authService.ts';
 import { SplashScreen } from './pages/SplashScreen';
 import { Profile } from './pages/Profile';
+import { Settings } from '@/pages/Settings';
+import { UploadTrack } from '@/pages/UploadTrack';
 
 export const RoutesList = () => {
   const { isInitialized } = useUser();
@@ -29,6 +31,8 @@ export const RoutesList = () => {
             <Route path="/search" element={<Search />} />
             <Route path="/discover" element={<Discover />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/upload" element={<UploadTrack />} />
           </Route>
         </Routes>
       ) : (

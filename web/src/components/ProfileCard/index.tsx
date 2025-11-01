@@ -1,9 +1,12 @@
-import { useUser } from '../../features/auth/authService.ts';
+import { useUser } from '@/features/auth/authService.ts';
 import { Avatar } from '../UI/Avatar';
 import { useNavigate } from 'react-router';
+import { useUserStore } from '@/features/auth/useUserStore.ts';
+import { Upload } from 'lucide-react';
 
-export const ProfileCard = ({ onClick }: { onClick: () => void }) => {
+export const ProfileCard = () => {
   const { avatarUrl, visibleUsername, logout } = useUser();
+  const currentUser = useUserStore((store) => store.currentUser);
   const navigate = useNavigate();
 
   return (
@@ -11,21 +14,37 @@ export const ProfileCard = ({ onClick }: { onClick: () => void }) => {
       <Avatar size={64} src={avatarUrl} />
       <div className="mt-3 text-xl font-medium">{visibleUsername ?? 'Your Name'}</div>
       <div className="mt-3 self-stretch">
+        {currentUser?.is_artist && (
+          <div
+            className="flex items-center justify-center gap-2 p-3 w-full rounded-md cursor-pointer transition-colors hover:bg-bg-primary text-left text-primary border border-primary"
+            onClick={() => {
+              navigate('/upload');
+              onClick();
+            }}
+          >
+            <Upload />
+            Upload a new track
+          </div>
+        )}
         <div
-          className="p-3 w-full rounded-md cursor-pointer transition-colors hover:bg-bg-primary"
+          className="p-3 w-full rounded-md cursor-pointer transition-colors hover:bg-bg-primary text-left"
           onClick={() => {
             navigate('/profile');
-            onClick();
           }}
         >
           Profile
         </div>
-        <div className="p-3 w-full rounded-md cursor-pointer transition-colors hover:bg-bg-primary">
+        <div
+          onClick={() => {
+            navigate('/settings');
+          }}
+          className="p-3 w-full rounded-md cursor-pointer transition-colors hover:bg-bg-primary text-left"
+        >
           Settings
         </div>
         <div
           onClick={logout}
-          className="p-3 w-full rounded-md cursor-pointer transition-colors hover:bg-bg-primary"
+          className="p-3 w-full rounded-md cursor-pointer transition-colors hover:bg-bg-primary text-left"
         >
           Log Out
         </div>

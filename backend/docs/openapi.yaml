@@ -447,6 +447,8 @@ components:
           format: uuid
         visible_username:
           type: string
+        is_artist:
+          type: boolean
         avatar_url:
           type: string
           format: uri-reference
