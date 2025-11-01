@@ -4,6 +4,9 @@
   "private": true,
   "main": "app.ts",
   "type": "module",
+  "engines": {
+    "node": ">=23.0.0"
+  },
   "scripts": {
     "dev": "node --watch --env-file=.env --loader ts-node/esm --no-warnings=ExperimentalWarning ./src/app.ts",
     "start": "node --env-file=.env --loader ts-node/esm --no-warnings=ExperimentalWarning ./src/app.ts",
