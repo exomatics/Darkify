@@ -4,12 +4,18 @@ import { useAudioStore } from './store.ts';
 const AudioPlayer = () => {
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  const { initAudioElement, setCurrentTime, setIsPlaying } = useAudioStore();
+  const { initAudioElement, setCurrentTime, setIsPlaying, nextTrack, previousTrack } = useAudioStore();
 
   useEffect(() => {
     if (audioRef.current) {
       initAudioElement(audioRef.current);
     }
+    navigator.mediaSession.setActionHandler('nexttrack', () => {
+      nextTrack()
+    });
+    navigator.mediaSession.setActionHandler('previoustrack', () => {
+      previousTrack()
+    });
   }, [initAudioElement]);
 
   const handleTimeUpdate = () => {

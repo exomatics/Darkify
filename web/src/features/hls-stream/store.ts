@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
 import Hls from 'hls.js';
 import { TrackInfo } from '@/api/gen';
-import { api } from '@/api/api.ts';
+import { api, BACKEND_BASE } from '@/api/api.ts';
 import { getHLSConfig, processHLSContent, setupHLSLogging, timeToSeconds } from './lib.ts';
 
 export enum LoopMode {
@@ -111,6 +111,18 @@ export const useAudioStore = create(
         set({ isLoading: true });
 
         const trackInfo = await api.track.getTracks(trackId);
+        console.log(trackInfo)
+
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: trackInfo.name,
+          artist: trackInfo.artists?.map(artist => artist.visible_username).join(', '),
+          album: '',
+          artwork: [
+            { src: BACKEND_BASE + trackInfo.cover_url, sizes: '512x512', type: 'image/jpeg' }
+          ]
+        });
+
+ 
         const m3u8Content = await api.track.getTracksStream(trackId);
         set({ duration: timeToSeconds(trackInfo?.duration ?? '') });
 
@@ -124,10 +136,6 @@ export const useAudioStore = create(
 
         const hlsBlob = new Blob([processedHlsContent], { type: 'application/vnd.apple.mpegurl' });
         const hlsUrl = URL.createObjectURL(hlsBlob);
-        console.log(
-          '!!!!!!',
-          Hls.getMediaSource()?.isTypeSupported?.('audio/mp4;codecs="mp4a.40.2"'),
-        );
         if (Hls.isSupported() && state.audioElement) {
           const hls = new Hls(getHLSConfig());
 
@@ -261,3 +269,7 @@ export const useAudioStore = create(
     },
   })),
 );
+
+       navigator.mediaSession.setActionHandler('nexttrack', () => {
+          
+        });
