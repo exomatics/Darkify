@@ -245,7 +245,7 @@ class UserManager {
       typeof errorMessages.playlist.NotExistsById | typeof errorMessages.user.AlreadyFollowsPlaylist
     >
   > {
-    const playlistRecord = await playlist.getPlaylistById(playlist_id);
+    const playlistRecord = await playlist.getPlaylistRecordById(playlist_id);
     if (!playlistRecord.success) {
       return playlistRecord;
     }
@@ -258,12 +258,13 @@ class UserManager {
     try {
       await database.sequelize.transaction(async (transaction) => {
         await database.playlistFollowersModel.create({
-          user_id: user_id,
-          playlist_id: playlist_id,
+          user_id,
+          playlist_id,
         });
         await database.playlistModel.update(
-          { tracks_count: playlistRecord.data.likes + 1 },
-          { where: { id: playlistRecord.data.id }, transaction: transaction },
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          { tracks_count: playlistRecord.data.tracks_count! + 1 },
+          { where: { id: playlistRecord.data.id }, transaction },
         );
       });
     } catch {
@@ -280,7 +281,7 @@ class UserManager {
       typeof errorMessages.playlist.NotExistsById | typeof errorMessages.user.NotFollowsPlaylist
     >
   > {
-    const playlistRecord = await playlist.getPlaylistById(playlist_id);
+    const playlistRecord = await playlist.getPlaylistRecordById(playlist_id);
     if (!playlistRecord.success) {
       return playlistRecord;
     }
@@ -294,8 +295,9 @@ class UserManager {
       await database.sequelize.transaction(async (transaction) => {
         await playlistFollowersRecord.destroy();
         await database.playlistModel.update(
-          { tracks_count: playlistRecord.data.likes - 1 },
-          { where: { id: playlistRecord.data.id }, transaction: transaction },
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          { tracks_count: playlistRecord.data.tracks_count! - 1 },
+          { where: { id: playlistRecord.data.id }, transaction },
         );
       });
     } catch {
