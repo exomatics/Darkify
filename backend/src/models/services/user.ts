@@ -11,13 +11,13 @@ import generatePassword from '../../utils/password-generation.ts';
 import verifyPassword from '../../utils/password-verification.ts';
 
 import { FileUploader } from './file-management.ts';
+import PlaylistManager from './playlist.ts';
 
 import type { IUser } from '../../interfaces/user-interface.ts';
 import type { Result } from '../../types/result-type.ts';
 import type { UserFollowingModel } from '../user-following.ts';
 import type { UserModel } from '../user.ts';
 import type { InferAttributes, InferCreationAttributes, Model } from 'sequelize';
-import PlaylistManager from './playlist.ts';
 interface ResultUserData {
   user_id: string;
   visible_username: string;

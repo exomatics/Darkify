@@ -8,13 +8,20 @@ class PlaylistTrackModel extends Model<
 > {
   declare playlist_id: string;
   declare track_id: string;
-  declare order?: number;
+  declare order: number;
   declare date_added?: Date;
+  declare id: string;
 }
 const playlistTrackModel = (sequelize: Sequelize) => {
   return sequelize.define<PlaylistTrackModel>(
     'playlist_track',
     {
+      id: {
+        type: DataTypes.UUID,
+        allowNull: false,
+        unique: true,
+        primaryKey: true,
+      },
       playlist_id: {
         type: DataTypes.UUID,
         allowNull: false,
@@ -27,10 +34,10 @@ const playlistTrackModel = (sequelize: Sequelize) => {
       },
       order: {
         type: DataTypes.INTEGER,
-        autoIncrement: true,
+        primaryKey: true,
       },
       date_added: {
-        type: DataTypes.DATEONLY,
+        type: DataTypes.DATE,
         defaultValue: DataTypes.NOW,
       },
     },

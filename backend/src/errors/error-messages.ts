@@ -14,7 +14,8 @@ export const errorMessages = {
   }),
   playlist: Object.freeze({
     NotExistsById: 'Playlist with this id does not exist',
-    TrackNotBelongs: 'Track with this id doesnt belong to this playlist',
+    TrackNotExistsByIndex: 'Track with this index doesnt exist in this playlist',
+    // TrackNotBelongs: 'Track with this id doesnt belong to this playlist',
     IsNotAnOwner: 'User is not the owner of the playlist',
   }),
   track: Object.freeze({

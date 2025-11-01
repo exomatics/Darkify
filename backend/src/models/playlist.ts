@@ -49,17 +49,14 @@ const playlistModel = (sequelize: Sequelize) => {
       },
       owner: {
         type: DataTypes.UUID,
-        unique: true,
         allowNull: false,
       },
       restrictions: {
         type: DataTypes.ENUM({ values: ['private', 'public', 'unlisted'] }),
-        unique: true,
         allowNull: false,
       },
       type: {
         type: DataTypes.ENUM({ values: ['general', 'liked'] }),
-        unique: true,
         allowNull: false,
       },
     },

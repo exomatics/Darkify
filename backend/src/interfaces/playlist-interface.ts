@@ -6,8 +6,8 @@ export enum Restrictions {
 export interface IPlaylist {
   playlistId: string;
   name: string;
-  description: string | null;
-  cover_id: string | null;
+  description?: string | null;
+  coverId: string | null;
   owner: string;
   restrictions: Restrictions;
   type: Type;
@@ -15,10 +15,15 @@ export interface IPlaylist {
 export type ICreatePlaylist = Omit<IPlaylist, 'playlistId' | 'type'> & {
   file: Express.Multer.File;
 };
+export interface IReorderTrack {
+  playlistId: string;
+  fromIndex: number;
+  toIndex: number;
+}
 export interface IUpdateTrack {
   playlistId: string;
-  name?: string;
-  description?: string;
+  name?: string | null;
+  description?: string | null;
 }
 export enum Type {
   General = 'general',

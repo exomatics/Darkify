@@ -131,13 +131,13 @@ const playlistScheme = z.object({
   playlistId: uuidScheme,
   name: z.string().max(100).nonempty(),
   description: z.string().max(300).nonempty().optional(),
-  cover_id: uuidScheme,
+  coverId: uuidScheme,
   owner: uuidScheme,
   restrictions: z.enum(Restrictions),
   type: z.enum(Type),
 });
 const createPlaylistScheme = playlistScheme
-  .omit({ playlistId: true, type: true, cover_id: true })
+  .omit({ playlistId: true, type: true, coverId: true })
   .extend({ file: fileScheme });
 
 const getPlaylistsScheme = z.object({
@@ -151,7 +151,12 @@ const getPlaylistInfoScheme = z.object({
   userId: uuidScheme,
 });
 
-const updatePlaylistScheme = z.object({
+const removeFromPlaylist = z.object({
+  playlistId: uuidScheme,
+  playlistTrackId: uuidScheme,
+  userId: uuidScheme,
+});
+const addToPlaylist = z.object({
   playlistId: uuidScheme,
   trackId: uuidScheme,
   userId: uuidScheme,
@@ -178,8 +183,8 @@ const getAllFromPlaylistScheme = z.object({
 
 const reorderPlaylistScheme = z.object({
   playlistId: uuidScheme,
-  trackId: uuidScheme,
-  order: z.int().positive(),
+  fromIndex: z.int().nonnegative(),
+  toIndex: z.int().gte(-1),
 });
 
 export {
@@ -200,7 +205,8 @@ export {
   getPlaylistsScheme,
   getPlaylistInfoScheme,
   createPlaylistScheme,
-  updatePlaylistScheme,
+  addToPlaylist,
+  removeFromPlaylist,
   updatePlaylistRestrictions,
   updatePlaylistInfoScheme,
   updatePlaylistCoverScheme,

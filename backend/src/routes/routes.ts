@@ -39,19 +39,24 @@ export const ROUTES = Object.freeze({
     PUT_ME_AVATAR: `${API_BASE}/users/me/avatar`,
   },
   PLAYLISTS: {
-    GET_PLAYLIST_INFO: `${API_BASE}/playlist/:playlistId`,
+    GET_PLAYLIST: `${API_BASE}/playlist/:playlistId`,
     GET_PLAYLIST_COVER: `${API_BASE}/playlist/cover/:playlistId`,
     GET_PLAYLIST_TRACKS: `${API_BASE}/playlist/tracks/:playlistId`,
-    GET_PLAYLISTS: `${API_BASE}/playlist:playlistName`,
+    GET_PLAYLISTS: `${API_BASE}/playlist/search/:playlistName`,
     GET_ME_LIBRARY: `${API_BASE}/me/library`, // should be in user
     GET_LIKED_SONGS_INFO: `${API_BASE}/collection`,
     GET_LIKED_SONGS_TRACKS: `${API_BASE}/collection/tracks`,
     POST_PLAYLIST: `${API_BASE}/playlist`,
-    POST_ADD_TRACK: `${API_BASE}/playlist/add-track/:playlistId`,
-    POST_REMOVE_TRACK: `${API_BASE}/playlist/remove-track/:playlistId`,
+    //!!
+    POST_ADD_TRACK: `${API_BASE}/playlist/add-track/:trackId`,
+    POST_REMOVE_TRACK: `${API_BASE}/playlist/remove-track/:playlistTrackId`,
+    //!!
     PUT_PLAYLIST_INFO: `${API_BASE}/playlist/:playlistId`,
     PUT_PLAYLIST_RESTRICTIONS: `${API_BASE}/playlist-restrictions/:playlistId`,
     PUT_PLAYLIST_COVER: `${API_BASE}/playlist/cover/:playlistId`,
-    PUT_PLAYLIST_REORDER: `${API_BASE}/playlist/reorder/:playlistId`,
+    //!!
+    PUT_PLAYLIST_REORDER: `${API_BASE}/playlist/reorder/`,
+    //!!
+    DELETE_PLAYLIST: `${API_BASE}/playlist/:playlistId`,
   },
 } as const);
