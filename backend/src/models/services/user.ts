@@ -245,7 +245,7 @@ class UserManager {
       typeof errorMessages.playlist.NotExistsById | typeof errorMessages.user.AlreadyFollowsPlaylist
     >
   > {
-    const playlistRecord = await playlist.getPlaylistRecordById(playlist_id);
+    const playlistRecord = await playlist.getPlaylistRecordById(playlist_id, user_id);
     if (!playlistRecord.success) {
       return playlistRecord;
     }
@@ -281,7 +281,7 @@ class UserManager {
       typeof errorMessages.playlist.NotExistsById | typeof errorMessages.user.NotFollowsPlaylist
     >
   > {
-    const playlistRecord = await playlist.getPlaylistRecordById(playlist_id);
+    const playlistRecord = await playlist.getPlaylistRecordById(playlist_id, user_id);
     if (!playlistRecord.success) {
       return playlistRecord;
     }

@@ -125,7 +125,7 @@ const updateTrackScheme = trackScheme
   .omit({ duration: true })
   .refine(({ name, artists, lyrics, file }) => {
     return requireAtLeastOneCheck({ name, artists, lyrics, file });
-  }, errorMessages.validation.SpecifyToUpdateTrack);
+  }, errorMessages.validation.SpecifyWhatToUpdate);
 
 const playlistScheme = z.object({
   playlistId: uuidScheme,
@@ -162,27 +162,40 @@ const addToPlaylist = z.object({
   userId: uuidScheme,
 });
 
-const updatePlaylistInfoScheme = playlistScheme.pick({
-  playlistId: true,
-  name: true,
-  description: true,
-});
-const updatePlaylistRestrictions = playlistScheme.pick({
-  playlistId: true,
-  restrictions: true,
-});
+const updatePlaylistInfoScheme = playlistScheme
+  .pick({
+    playlistId: true,
+    name: true,
+    description: true,
+  })
+  .extend({ userId: uuidScheme })
+  .refine(({ name, description }) => {
+    return requireAtLeastOneCheck({ name, description });
+  }, errorMessages.validation.SpecifyWhatToUpdate);
+const updatePlaylistRestrictions = playlistScheme
+  .pick({
+    playlistId: true,
+    restrictions: true,
+  })
+  .extend({ userId: uuidScheme });
 const updatePlaylistCoverScheme = z.object({
   playlistId: uuidScheme,
+  userId: uuidScheme,
   file: fileScheme,
 });
 const getAllFromPlaylistScheme = z.object({
   playlistId: uuidScheme,
+  userId: uuidScheme,
   sort: z.object({ sortBy: z.enum(sortBy), order: z.enum(Order) }),
   ...paginationScheme.shape,
 });
-
+const deletePlaylistScheme = z.object({
+  playlistId: uuidScheme,
+  userId: uuidScheme,
+});
 const reorderPlaylistScheme = z.object({
   playlistId: uuidScheme,
+  userId: uuidScheme,
   fromIndex: z.int().nonnegative(),
   toIndex: z.int().gte(-1),
 });
@@ -212,4 +225,5 @@ export {
   updatePlaylistCoverScheme,
   getAllFromPlaylistScheme,
   reorderPlaylistScheme,
+  deletePlaylistScheme,
 };

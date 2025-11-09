@@ -17,10 +17,11 @@ export type ICreatePlaylist = Omit<IPlaylist, 'playlistId' | 'type'> & {
 };
 export interface IReorderTrack {
   playlistId: string;
+  userId: string;
   fromIndex: number;
   toIndex: number;
 }
-export interface IUpdateTrack {
+export interface IUpdatePlaylist {
   playlistId: string;
   name?: string | null;
   description?: string | null;

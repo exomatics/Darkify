@@ -15,12 +15,20 @@ import {
   reorderPlaylistScheme,
   addToPlaylist,
   removeFromPlaylist,
-  uuidScheme,
+  updatePlaylistInfoScheme,
+  updatePlaylistRestrictions,
+  updatePlaylistCoverScheme,
+  deletePlaylistScheme,
 } from '../validator.ts';
 
 import { ROUTES } from './routes.ts';
 
-import type { ICreatePlaylist, IReorderTrack } from '../interfaces/playlist-interface.ts';
+import type {
+  ICreatePlaylist,
+  IPlaylist,
+  IReorderTrack,
+  IUpdatePlaylist,
+} from '../interfaces/playlist-interface.ts';
 import type { Request, Response, RequestHandler } from 'express';
 import type { ParamsDictionary } from 'express-serve-static-core';
 
@@ -49,25 +57,49 @@ router.get(
   }),
 );
 router.get(
-  ROUTES.PLAYLISTS.GET_PLAYLIST_TRACKS,
+  ROUTES.PLAYLISTS.GET_PLAYLIST_COVER,
   passport.authenticate('access-token', { session: false }) as RequestHandler,
   asyncHandler(async (request: Request, response: Response) => {
-    const validation = getAllFromPlaylistScheme.safeParse({
+    const validation = getPlaylistInfoScheme.safeParse({
       playlistId: request.params.playlistId,
-      sort: {
-        sortBy: request.query.sort ?? sortBy.Custom,
-        order: request.query.order ?? Order.Desc,
-      },
-      limit: +(request.query.limit ?? 5),
-      offset: +(request.query.offset ?? 0),
+      userId: request.jwtPayload.user_id,
     });
 
     if (!validation.success) {
       throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }
 
+    const databaseResponse = await playlistController.getPlaylistCover({
+      playlistId: validation.data.playlistId,
+      userId: validation.data.userId,
+    });
+    response.status(200).json(databaseResponse);
+  }),
+);
+router.get(
+  ROUTES.PLAYLISTS.GET_PLAYLIST_TRACKS,
+  passport.authenticate('access-token', { session: false }) as RequestHandler,
+  asyncHandler(async (request: Request, response: Response) => {
+    const validation = getAllFromPlaylistScheme.safeParse({
+      playlistId: request.params.playlistId,
+      userId: request.jwtPayload.user_id,
+      sort: {
+        sortBy: request.query.sort ?? sortBy.Custom,
+        order: request.query.order ?? Order.Desc,
+      },
+      //final test of sorting and ordering
+      limit: +(request.query.limit ?? 5),
+      offset: +(request.query.offset ?? 0),
+    });
+    if (!validation.success) {
+      throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
+    }
     const databaseResponse = await playlistController.getPlaylistTracks(
-      { playlistId: validation.data.playlistId, sort: validation.data.sort },
+      {
+        playlistId: validation.data.playlistId,
+        userId: validation.data.userId,
+        sort: validation.data.sort,
+      },
       validation.data.limit,
       validation.data.offset,
     );
@@ -108,7 +140,7 @@ router.post(
       name: request.body.name,
       description: request.body.description,
       owner: request.jwtPayload.user_id,
-      restrictions: request.body.restrictions,
+      restrictions: request.body.restrictions.toLowerCase(),
       file: request.file,
     });
 
@@ -126,12 +158,12 @@ router.post(
   passport.authenticate('access-token', { session: false }) as RequestHandler,
   asyncHandler(
     async (
-      request: Request<ParamsDictionary, unknown, { playlistId: string }>,
+      request: Request<ParamsDictionary, unknown, { playlistId: string; trackId: string }>,
       response: Response,
     ) => {
       const validation = addToPlaylist.safeParse({
         playlistId: request.body.playlistId,
-        trackId: request.params.trackId,
+        trackId: request.body.trackId,
         userId: request.jwtPayload.user_id,
       });
 
@@ -149,11 +181,11 @@ router.post(
   passport.authenticate('access-token', { session: false }) as RequestHandler,
   asyncHandler(
     async (
-      request: Request<ParamsDictionary, unknown, { playlistId: string }>,
+      request: Request<ParamsDictionary, unknown, { playlistId: string; playlistTrackId: string }>,
       response: Response,
     ) => {
       const validation = removeFromPlaylist.safeParse({
-        playlistTrackId: request.params.playlistTrackId,
+        playlistTrackId: request.body.playlistTrackId,
         playlistId: request.body.playlistId,
         userId: request.jwtPayload.user_id,
       });
@@ -174,6 +206,7 @@ router.put(
     async (request: Request<ParamsDictionary, unknown, IReorderTrack>, response: Response) => {
       const validation = reorderPlaylistScheme.safeParse({
         playlistId: request.body.playlistId,
+        userId: request.jwtPayload.user_id,
         fromIndex: request.body.fromIndex,
         toIndex: request.body.toIndex,
       });
@@ -187,11 +220,79 @@ router.put(
     },
   ),
 );
+router.put(
+  ROUTES.PLAYLISTS.PUT_PLAYLIST_INFO,
+  passport.authenticate('access-token', { session: false }) as RequestHandler,
+  asyncHandler(
+    async (request: Request<ParamsDictionary, unknown, IUpdatePlaylist>, response: Response) => {
+      const validation = updatePlaylistInfoScheme.safeParse({
+        playlistId: request.params.playlistId,
+        userId: request.jwtPayload.user_id,
+        name: request.body.name,
+        description: request.body.description,
+      });
+
+      if (!validation.success) {
+        throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
+      }
+      const databaseResponse = await playlistController.updatePlaylistInfo(validation.data);
+
+      response.status(200).json(databaseResponse);
+    },
+  ),
+);
+router.put(
+  ROUTES.PLAYLISTS.PUT_PLAYLIST_RESTRICTIONS,
+  passport.authenticate('access-token', { session: false }) as RequestHandler,
+  asyncHandler(
+    async (
+      request: Request<ParamsDictionary, unknown, Pick<IPlaylist, 'playlistId' | 'restrictions'>>,
+      response: Response,
+    ) => {
+      const validation = updatePlaylistRestrictions.safeParse({
+        playlistId: request.params.playlistId,
+        restrictions: request.body.playlistId,
+        userId: request.jwtPayload.user_id,
+      });
+
+      if (!validation.success) {
+        throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
+      }
+      const databaseResponse = await playlistController.updateRestrictionsById(validation.data);
+
+      response.status(200).json(databaseResponse);
+    },
+  ),
+);
+router.put(
+  ROUTES.PLAYLISTS.PUT_PLAYLIST_COVER,
+  passport.authenticate('access-token', { session: false }) as RequestHandler,
+  fileUploader.uploadImageMiddleware.single('cover'),
+  asyncHandler(
+    async (request: Request<ParamsDictionary, unknown, IReorderTrack>, response: Response) => {
+      const validation = updatePlaylistCoverScheme.safeParse({
+        playlistId: request.params.playlistId,
+        userId: request.jwtPayload.user_id,
+        file: request.file,
+      });
+
+      if (!validation.success) {
+        throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
+      }
+      const databaseResponse = await playlistController.updateCoverById(validation.data);
+
+      response.status(200).json(databaseResponse);
+    },
+  ),
+);
 router.delete(
   ROUTES.PLAYLISTS.DELETE_PLAYLIST,
   passport.authenticate('access-token', { session: false }) as RequestHandler,
   asyncHandler(async (request: Request<ParamsDictionary, unknown, null>, response: Response) => {
-    const validation = uuidScheme.safeParse(request.params.playlistId);
+    const validation = deletePlaylistScheme.safeParse({
+      playlistId: request.params.playlistId,
+      userId: request.jwtPayload.user_id,
+    });
     if (!validation.success) {
       throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }

@@ -48,8 +48,8 @@ export const ROUTES = Object.freeze({
     GET_LIKED_SONGS_TRACKS: `${API_BASE}/collection/tracks`,
     POST_PLAYLIST: `${API_BASE}/playlist`,
     //!!
-    POST_ADD_TRACK: `${API_BASE}/playlist/add-track/:trackId`,
-    POST_REMOVE_TRACK: `${API_BASE}/playlist/remove-track/:playlistTrackId`,
+    POST_ADD_TRACK: `${API_BASE}/playlist/add-track/`,
+    POST_REMOVE_TRACK: `${API_BASE}/playlist/remove-track/`,
     //!!
     PUT_PLAYLIST_INFO: `${API_BASE}/playlist/:playlistId`,
     PUT_PLAYLIST_RESTRICTIONS: `${API_BASE}/playlist-restrictions/:playlistId`,

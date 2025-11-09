@@ -31,7 +31,7 @@ export const errorMessages = {
     PasswordHasSpaces: 'Password must not contain spaces',
     PasswordNoSpecialSymbols: 'Password must have at least on special symbol !@#$%^&*',
     SpecifyUsernameOrEmail: 'Either email or username need to be filled in',
-    SpecifyToUpdateTrack: 'Specify what you want to update',
+    SpecifyWhatToUpdate: 'Specify what you want to update',
   }),
   init: Object.freeze({
     KeysAlreadyGenerated: 'Key pair already exists. Skipping generation.',
