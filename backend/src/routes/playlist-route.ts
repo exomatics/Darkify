@@ -205,7 +205,7 @@ router.put(
   asyncHandler(
     async (request: Request<ParamsDictionary, unknown, IReorderTrack>, response: Response) => {
       const validation = reorderPlaylistScheme.safeParse({
-        playlistId: request.body.playlistId,
+        playlistId: request.params.playlistId,
         userId: request.jwtPayload.user_id,
         fromIndex: request.body.fromIndex,
         toIndex: request.body.toIndex,
@@ -251,7 +251,7 @@ router.put(
     ) => {
       const validation = updatePlaylistRestrictions.safeParse({
         playlistId: request.params.playlistId,
-        restrictions: request.body.playlistId,
+        restrictions: request.body.restrictions,
         userId: request.jwtPayload.user_id,
       });
 

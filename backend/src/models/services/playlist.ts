@@ -522,6 +522,7 @@ class PlaylistManager {
       coverId: playlistRecord.data.cover_id,
       owner: playlistRecord.data.owner,
       restrictions: playlistRecord.data.restrictions,
+      type: playlistRecord.data.type,
       songsCount,
       isOwner: playlistRecord.data.owner === playlistInfo.userId,
     };

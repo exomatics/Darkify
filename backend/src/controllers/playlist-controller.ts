@@ -31,7 +31,7 @@ export default {
     }
 
     return {
-      ..._.omit(playlistResponse.data, 'cover_id'),
+      ..._.omit(playlistResponse.data, 'coverId'),
       coverUrl: playlistResponse.data.coverId
         ? `${STATIC_IMAGES_PATH}/${playlistResponse.data.coverId}.jpg`
         : null,
@@ -43,9 +43,18 @@ export default {
     if (!playlistResponse.success) {
       throw new NotFoundError(playlistResponse.reason);
     }
-    return playlistResponse.data.coverId
-      ? `${STATIC_IMAGES_PATH}/${playlistResponse.data.coverId}.jpg`
-      : null;
+    const userResponse = await user.getUserById(playlistResponse.data.owner);
+    if (!userResponse.success) {
+      throw new NotFoundError(userResponse.reason);
+    }
+
+    return {
+      ..._.omit(playlistResponse.data, 'coverId'),
+      coverUrl: playlistResponse.data.coverId
+        ? `${STATIC_IMAGES_PATH}/${playlistResponse.data.coverId}.jpg`
+        : null,
+      owner: _.pick(userResponse.data, ['id', 'visible_username']),
+    };
   },
   async deletePlaylist(playlistInfo: { playlistId: string; userId: string }) {
     const modelResponse = await playlist.deletePlaylist(playlistInfo);
@@ -91,7 +100,7 @@ export default {
       throw new NotFoundError(userResponse.reason);
     }
     return {
-      ..._.omit(playlistResponse.data, 'cover_id'),
+      ..._.omit(playlistResponse.data, 'coverId'),
       coverUrl: playlistResponse.data.coverId
         ? `${STATIC_IMAGES_PATH}/${playlistResponse.data.coverId}.jpg`
         : null,
@@ -131,30 +140,43 @@ export default {
     return modelResponse.data;
   },
   async updatePlaylistInfo(playlistInfo: IUpdatePlaylist & { userId: string }) {
-    const modelResponse = await playlist.updatePlaylistInfo(playlistInfo);
-    if (!modelResponse.success) {
-      throw new ValidationError(modelResponse.reason);
+    const playlistResponse = await playlist.updatePlaylistInfo(playlistInfo);
+    if (!playlistResponse.success) {
+      throw new ValidationError(playlistResponse.reason);
     }
+
+    const userResponse = await user.getUserById(playlistResponse.data.owner);
+    if (!userResponse.success) {
+      throw new NotFoundError(userResponse.reason);
+    }
+
     return {
-      ..._.omit(modelResponse.data, 'cover_id'),
-      coverUrl: modelResponse.data.coverId
-        ? `${STATIC_IMAGES_PATH}/${modelResponse.data.coverId}.jpg`
+      ..._.omit(playlistResponse.data, 'coverId'),
+      coverUrl: playlistResponse.data.coverId
+        ? `${STATIC_IMAGES_PATH}/${playlistResponse.data.coverId}.jpg`
         : null,
+      owner: _.pick(userResponse.data, ['id', 'visible_username']),
     };
   },
   async updateRestrictionsById(
     playlistInfo: Pick<IPlaylist, 'playlistId' | 'restrictions'> & { userId: string },
   ) {
-    const modelResponse = await playlist.updateRestrictionsById(playlistInfo);
-    if (!modelResponse.success) {
-      throw new ValidationError(modelResponse.reason);
+    const playlistResponse = await playlist.updateRestrictionsById(playlistInfo);
+    if (!playlistResponse.success) {
+      throw new ValidationError(playlistResponse.reason);
+    }
+
+    const userResponse = await user.getUserById(playlistResponse.data.owner);
+    if (!userResponse.success) {
+      throw new NotFoundError(userResponse.reason);
     }
 
     return {
-      ..._.omit(modelResponse.data, 'cover_id'),
-      coverUrl: modelResponse.data.coverId
-        ? `${STATIC_IMAGES_PATH}/${modelResponse.data.coverId}.jpg`
+      ..._.omit(playlistResponse.data, 'coverId'),
+      coverUrl: playlistResponse.data.coverId
+        ? `${STATIC_IMAGES_PATH}/${playlistResponse.data.coverId}.jpg`
         : null,
+      owner: _.pick(userResponse.data, ['id', 'visible_username']),
     };
   },
   async updateCoverById(
@@ -162,15 +184,22 @@ export default {
   ) {
     const coverId = await fileUploader.uploadImage(playlistInfo.file);
 
-    const modelResponse = await playlist.updateCoverById({ ...playlistInfo, coverId });
-    if (!modelResponse.success) {
-      throw new NotFoundError(modelResponse.reason);
+    const playlistResponse = await playlist.updateCoverById({ ...playlistInfo, coverId });
+    if (!playlistResponse.success) {
+      throw new NotFoundError(playlistResponse.reason);
     }
+
+    const userResponse = await user.getUserById(playlistResponse.data.owner);
+    if (!userResponse.success) {
+      throw new NotFoundError(userResponse.reason);
+    }
+
     return {
-      ..._.omit(modelResponse.data, 'cover_id'),
-      coverUrl: modelResponse.data.coverId
-        ? `${STATIC_IMAGES_PATH}/${modelResponse.data.coverId}.jpg`
+      ..._.omit(playlistResponse.data, 'coverId'),
+      coverUrl: playlistResponse.data.coverId
+        ? `${STATIC_IMAGES_PATH}/${playlistResponse.data.coverId}.jpg`
         : null,
+      owner: _.pick(userResponse.data, ['id', 'visible_username']),
     };
   },
 };
