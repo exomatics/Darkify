@@ -24,6 +24,7 @@ export const ROUTES = Object.freeze({
     GET_ME: `${API_BASE}/users/me`,
     PUT_ME: `${API_BASE}/users/me`,
     PUT_ME_SETTINGS: `${API_BASE}/users/me/settings`,
+    PUT_EVENTS_PLAYED: `${API_BASE}/me/events/played`,
     DELETE_ME: `${API_BASE}/users/me`,
     GET_ME_SETTINGS: `${API_BASE}/users/me/settings`,
     GET_ME_AVATAR: `${API_BASE}/users/me/avatar`,
@@ -43,7 +44,6 @@ export const ROUTES = Object.freeze({
     GET_PLAYLIST_COVER: `${API_BASE}/playlists/:playlistId/cover`,
     GET_PLAYLIST_TRACKS: `${API_BASE}/playlists/:playlistId/tracks`,
     GET_PLAYLISTS: `${API_BASE}/playlists/search/:playlistName`,
-    // GET_ME_LIBRARY: `${API_BASE}/me/library`, // should be in user
     // GET_LIKED_SONGS_INFO: `${API_BASE}/collection`,
     // GET_LIKED_SONGS_TRACKS: `${API_BASE}/collection/tracks`,
     POST_PLAYLIST: `${API_BASE}/playlists`,
@@ -54,5 +54,8 @@ export const ROUTES = Object.freeze({
     PUT_PLAYLIST_COVER: `${API_BASE}/playlists/:playlistId/cover`,
     PUT_PLAYLIST_REORDER: `${API_BASE}/playlists/:playlistId/reorder/`,
     DELETE_PLAYLIST: `${API_BASE}/playlists/:playlistId`,
+  },
+  LIBRARY: {
+    GET_ME_PLAYLISTS: `${API_BASE}/me/library/playlists`,
   },
 } as const);

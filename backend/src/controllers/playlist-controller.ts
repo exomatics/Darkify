@@ -88,7 +88,9 @@ export default {
     const modelResponse = await playlist.getPlaylistsByName(playlistInfo, limit, offset);
     return modelResponse.data;
   },
-  async createPlaylist(playlistInfo: Omit<ICreatePlaylist, 'coverId'>) {
+  async createPlaylist(
+    playlistInfo: Omit<ICreatePlaylist, 'restrictions'> & Pick<IPlaylist, 'restrictions'>,
+  ) {
     const coverId = await fileUploader.uploadImage(playlistInfo.file);
 
     const playlistResponse = await playlist.createPlaylist({ ...playlistInfo, coverId });

@@ -261,6 +261,7 @@ class UserManager {
           user_id,
           playlist_id,
         });
+        await playlist.createLibraryRecord(user_id, playlist_id, transaction);
         await database.playlistModel.update(
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           { tracks_count: playlistRecord.data.tracks_count! + 1 },
@@ -293,7 +294,8 @@ class UserManager {
     }
     try {
       await database.sequelize.transaction(async (transaction) => {
-        await playlistFollowersRecord.destroy();
+        await playlistFollowersRecord.destroy({ transaction });
+        await playlist.deleteLibraryRecord(user_id, playlist_id, transaction);
         await database.playlistModel.update(
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           { tracks_count: playlistRecord.data.tracks_count! - 1 },

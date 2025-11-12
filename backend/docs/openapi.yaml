@@ -548,7 +548,17 @@ paths:
                   format: binary
       responses:
         '200':
-          $ref: '#/components/responses/PlaylistInfoResponse'
+          description: Playlist information
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PlaylistInfo'
+                  - type: object
+                    properties:
+                      id:
+                        type: 'string'
+                        format: uuid
         '400':
           $ref: '#/components/responses/ValidationError'
         '401':

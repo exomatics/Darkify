@@ -4,6 +4,7 @@ import database from './config/database.ts';
 import { errorMessages } from './errors/error-messages.ts';
 import NotFoundError from './errors/not-found-error.ts';
 import { Restrictions, Type, Order, sortBy } from './interfaces/playlist-interface.ts';
+import { LibrarySections } from './interfaces/user-interface.ts';
 import { Bitrate } from './types/bitrate-type.ts';
 
 const uuidScheme = z.uuid();
@@ -199,7 +200,20 @@ const reorderPlaylistScheme = z.object({
   fromIndex: z.int().nonnegative(),
   toIndex: z.int().gte(-1),
 });
-
+const updateLibraryPlayDate = z.object({
+  user_id: uuidScheme,
+  event_data: z.union([
+    z.object({
+      section: z.literal(LibrarySections.PLAYLISTS),
+      playlist_id: uuidScheme,
+    }),
+    //just add albums and artists in union later
+  ]),
+});
+const getLibraryPlaylistsScheme = z.object({
+  userId: uuidScheme,
+  ...paginationScheme.shape,
+});
 export {
   uuidScheme,
   loginScheme,
@@ -226,4 +240,6 @@ export {
   getAllFromPlaylistScheme,
   reorderPlaylistScheme,
   deletePlaylistScheme,
+  updateLibraryPlayDate,
+  getLibraryPlaylistsScheme,
 };

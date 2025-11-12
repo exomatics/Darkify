@@ -1,3 +1,4 @@
+import type { LibraryPlaylistsModel } from '../models/library-playlists.ts';
 import type { PlaylistFollowersModel } from '../models/playlist-followers.ts';
 import type { PlaylistTrackModel } from '../models/playlist-tracks.ts';
 import type { PlaylistModel } from '../models/playlist.ts';
@@ -17,4 +18,5 @@ export interface Idb {
   userModel: ModelStatic<UserModel>;
   userFollowersModel: ModelStatic<UserFollowersModel>;
   userFollowingModel: ModelStatic<Model>;
+  libraryPlaylists: ModelStatic<LibraryPlaylistsModel>;
 }

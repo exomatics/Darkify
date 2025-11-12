@@ -4,7 +4,7 @@ import { z } from 'zod/v4';
 
 import playlistController from '../controllers/playlist-controller.ts';
 import ValidationError from '../errors/validation-error.ts';
-import { Order, sortBy } from '../interfaces/playlist-interface.ts';
+import { Order, Restrictions, sortBy } from '../interfaces/playlist-interface.ts';
 import asyncHandler from '../middleware/async-handler.ts';
 import { FileUploader } from '../models/services/file-management.ts';
 import {
@@ -140,7 +140,7 @@ router.post(
       name: request.body.name,
       description: request.body.description,
       owner: request.jwtPayload.user_id,
-      restrictions: request.body.restrictions.toLowerCase(),
+      restrictions: request.body.restrictions ?? Restrictions.Private,
       file: request.file,
     });
 

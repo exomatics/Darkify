@@ -12,10 +12,14 @@ export interface IPlaylist {
   restrictions: Restrictions;
   type: Type;
 }
-export type ICreatePlaylist = Omit<IPlaylist, 'playlistId' | 'type'> & {
+export type ICreatePlaylist = Omit<
+  IPlaylist,
+  'playlistId' | 'type' | 'coverId' | 'restrictions'
+> & {
+  restrictions?: Restrictions;
   file: Express.Multer.File;
 };
-export interface IReorderTrack {
+export interface IReorder {
   playlistId: string;
   userId: string;
   fromIndex: number;

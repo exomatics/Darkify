@@ -1,11 +1,14 @@
 import { DEFAULT_LIMIT, DEFAULT_OFFSET, STATIC_IMAGES_PATH } from '../config/config.ts';
 import NotFoundError from '../errors/not-found-error.ts';
 import ValidationError from '../errors/validation-error.ts';
+import { LibrarySections } from '../interfaces/user-interface.ts';
+import PlaylistManager from '../models/services/playlist.ts';
 import UserManager from '../models/services/user.ts';
 
-import type { IUser } from '../interfaces/user-interface.ts';
+import type { IUser, UpdateLibraryPlayDate } from '../interfaces/user-interface.ts';
 
 const user = new UserManager();
+const playlist = new PlaylistManager();
 
 export default {
   async getUserInfo(user_id: string) {
@@ -81,15 +84,15 @@ export default {
     }
     return modelResponse.data;
   },
-  async followPlaylist(user_id: string, platlist_id: string) {
-    const modelResponse = await user.followPlaylist(user_id, platlist_id);
+  async followPlaylist(user_id: string, playlist_id: string) {
+    const modelResponse = await user.followPlaylist(user_id, playlist_id);
     if (!modelResponse.success) {
       throw new ValidationError(modelResponse.reason);
     }
     return modelResponse.data;
   },
-  async unfollowPlaylist(user_id: string, platlist_id: string) {
-    const modelResponse = await user.unfollowPlaylist(user_id, platlist_id);
+  async unfollowPlaylist(user_id: string, playlist_id: string) {
+    const modelResponse = await user.unfollowPlaylist(user_id, playlist_id);
     if (!modelResponse.success) {
       throw new ValidationError(modelResponse.reason);
     }
@@ -101,6 +104,15 @@ export default {
       throw new NotFoundError(modelResponse.reason);
     }
     return modelResponse.data;
+  },
+  async updateLibraryPlayDate(user_id: string, event_data: UpdateLibraryPlayDate) {
+    if (event_data.section === LibrarySections.PLAYLISTS) {
+      const modelResponse = await playlist.updateLibraryPlayDate(user_id, event_data.playlist_id);
+      if (!modelResponse.success) {
+        throw new NotFoundError(modelResponse.reason);
+      }
+      return modelResponse.data;
+    }
   },
   async updateUserAvatar(user_id: string, fileBuffer: Express.Multer.File) {
     const modelResponse = await user.updateUserAvatar(user_id, fileBuffer);
