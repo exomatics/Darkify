@@ -26,7 +26,7 @@ import { ROUTES } from './routes.ts';
 import type {
   ICreatePlaylist,
   IPlaylist,
-  IReorderTrack,
+  IReorder,
   IUpdatePlaylist,
 } from '../interfaces/playlist-interface.ts';
 import type { Request, Response, RequestHandler } from 'express';
@@ -203,7 +203,7 @@ router.put(
   ROUTES.PLAYLISTS.PUT_PLAYLIST_REORDER,
   passport.authenticate('access-token', { session: false }) as RequestHandler,
   asyncHandler(
-    async (request: Request<ParamsDictionary, unknown, IReorderTrack>, response: Response) => {
+    async (request: Request<ParamsDictionary, unknown, IReorder>, response: Response) => {
       const validation = reorderPlaylistScheme.safeParse({
         playlistId: request.params.playlistId,
         userId: request.jwtPayload.user_id,
@@ -268,22 +268,20 @@ router.put(
   ROUTES.PLAYLISTS.PUT_PLAYLIST_COVER,
   passport.authenticate('access-token', { session: false }) as RequestHandler,
   fileUploader.uploadImageMiddleware.single('cover'),
-  asyncHandler(
-    async (request: Request<ParamsDictionary, unknown, IReorderTrack>, response: Response) => {
-      const validation = updatePlaylistCoverScheme.safeParse({
-        playlistId: request.params.playlistId,
-        userId: request.jwtPayload.user_id,
-        file: request.file,
-      });
+  asyncHandler(async (request: Request, response: Response) => {
+    const validation = updatePlaylistCoverScheme.safeParse({
+      playlistId: request.params.playlistId,
+      userId: request.jwtPayload.user_id,
+      file: request.file,
+    });
 
-      if (!validation.success) {
-        throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
-      }
-      const databaseResponse = await playlistController.updateCoverById(validation.data);
+    if (!validation.success) {
+      throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
+    }
+    const databaseResponse = await playlistController.updateCoverById(validation.data);
 
-      response.status(200).json(databaseResponse);
-    },
-  ),
+    response.status(200).json(databaseResponse);
+  }),
 );
 router.delete(
   ROUTES.PLAYLISTS.DELETE_PLAYLIST,

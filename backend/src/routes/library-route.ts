@@ -35,3 +35,5 @@ router.get(
     response.status(200).json(databaseResponse);
   }),
 );
+
+export default router;

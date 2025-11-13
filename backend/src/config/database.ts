@@ -94,8 +94,10 @@ database.playlistFollowersModel.belongsTo(database.playlistModel, { foreignKey: 
 database.userModel.hasMany(database.playlistFollowersModel, { foreignKey: 'user_id' });
 database.playlistFollowersModel.belongsTo(database.userModel, { foreignKey: 'user_id' });
 
-database.libraryPlaylists.hasMany(database.playlistModel, { foreignKey: 'playlist_id' });
-database.libraryPlaylists.hasMany(database.userModel, { foreignKey: 'user_id' });
+database.libraryPlaylists.hasMany(database.playlistModel, { foreignKey: 'id' });
+database.playlistModel.belongsTo(database.libraryPlaylists, { foreignKey: 'id' });
+database.libraryPlaylists.belongsTo(database.userModel, { foreignKey: 'user_id' });
+database.userModel.belongsTo(database.libraryPlaylists, { foreignKey: 'id' });
 
 const sequelizeSync = async (sequelizeConfig: Sequelize) => {
   await sequelizeConfig.sync();

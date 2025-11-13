@@ -663,31 +663,62 @@ class PlaylistManager {
     return { success: true, data: responseData };
   }
   async getLibrary(userId: string, limit = DEFAULT_LIMIT, offset = DEFAULT_OFFSET) {
-    const playlistRecords = await database.libraryPlaylists.findAndCountAll({
+    const playlistRecords = (await database.libraryPlaylists.findAndCountAll({
       where: { user_id: userId },
+      raw: true,
+      nest: true,
       include: [
         {
           model: database.playlistModel,
           // associationType:
           attributes: ['id', 'cover_id', 'name', 'owner'],
+          // required: true,
+          right: true,
+          // where: {
+          //   id: { $col: 'playlists.id' },
+          // },
           // through: { attributes: ['playlist_id'] },
-        },
-        {
-          model: database.userModel,
-          attributes: ['id', 'visible_username'],
+          include: [
+            {
+              model: database.userModel,
+              right: true,
+
+              attributes: ['id', 'visible_username'],
+            },
+          ],
         },
       ],
       offset,
+      logging: true,
       limit,
-    });
+    })) as unknown as {
+      rows: {
+        playlist_id: string;
+        user_id: string;
+        date_played: string;
+        playlists: PlaylistModel['dataValues'] & { user: { id: string; visible_username: string } };
+      }[];
+      count: number;
+    };
     console.log(playlistRecords);
-    return { success: true, data: playlistRecords };
+    const processedPlaylistRecords = playlistRecords.rows.map((playlistLibraryRecord) => {
+      return {
+        ...playlistLibraryRecord,
+        playlists: {
+          ..._.omit(playlistLibraryRecord.playlists, ['cover_id', 'owner', 'user']),
+          owner: {
+            id: playlistLibraryRecord.playlists.user.id,
+            visible_username: playlistLibraryRecord.playlists.user.visible_username,
+          },
+          cover_url: playlistLibraryRecord.playlists.cover_id
+            ? `${STATIC_IMAGES_PATH}/${playlistLibraryRecord.playlists.cover_id}.jpg`
+            : null,
+        },
+      };
+    });
+    return { success: true, data: processedPlaylistRecords };
   }
   async createLibraryRecord(userId: string, playlistId: string, transaction: Transaction) {
-    const playlistRecord = await this.getPlaylistRecordById(playlistId, userId);
-    if (!playlistRecord.success) {
-      return playlistRecord;
-    }
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     const maxOrder = (await database.libraryPlaylists.max('order', {
       where: {
