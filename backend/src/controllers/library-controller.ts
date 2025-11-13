@@ -21,7 +21,6 @@ export default {
     const modelResponse = await playlist.reorderLibrary(libraryInfo);
 
     if (!modelResponse.success) {
-      console.log('sdsdsd');
       throw new ValidationError(modelResponse.reason);
     }
 

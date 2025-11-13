@@ -90,6 +90,7 @@ class PlaylistManager {
     try {
       await database.sequelize.transaction(async (transaction) => {
         await playlistRecord.data.destroy({ transaction });
+        await this.deleteLibraryRecord(playlistInfo.userId, playlistInfo.playlistId, transaction);
         await database.playlistTrackModel.destroy({
           where: { playlist_id: playlistInfo.playlistId },
           transaction,
@@ -599,7 +600,7 @@ class PlaylistManager {
         {
           model: database.playlistModel,
           // associationType:
-          attributes: ['id', 'cover_id', 'name', 'owner'],
+          attributes: ['id', 'cover_id', 'name', 'owner', 'description', 'type'],
 
           // required: true,
           // required: true,
@@ -629,7 +630,7 @@ class PlaylistManager {
     };
     const processedPlaylistRecords = playlistRecords.rows.map((playlistLibraryRecord) => {
       return {
-        ...playlistLibraryRecord,
+        ..._.omit(playlistLibraryRecord, ['user', 'playlist_id', 'order', 'user_id']),
         playlists: {
           ..._.omit(playlistLibraryRecord.playlists, ['cover_id', 'owner', 'user']),
           owner: {

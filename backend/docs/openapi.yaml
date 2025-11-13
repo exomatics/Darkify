@@ -279,6 +279,45 @@ paths:
                 avatar:
                   type: string
                   format: binary
+  /me/events/played:
+    post:
+      tags: [User]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - type: object
+                  properties:
+                    section:
+                      type: string
+                      default: 'playlists'
+                    playlist_id:
+                      type: string
+                      format: uuid
+                - type: object
+                  properties:
+                    section:
+                      type: string
+                      default: 'albums'
+                    album_id:
+                      type: string
+                      format: uuid
+                - type: object
+                  properties:
+                    section:
+                      type: string
+                      default: 'artists'
+                    artist_id:
+                      type: string
+                      format: uuid
+      responses:
+        '200':
+          $ref: '#/components/responses/SuccessStatus'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
   /tracks/:
     post:
       tags: [Track]
@@ -456,6 +495,26 @@ paths:
       tags: [Playlist]
       parameters:
         - $ref: '#/components/parameters/PlaylistIdParameter'
+        - $ref: '#/components/parameters/PaginationLimitParameter'
+        - $ref: '#/components/parameters/PaginationOffsetParameter'
+      requestBody:
+        description: sortBy order is default. album is not implemented yet. default order is DESC
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sort:
+                  type: object
+                  properties:
+                    sortBy:
+                      type: string
+                      default: 'order'
+                      enum: [name, title, album, duration, order]
+                    order:
+                      type: string
+                      default: 'DESC'
+                      enum: [ASC, DESC]
       responses:
         '200':
           description: array of playlist tracks information
@@ -509,18 +568,20 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  owner:
-                    type: string
-                  name:
-                    type: string
-                  description:
-                    type: [string, 'null']
-                  coverId:
-                    type: string
-                  ownerName:
-                    type: string
+                type: array
+                items:
+                  type: object
+                  properties:
+                    owner:
+                      type: string
+                    name:
+                      type: string
+                    description:
+                      type: [string, 'null']
+                    coverId:
+                      type: string
+                    ownerName:
+                      type: string
         '400':
           $ref: '#/components/responses/ValidationError'
         '401':
@@ -663,6 +724,60 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
+  /me/library/playlists:
+    get:
+      tags: [Library]
+      description: 'get all playlist from user library'
+      parameters:
+        - $ref: '#/components/parameters/PaginationLimitParameter'
+        - $ref: '#/components/parameters/PaginationOffsetParameter'
+      requestBody:
+        description: sortBy order is default. album is not implemented yet
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sort:
+                  type: object
+                  properties:
+                    sortBy:
+                      type: string
+                      default: 'order'
+                      enum: [name, title, album, duration, order]
+                    order:
+                      type: string
+                      default: 'DESC'
+                      enum: [ASC, DESC]
+      responses:
+        '200':
+          description: array of library playlists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlaylistLibraryInfo'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /me/library/playlists/{playlistId}/reorder:
+    get:
+      tags: [Library]
+      parameters:
+        - $ref: '#/components/parameters/PlaylistIdParameter'
+      description: sortBy order is default. album is not implemented yet
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReorderRequestBody'
+      responses:
+        '200':
+          $ref: '#/components/responses/SuccessStatus'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 components:
   securitySchemes:
     bearerAuth:
@@ -882,7 +997,52 @@ components:
               visible_username:
                 type: string
                 maxLength: 25
-
+    PlaylistLibraryInfo:
+      type: array
+      items:
+        type: object
+        properties:
+          date_played:
+            type: string
+            format: date
+          date_added:
+            type: string
+            format: date
+          playlists:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+              name:
+                type: string
+                maxLength: 100
+              owner:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  visible_username:
+                    type: string
+              coverUrl:
+                type: string
+                format: uri-reference
+              description:
+                type: [string, 'null']
+                maximum: 300
+              type:
+                type: string
+                enum: ['general', 'liked_songs', 'album']
+    ReorderRequestBody:
+      type: object
+      properties:
+        fromIndex:
+          type: number
+          minimum: 0
+        toIndex:
+          type: number
+          minimum: -1
   parameters:
     UserIdParameter:
       in: path

@@ -26,7 +26,7 @@ router.get(
       userId: request.jwtPayload.user_id,
       sort: {
         sortBy: request.query.sort ?? LibrarySortBy.Custom,
-        order: request.query.order ?? Order.Asc,
+        order: request.query.order ?? Order.Desc,
       },
       limit: +(request.query.limit ?? DEFAULT_LIMIT),
       offset: +(request.query.offset ?? DEFAULT_OFFSET),

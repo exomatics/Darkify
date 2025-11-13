@@ -257,10 +257,13 @@ class UserManager {
     }
     try {
       await database.sequelize.transaction(async (transaction) => {
-        await database.playlistFollowersModel.create({
-          user_id,
-          playlist_id,
-        });
+        await database.playlistFollowersModel.create(
+          {
+            user_id,
+            playlist_id,
+          },
+          { transaction },
+        );
         await playlist.createLibraryRecord(user_id, playlist_id, transaction);
         await database.playlistModel.update(
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

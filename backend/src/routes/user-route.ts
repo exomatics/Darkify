@@ -209,16 +209,12 @@ router.post(
     response.status(200).json(databaseResponse);
   }),
 );
-router.put(
+router.post(
   ROUTES.USERS.PUT_EVENTS_PLAYED,
   passport.authenticate('access-token', { session: false }) as RequestHandler,
   asyncHandler(
     async (
-      request: Request<
-        ParamsDictionary,
-        unknown,
-        { user_id: string; event_data: UpdateLibraryPlayDate }
-      >,
+      request: Request<ParamsDictionary, unknown, { event_data: UpdateLibraryPlayDate }>,
       response: Response,
     ) => {
       const validation = updateLibraryPlayDate.safeParse({
