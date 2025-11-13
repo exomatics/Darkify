@@ -557,11 +557,18 @@ paths:
           $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/Unauthorized'
-  /playlists/search/{playlistName}:
+
+  /playlists:
     get:
       tags: [Playlist]
       parameters:
-        - $ref: '#/components/parameters/NameParameter'
+        - in: query
+          name: search
+          schema:
+            type: string
+            maxLength: 100
+        - $ref: '#/components/parameters/PaginationLimitParameter'
+        - $ref: '#/components/parameters/PaginationOffsetParameter'
       responses:
         '200':
           description: Data of all playlists with playlistName. ILIKE
@@ -586,7 +593,6 @@ paths:
           $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/Unauthorized'
-  /playlists:
     post:
       tags: [Playlist]
       requestBody:

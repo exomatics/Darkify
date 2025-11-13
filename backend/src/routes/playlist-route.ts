@@ -113,7 +113,7 @@ router.get(
   asyncHandler(async (request: Request, response: Response) => {
     const validation = getPlaylistsScheme.safeParse({
       userId: request.jwtPayload.user_id,
-      name: request.params.playlistName,
+      name: request.query.search,
       limit: +(request.query.limit ?? 5),
       offset: +(request.query.offset ?? 0),
     });
