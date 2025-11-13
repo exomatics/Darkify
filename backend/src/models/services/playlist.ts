@@ -16,6 +16,7 @@ import type {
   IReorder,
   IUpdatePlaylist,
   sortBy,
+  Order,
 } from '../../interfaces/playlist-interface.ts';
 import type { Itrack } from '../../interfaces/track-interface.ts';
 import type { Result, SuccessfulResult } from '../../types/result-type.ts';
@@ -23,7 +24,6 @@ import type { LibraryPlaylistsModel } from '../library-playlists.ts';
 import type { PlaylistTrackModel } from '../playlist-tracks.ts';
 import type { PlaylistModel } from '../playlist.ts';
 import type { Transaction } from 'sequelize';
-import type { Order } from '../../interfaces/playlist-interface.ts';
 
 interface PlaylistTotalCount extends PlaylistModel {
   dataValues: PlaylistModel['dataValues'] & { total_duration: string };

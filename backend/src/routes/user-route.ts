@@ -209,7 +209,7 @@ router.post(
     response.status(200).json(databaseResponse);
   }),
 );
-router.post(
+router.put(
   ROUTES.USERS.PUT_EVENTS_PLAYED,
   passport.authenticate('access-token', { session: false }) as RequestHandler,
   asyncHandler(
@@ -222,7 +222,7 @@ router.post(
       response: Response,
     ) => {
       const validation = updateLibraryPlayDate.safeParse({
-        user_id: request.body.user_id,
+        user_id: request.jwtPayload.user_id,
         event_data: request.body.event_data,
       });
       if (!validation.success) {
