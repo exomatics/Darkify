@@ -272,7 +272,7 @@ class PlaylistManager {
         {
           //I can bet my tooth that it doesn't fucking work
           //also through and attributes are fucking shit
-
+          required: true,
           model: database.trackModel,
           attributes: ['deleted', 'name', 'duration'],
           through: { attributes: ['id', 'date_added'] },
@@ -569,6 +569,15 @@ class PlaylistManager {
     };
     return { success: true, data: responseData };
   }
+  async getLibraryPlaylistRecord(playlistId: string, userId: string) {
+    const playlisLibrarytRecord = await database.libraryPlaylists.findOne({
+      where: { playlist_id: playlistId, user_id: userId },
+    });
+    if (!playlisLibrarytRecord) {
+      return { success: false, reason: errorMessages.playlist.LibraryNotExistsById };
+    }
+    return { success: true, data: playlisLibrarytRecord };
+  }
   async getLibrary(
     userId: string,
     sort: { sortBy: LibrarySortBy; order: Order },
@@ -591,17 +600,16 @@ class PlaylistManager {
           model: database.playlistModel,
           // associationType:
           attributes: ['id', 'cover_id', 'name', 'owner'],
+
           // required: true,
-          right: true,
-          // where: {
-          //   id: { $col: 'playlists.id' },
-          // },
+          // required: true,
+          // right: true,
           // through: { attributes: ['playlist_id'] },
           include: [
             {
               model: database.userModel,
-              right: true,
-
+              // required: true,
+              // right: true,
               attributes: ['id', 'visible_username'],
             },
           ],
@@ -664,57 +672,58 @@ class PlaylistManager {
   }
 
   async getLibraryPlaylistByIndex(
-    playlistId: string,
-    index: number,
     userId: string,
+    index: number,
   ): Promise<SuccessfulResult<LibraryPlaylistsModel | null>> {
     const LibraryPlaylistRecord = await database.libraryPlaylists.findOne({
-      where: { playlist_id: playlistId, user_id: userId },
+      where: { user_id: userId },
       order: [['order', 'ASC']],
       offset: index,
+      logging: true,
     });
+
     if (LibraryPlaylistRecord === null) {
       return { success: true, data: LibraryPlaylistRecord };
     }
-
     return { success: true, data: LibraryPlaylistRecord };
   }
   async reorderLibrary(libraryInfo: IReorder) {
-    const playlistRecord = await this.getPlaylistRecordById(
+    const playlistRecord = await this.getLibraryPlaylistRecord(
       libraryInfo.playlistId,
       libraryInfo.userId,
     );
     if (!playlistRecord.success) {
       return playlistRecord;
     }
+    if (libraryInfo.fromIndex === libraryInfo.toIndex) {
+      return { success: true, data: null };
+    }
     const fromIndexRecord = await this.getLibraryPlaylistByIndex(
-      libraryInfo.playlistId,
-      libraryInfo.fromIndex,
       libraryInfo.userId,
+      libraryInfo.fromIndex,
     );
     if (!fromIndexRecord.data) {
-      return { success: false, reason: errorMessages.playlist.TrackNotExistsByIndex };
+      return { success: false, reason: errorMessages.playlist.LibraryNotExistsByIndex };
     }
     let toIndexPlaylistRecord;
     let afterPlaylistRecord;
     if (libraryInfo.toIndex > 0) {
       toIndexPlaylistRecord = await this.getLibraryPlaylistByIndex(
-        libraryInfo.playlistId,
-        libraryInfo.toIndex,
         libraryInfo.userId,
+        libraryInfo.toIndex,
       );
       if (!toIndexPlaylistRecord.data) {
-        return { success: false, reason: errorMessages.playlist.TrackNotExistsByIndex };
+        return { success: false, reason: errorMessages.playlist.LibraryNotExistsByIndex };
       }
-
       afterPlaylistRecord = await database.libraryPlaylists.findOne({
         where: {
-          playlist_id: libraryInfo.playlistId,
           user_id: libraryInfo.userId,
-          order: { [Op.gt]: fromIndexRecord.data.order },
+          order: { [Op.gt]: toIndexPlaylistRecord.data.order },
         },
-        order: [['order', 'DESC']],
-        offset: libraryInfo.toIndex,
+        logging: true,
+        /////
+        order: [['order', 'ASC']],
+        /////
       });
     }
     let newOrder;
@@ -740,22 +749,21 @@ class PlaylistManager {
           },
         },
       })) as number | null;
+      // console.log(maxOrder);
       newOrder = maxOrder === null ? 0 : maxOrder + 100;
     }
-
     const collision = await database.libraryPlaylists.findOne({
       where: {
-        playlist_id: libraryInfo.playlistId,
         user_id: libraryInfo.userId,
         order: newOrder,
       },
     });
-
     if (collision) {
-      await this.renormalizePlaylistOrder(libraryInfo.playlistId);
-      return { success: false, data: 'renormalization' };
+      // console.log(collision);
+      await this.renormalizeLibraryOrder(libraryInfo.userId);
+      return { success: false, reason: 'renormalization' };
     }
-    await database.playlistTrackModel.update(
+    await database.libraryPlaylists.update(
       { order: newOrder },
       { where: { order: fromIndexRecord.data.order } },
     );
@@ -810,6 +818,9 @@ class PlaylistManager {
     if (!playlistRecord.success) {
       return playlistRecord;
     }
+    if (playlistInfo.fromIndex === playlistInfo.toIndex) {
+      return { success: true, data: null };
+    }
     const fromIndexRecord = await this.getPlaylistTrackByIndex(
       playlistInfo.playlistId,
       playlistInfo.fromIndex,
@@ -827,16 +838,16 @@ class PlaylistManager {
       if (!toIndexPlaylistRecord.data) {
         return { success: false, reason: errorMessages.playlist.TrackNotExistsByIndex };
       }
-
       afterPlaylistTrackRecord = await database.playlistTrackModel.findOne({
         where: {
           playlist_id: playlistInfo.playlistId,
-          order: { [Op.gt]: fromIndexRecord.data.order },
+          order: { [Op.gt]: toIndexPlaylistRecord.data.order },
         },
-        order: [['order', 'DESC']],
-        offset: playlistInfo.toIndex,
+        order: [['order', 'ASC']],
+        offset: 0,
       });
     }
+
     let newOrder;
     if (toIndexPlaylistRecord || afterPlaylistTrackRecord) {
       newOrder = Math.floor(
@@ -882,6 +893,8 @@ class PlaylistManager {
   }
   async renormalizePlaylistOrder(playlistId: IPlaylist['playlistId']) {
     try {
+      // console.log(33);
+
       await database.sequelize.transaction(async (transaction) => {
         const rows = await database.playlistTrackModel.findAll({
           where: { playlist_id: playlistId },

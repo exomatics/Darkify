@@ -57,5 +57,6 @@ export const ROUTES = Object.freeze({
   },
   LIBRARY: {
     GET_ME_PLAYLISTS: `${API_BASE}/me/library/playlists`,
+    PUT_PLAYLISTS_REORDER: `${API_BASE}/me/library/playlists/:playlistId/reorder`,
   },
 } as const);

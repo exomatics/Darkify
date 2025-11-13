@@ -8,11 +8,13 @@ import ValidationError from '../errors/validation-error.ts';
 import { LibrarySortBy } from '../interfaces/library-interface.ts';
 import { Order } from '../interfaces/playlist-interface.ts';
 import asyncHandler from '../middleware/async-handler.ts';
-import { getLibraryPlaylistsScheme } from '../validator.ts';
+import { getLibraryPlaylistsScheme, reorderPlaylistScheme } from '../validator.ts';
 
 import { ROUTES } from './routes.ts';
 
+import type { IReorder } from '../interfaces/playlist-interface.ts';
 import type { Request, Response, RequestHandler } from 'express';
+import type { ParamsDictionary } from 'express-serve-static-core';
 
 const router = Router();
 
@@ -23,7 +25,7 @@ router.get(
     const validation = getLibraryPlaylistsScheme.safeParse({
       userId: request.jwtPayload.user_id,
       sort: {
-        sortBy: request.query.sort ?? LibrarySortBy.Alphabetic,
+        sortBy: request.query.sort ?? LibrarySortBy.Custom,
         order: request.query.order ?? Order.Asc,
       },
       limit: +(request.query.limit ?? DEFAULT_LIMIT),
@@ -42,5 +44,24 @@ router.get(
     response.status(200).json(databaseResponse);
   }),
 );
-
+router.put(
+  ROUTES.LIBRARY.PUT_PLAYLISTS_REORDER,
+  passport.authenticate('access-token', { session: false }) as RequestHandler,
+  asyncHandler(
+    async (request: Request<ParamsDictionary, unknown, IReorder>, response: Response) => {
+      const validation = reorderPlaylistScheme.safeParse({
+        playlistId: request.params.playlistId,
+        userId: request.jwtPayload.user_id,
+        fromIndex: request.body.fromIndex,
+        toIndex: request.body.toIndex,
+      });
+      // console.log(request.jwtPayload.user_id, validation.data);
+      if (!validation.success) {
+        throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
+      }
+      const databaseResponse = await libraryController.reorderLibraryPlaylist(validation.data);
+      response.status(200).json(databaseResponse);
+    },
+  ),
+);
 export default router;
