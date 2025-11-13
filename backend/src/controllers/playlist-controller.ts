@@ -10,8 +10,10 @@ import UserManager from '../models/services/user.ts';
 import type {
   ICreatePlaylist,
   IPlaylist,
-  IReorderTrack,
+  IReorder,
   IUpdatePlaylist,
+  sortBy,
+  Order,
 } from '../interfaces/playlist-interface.ts';
 
 const playlist = new PlaylistManager();
@@ -67,7 +69,7 @@ export default {
     playlistInfo: {
       playlistId: string;
       userId: string;
-      sort: { sortBy: string; order: string };
+      sort: { sortBy: sortBy; order: Order };
     },
     limit: number = DEFAULT_LIMIT,
     offset: number = DEFAULT_OFFSET,
@@ -132,7 +134,7 @@ export default {
 
     return modelResponse.data;
   },
-  async reorderPlaylistTrack(playlistInfo: IReorderTrack) {
+  async reorderPlaylistTrack(playlistInfo: IReorder) {
     const modelResponse = await playlist.reorderPlaylistTrack(playlistInfo);
 
     if (!modelResponse.success) {

@@ -7,6 +7,7 @@ import { DEFAULT_LIMIT, DEFAULT_OFFSET, STATIC_IMAGES_PATH } from '../../config/
 import database from '../../config/database.ts';
 import { errorMessages } from '../../errors/error-messages.ts';
 import InternalError from '../../errors/internal-error.ts';
+import { LibrarySortBy } from '../../interfaces/library-interface.ts';
 import { Type, Restrictions } from '../../interfaces/playlist-interface.ts';
 
 import type {
@@ -14,6 +15,7 @@ import type {
   IPlaylist,
   IReorder,
   IUpdatePlaylist,
+  sortBy,
 } from '../../interfaces/playlist-interface.ts';
 import type { Itrack } from '../../interfaces/track-interface.ts';
 import type { Result, SuccessfulResult } from '../../types/result-type.ts';
@@ -21,6 +23,8 @@ import type { LibraryPlaylistsModel } from '../library-playlists.ts';
 import type { PlaylistTrackModel } from '../playlist-tracks.ts';
 import type { PlaylistModel } from '../playlist.ts';
 import type { Transaction } from 'sequelize';
+import type { Order } from '../../interfaces/playlist-interface.ts';
+
 interface PlaylistTotalCount extends PlaylistModel {
   dataValues: PlaylistModel['dataValues'] & { total_duration: string };
 }
@@ -216,7 +220,7 @@ class PlaylistManager {
     playlistInfo: {
       playlistId: string;
       userId: string;
-      sort: { sortBy: string; order: string };
+      sort: { sortBy: sortBy; order: Order };
     },
     limit: number = DEFAULT_LIMIT,
     offset: number = DEFAULT_OFFSET,
@@ -252,7 +256,13 @@ class PlaylistManager {
       where: { id: playlistInfo.playlistId },
       // attributes: { include: [sequelize.col('tracks->playlist_track.order'), 'order'] },
       /////////////////////////////////////////////////just change database.trackModel, database.playlistTrackModel to tracks and
-      order: [[database.trackModel, database.playlistTrackModel, [sequelize.col('order'), 'ASC']]],
+      order: [
+        [
+          database.trackModel,
+          database.playlistTrackModel,
+          [sequelize.col(playlistInfo.sort.sortBy), playlistInfo.sort.order],
+        ],
+      ],
       //sequeilize docs are not completly useless!!!
       // plain: true,
       raw: true,
@@ -290,6 +300,7 @@ class PlaylistManager {
       ],
       offset,
       limit,
+      logging: true,
     })) as {
       rows: {
         id: string;
@@ -393,110 +404,6 @@ class PlaylistManager {
     return {
       success: true,
       data: { rows: proccessedPlaylistRecords, count: playlistsRecords.count },
-    };
-  }
-  async getPlaylistsByUserId(
-    userId: string,
-    limit: number = DEFAULT_LIMIT,
-    offset: number = DEFAULT_OFFSET,
-  ) {
-    const playlistsRecords = (await database.playlistModel.findAndCountAll({
-      attributes: [
-        'id',
-        'cover_id',
-        'name',
-        'owner',
-        // [sequelize.col('user.visible_username'), 'visible_username'],
-        // [sequelize.col('user.visible_username'), 'owner_username'],
-      ],
-      where: {
-        owner: userId,
-      },
-      raw: true,
-      nest: true,
-      // order: [[sequelize.literal(`owner = '${userId}'`), 'DESC']],
-      include: [
-        {
-          model: database.userModel,
-          // associationType:
-          attributes: ['id', 'visible_username'],
-          // through: { attributes: ['playlist_id'] },
-        },
-        {
-          model: database.playlistFollowersModel,
-          attributes: [],
-          // right: true,
-          where: { user_id: userId },
-          include: [
-            {
-              model: database.playlistModel,
-              right: true,
-              attributes: ['id', 'cover_id', 'name', 'owner'],
-            },
-          ],
-          // through:
-        },
-        // {
-        //   model: database.playlistFollowersModel,
-        //   attributes: ['playlist_id'],
-        //   where: { user_id: userId },
-        // },
-      ],
-      offset,
-      logging: true,
-      limit,
-    })) as unknown as {
-      rows: IGetPlaylistsByName[];
-      count: number;
-    };
-    const followedPlaylistsRecords = (await database.playlistFollowersModel.findAndCountAll({
-      attributes: [
-        // 'id',
-        // 'cover_id',
-        // 'name',
-        // 'owner',
-        // [sequelize.col('user.visible_username'), 'visible_username'],
-        // [sequelize.col('user.visible_username'), 'owner_username'],
-      ],
-      where: {
-        user_id: userId,
-      },
-      // order: [[sequelize.literal(`owner = '${userId}'`), 'DESC']],
-      include: [
-        {
-          model: database.playlistModel,
-          // associationType:
-          attributes: ['id', 'cover_id', 'name', 'owner'],
-          // through: { attributes: ['playlist_id'] },
-        },
-        {
-          model: database.userModel,
-          attributes: ['id', 'visible_username'],
-        },
-      ],
-      offset,
-      logging: true,
-      limit,
-    })) as unknown as {
-      rows: IGetPlaylistsByName[];
-      count: number;
-    };
-    // const proccessedPlaylistRecords = playlistsRecords.rows.map((playlistRecord) => {
-    //   return {
-    //     ..._.omit(playlistRecord.dataValues, 'cover_id', 'owner_username'),
-    //     owner: {
-    //       id: playlistRecord.owner,
-    //       visible_username: playlistRecord.dataValues.owner_username,
-    //     },
-    //     cover_url: playlistRecord.dataValues.cover_id
-    //       ? `${STATIC_IMAGES_PATH}/${playlistRecord.dataValues.cover_id}.jpg`
-    //       : null,
-    //   };
-    // });
-    // console.log(playlistsRecords);
-    return {
-      success: true,
-      data: playlistsRecords,
     };
   }
   async updateLibraryPlayDate(
@@ -662,11 +569,23 @@ class PlaylistManager {
     };
     return { success: true, data: responseData };
   }
-  async getLibrary(userId: string, limit = DEFAULT_LIMIT, offset = DEFAULT_OFFSET) {
+  async getLibrary(
+    userId: string,
+    sort: { sortBy: LibrarySortBy; order: Order },
+    limit = DEFAULT_LIMIT,
+    offset = DEFAULT_OFFSET,
+  ) {
+    const order =
+      sort.sortBy === LibrarySortBy.Alphabetic
+        ? [[{ model: database.playlistModel }, sort.sortBy, sort.order]]
+        : [[sort.sortBy, sort.order]];
+
     const playlistRecords = (await database.libraryPlaylists.findAndCountAll({
       where: { user_id: userId },
       raw: true,
       nest: true,
+      // @ts-expect-error: sequelize typing doesn't support order of this type, but it's the only way it works
+      order,
       include: [
         {
           model: database.playlistModel,
@@ -700,7 +619,6 @@ class PlaylistManager {
       }[];
       count: number;
     };
-    console.log(playlistRecords);
     const processedPlaylistRecords = playlistRecords.rows.map((playlistLibraryRecord) => {
       return {
         ...playlistLibraryRecord,

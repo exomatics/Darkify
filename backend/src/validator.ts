@@ -3,6 +3,7 @@ import { z } from 'zod/v4';
 import database from './config/database.ts';
 import { errorMessages } from './errors/error-messages.ts';
 import NotFoundError from './errors/not-found-error.ts';
+import { LibrarySortBy } from './interfaces/library-interface.ts';
 import { Restrictions, Type, Order, sortBy } from './interfaces/playlist-interface.ts';
 import { LibrarySections } from './interfaces/user-interface.ts';
 import { Bitrate } from './types/bitrate-type.ts';
@@ -212,6 +213,7 @@ const updateLibraryPlayDate = z.object({
 });
 const getLibraryPlaylistsScheme = z.object({
   userId: uuidScheme,
+  sort: z.object({ sortBy: z.enum(LibrarySortBy), order: z.enum(Order) }),
   ...paginationScheme.shape,
 });
 export {

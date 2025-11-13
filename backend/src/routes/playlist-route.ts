@@ -85,7 +85,7 @@ router.get(
       userId: request.jwtPayload.user_id,
       sort: {
         sortBy: request.query.sort ?? sortBy.Custom,
-        order: request.query.order ?? Order.Desc,
+        order: request.query.order ?? Order.Asc,
       },
       //final test of sorting and ordering
       limit: +(request.query.limit ?? 5),
