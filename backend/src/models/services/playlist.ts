@@ -234,13 +234,13 @@ class PlaylistManager {
   ): Promise<
     Result<
       {
-        rows: (Pick<Itrack, 'deleted' | 'name' | 'duration'> & {
-          trackId: string;
+        items: (Pick<Itrack, 'deleted' | 'name' | 'duration'> & {
+          id: string;
           playlistTrackId: string;
           dateAdded: string;
           artist: { id: string; visible_username: string };
         })[];
-        count: number;
+        total: number;
       },
       typeof errorMessages.playlist.NotExistsById
     >
@@ -281,7 +281,7 @@ class PlaylistManager {
           //also through and attributes are fucking shit
           required: true,
           model: database.trackModel,
-          attributes: ['deleted', 'name', 'duration'],
+          attributes: ['deleted', 'name', 'duration', 'lyrics', 'cover_id'],
           through: { attributes: ['id', 'date_added'] },
           // distinct: false,
           // duplicating: false,
@@ -314,6 +314,8 @@ class PlaylistManager {
         'tracks.deleted': boolean;
         'tracks.name': string;
         'tracks.duration': number;
+        'tracks.lyrics': string;
+        'tracks.cover_id': string;
         'tracks.playlist_track.order': number;
         'tracks.playlist_track.track_id': string;
         'tracks.playlist_track.playlist_id': string;
@@ -338,7 +340,11 @@ class PlaylistManager {
         deleted: row['tracks.deleted'],
         name: row['tracks.name'],
         duration: row['tracks.duration'],
-        trackId: row['tracks.playlist_track.track_id'],
+        lyrics: row['tracks.lyrics'],
+        cover_url: row['tracks.cover_id']
+          ? `${STATIC_IMAGES_PATH}/${row['tracks.cover_id']}.jpg`
+          : null,
+        id: row['tracks.playlist_track.track_id'],
         playlistTrackId: row['tracks.playlist_track.id'],
         dateAdded: row['tracks.playlist_track.date_added'],
         artist: {
@@ -349,7 +355,7 @@ class PlaylistManager {
     });
     return {
       success: true,
-      data: { rows: processedPlaylistRows, count: playlistTracks.count },
+      data: { total: playlistTracks.count, items: processedPlaylistRows },
     };
   }
   async getPlaylistsByName(
@@ -358,14 +364,14 @@ class PlaylistManager {
     offset: number = DEFAULT_OFFSET,
   ): Promise<
     SuccessfulResult<{
-      rows: (Omit<IPlaylist, 'playlistId' | 'owner' | 'coverId'> & {
+      total: number;
+      items: (Omit<IPlaylist, 'playlistId' | 'owner' | 'coverId'> & {
         owner: {
           id: string;
           visible_username: string;
         };
         cover_url: string | null;
       })[];
-      count: number;
     }>
   > {
     const playlistsRecords = (await database.playlistModel.findAndCountAll({
@@ -410,7 +416,7 @@ class PlaylistManager {
 
     return {
       success: true,
-      data: { rows: proccessedPlaylistRecords, count: playlistsRecords.count },
+      data: { total: playlistsRecords.count, items: proccessedPlaylistRecords },
     };
   }
   async updateLibraryPlayDate(
@@ -649,7 +655,10 @@ class PlaylistManager {
         },
       };
     });
-    return { success: true, data: processedPlaylistRecords };
+    return {
+      success: true,
+      data: { total: playlistRecords.count, items: processedPlaylistRecords },
+    };
   }
   async createLibraryRecord(userId: string, playlistId: string, transaction: Transaction) {
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion

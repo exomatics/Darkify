@@ -576,21 +576,26 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    owner:
-                      type: string
-                    name:
-                      type: string
-                    description:
-                      type: [string, 'null']
-                    coverUrl:
-                      type: ['string', 'null']
-                      format: uri-reference
-                    ownerName:
-                      type: string
+                type: object
+                properties:
+                  total:
+                    type: number
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        owner:
+                          type: string
+                        name:
+                          type: string
+                        description:
+                          type: [string, 'null']
+                        cover_url:
+                          type: ['string', 'null']
+                          format: uri-reference
+                        ownerName:
+                          type: string
         '400':
           $ref: '#/components/responses/ValidationError'
         '401':
@@ -962,7 +967,7 @@ components:
         description:
           type: [string, 'null']
           maximum: 300
-        coverUrl:
+        cover_url:
           type: ['string', 'null']
           format: uri-reference
         totalDuration:
@@ -978,57 +983,38 @@ components:
           type: string
           enum: ['general', 'liked_songs', 'album']
     PlaylistTrackInfo:
-      type: array
-      items:
-        type: object
-        properties:
-          name:
-            type: string
-            maxLength: 100
-          deleted:
-            type: boolean
-          duration:
-            type: number
-            description: 'Duration of a song in seconds'
-          trackId:
-            type: string
-            format: uuid
-          playlistTrackId:
-            type: string
-            format: uuid
-          dateAdded:
-            type: string
-            format: date
-          artist:
+      type: object
+      properties:
+        total:
+          type: number
+        items:
+          type: array
+          items:
             type: object
             properties:
-              id:
-                type: string
-                format: uuid
-              visible_username:
-                type: string
-                maxLength: 25
-    PlaylistLibraryInfo:
-      type: array
-      items:
-        type: object
-        properties:
-          date_played:
-            type: string
-            format: date
-          date_added:
-            type: string
-            format: date
-          playlists:
-            type: object
-            properties:
-              id:
-                type: string
-                format: uuid
               name:
                 type: string
                 maxLength: 100
-              owner:
+              deleted:
+                type: boolean
+              duration:
+                type: number
+                description: 'Duration of a song in seconds'
+              cover_url:
+                type: ['string', 'null']
+                format: uri-reference
+              lyrics:
+                type: [string, 'null']
+              trackId:
+                type: string
+                format: uuid
+              playlistTrackId:
+                type: string
+                format: uuid
+              dateAdded:
+                type: string
+                format: date
+              artist:
                 type: object
                 properties:
                   id:
@@ -1036,15 +1022,49 @@ components:
                     format: uuid
                   visible_username:
                     type: string
-              coverUrl:
-                type: ['string', 'null']
-                format: uri-reference
-              description:
-                type: [string, 'null']
-                maximum: 300
-              type:
+                    maxLength: 25
+    PlaylistLibraryInfo:
+      type: object
+      properties:
+        total:
+          type: number
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              date_played:
                 type: string
-                enum: ['general', 'liked_songs', 'album']
+                format: date
+              date_added:
+                type: string
+                format: date
+              playlists:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  name:
+                    type: string
+                    maxLength: 100
+                  owner:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                      visible_username:
+                        type: string
+                  cover_url:
+                    type: ['string', 'null']
+                    format: uri-reference
+                  description:
+                    type: [string, 'null']
+                    maximum: 300
+                  type:
+                    type: string
+                    enum: ['general', 'liked_songs', 'album']
     ReorderRequestBody:
       type: object
       properties:
