@@ -587,7 +587,7 @@ paths:
                     description:
                       type: [string, 'null']
                     coverId:
-                      type: string
+                      type: ['string', 'null']
                     ownerName:
                       type: string
         '400':
