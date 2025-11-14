@@ -900,7 +900,8 @@ components:
         deleted:
           type: boolean
         duration:
-          type: string
+          type: number
+          description: 'Duration of a song in seconds'
     PostTrackRequest:
       type: object
       properties:
@@ -984,7 +985,8 @@ components:
           deleted:
             type: boolean
           duration:
-            type: string
+            type: number
+            description: 'Duration of a song in seconds'
           trackId:
             type: string
             format: uuid
