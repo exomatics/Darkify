@@ -305,9 +305,9 @@ class PlaylistManager {
         //   through: { attributes: ['artist_id'] },
         // },
       ],
+      subQuery: false,
       offset,
       limit,
-      logging: true,
     })) as {
       rows: {
         id: string;
@@ -629,7 +629,6 @@ class PlaylistManager {
         },
       ],
       offset,
-      logging: true,
       limit,
     })) as unknown as {
       rows: {
@@ -695,7 +694,6 @@ class PlaylistManager {
       where: { user_id: userId },
       order: [['order', 'ASC']],
       offset: index,
-      logging: true,
     });
 
     if (LibraryPlaylistRecord === null) {
@@ -736,7 +734,6 @@ class PlaylistManager {
           user_id: libraryInfo.userId,
           order: { [Op.gt]: toIndexPlaylistRecord.data.order },
         },
-        logging: true,
         /////
         order: [['order', 'ASC']],
         /////

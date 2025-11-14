@@ -91,6 +91,7 @@ router.get(
       limit: +(request.query.limit ?? 5),
       offset: +(request.query.offset ?? 0),
     });
+    console.log(validation.data?.limit, validation.data?.offset);
     if (!validation.success) {
       throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }

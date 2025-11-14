@@ -79,8 +79,12 @@ export default {
     if (!modelResponse.success) {
       throw new NotFoundError(modelResponse.reason);
     }
-
-    return modelResponse.data;
+    const { items, total } = modelResponse.data;
+    return {
+      next: offset + items.length + 1 <= total ? offset + items.length : null,
+      offset,
+      ...modelResponse.data,
+    };
   },
   async getPlaylistsByName(
     playlistInfo: Pick<IPlaylist, 'name'> & { userId: string },
@@ -88,7 +92,12 @@ export default {
     offset: number = DEFAULT_OFFSET,
   ) {
     const modelResponse = await playlist.getPlaylistsByName(playlistInfo, limit, offset);
-    return modelResponse.data;
+    const { items, total } = modelResponse.data;
+    return {
+      next: offset + items.length + 1 <= total ? offset + items.length : null,
+      offset,
+      ...modelResponse.data,
+    };
   },
   async createPlaylist(
     playlistInfo: Omit<ICreatePlaylist, 'restrictions'> & Pick<IPlaylist, 'restrictions'>,

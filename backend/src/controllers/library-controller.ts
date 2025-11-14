@@ -14,8 +14,13 @@ export default {
     limit: number = DEFAULT_LIMIT,
     offset: number = DEFAULT_OFFSET,
   ) {
-    const playlistResponse = await playlist.getLibrary(userId, sort, limit, offset);
-    return playlistResponse.data;
+    const modelResponse = await playlist.getLibrary(userId, sort, limit, offset);
+    const { items, total } = modelResponse.data;
+    return {
+      next: offset + items.length + 1 <= total ? offset + items.length : null,
+      offset,
+      ...modelResponse.data,
+    };
   },
   async reorderLibraryPlaylist(libraryInfo: IReorder) {
     const modelResponse = await playlist.reorderLibrary(libraryInfo);
