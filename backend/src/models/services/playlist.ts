@@ -41,15 +41,21 @@ type IPlaylistInfo = Omit<IPlaylist, 'playlistId' | 'type'> & {
 
 class PlaylistManager {
   async createPlaylist(
-    playlistInfo: ICreatePlaylist & Pick<IPlaylist, 'restrictions' | 'coverId'>,
+    playlistInfo: ICreatePlaylist & Pick<IPlaylist, 'restrictions'> & { coverId: string | null },
   ): Promise<Result<IPlaylistInfo & { id: string }, typeof errorMessages.playlist.NotExistsById>> {
     let playlistRecord;
     try {
       await database.sequelize.transaction(async (transaction) => {
+        const playlistCount = await database.playlistModel.count({
+          where: { owner: playlistInfo.owner },
+          transaction,
+        });
+        // eslint-disable-next-line i18n-text/no-en
+        const defaultPlaylistName = `My Playlist ${String(playlistCount + 1)}`;
         playlistRecord = await database.playlistModel.create(
           {
             id: crypto.randomUUID(),
-            name: playlistInfo.name,
+            name: playlistInfo.name ?? defaultPlaylistName,
             description: playlistInfo.description ?? null,
             cover_id: playlistInfo.coverId ?? null,
             owner: playlistInfo.owner,

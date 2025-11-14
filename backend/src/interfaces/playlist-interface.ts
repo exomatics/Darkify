@@ -14,10 +14,11 @@ export interface IPlaylist {
 }
 export type ICreatePlaylist = Omit<
   IPlaylist,
-  'playlistId' | 'type' | 'coverId' | 'restrictions'
+  'playlistId' | 'name' | 'type' | 'coverId' | 'restrictions'
 > & {
+  name: string | null;
   restrictions?: Restrictions;
-  file: Express.Multer.File;
+  file: Express.Multer.File | null;
 };
 export interface IReorder {
   playlistId: string;

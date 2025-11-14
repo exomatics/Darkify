@@ -139,8 +139,8 @@ const playlistScheme = z.object({
   type: z.enum(Type),
 });
 const createPlaylistScheme = playlistScheme
-  .omit({ playlistId: true, type: true, coverId: true })
-  .extend({ file: fileScheme });
+  .omit({ playlistId: true, name: true, type: true, coverId: true })
+  .extend({ file: fileScheme.nullable(), name: z.string().max(100).nullable() });
 
 const getPlaylistsScheme = z.object({
   userId: uuidScheme,

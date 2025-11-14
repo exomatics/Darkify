@@ -130,20 +130,19 @@ router.get(
     response.status(200).json(databaseResponse);
   }),
 );
-export type PostPlaylistRequest = Request<ParamsDictionary, unknown, ICreatePlaylist>;
+export type PostPlaylistRequest = Request<ParamsDictionary, unknown, ICreatePlaylist | null>;
 router.post(
   ROUTES.PLAYLISTS.POST_PLAYLIST,
   passport.authenticate('access-token', { session: false }) as RequestHandler,
   fileUploader.uploadImageMiddleware.single('cover'),
   asyncHandler(async (request: PostPlaylistRequest, response: Response) => {
     const validation = createPlaylistScheme.safeParse({
-      name: request.body.name,
-      description: request.body.description,
+      name: request.body?.name ?? null,
+      description: request.body?.description,
       owner: request.jwtPayload.user_id,
-      restrictions: request.body.restrictions ?? Restrictions.Private,
-      file: request.file,
+      restrictions: request.body?.restrictions ?? Restrictions.Private,
+      file: request.file ?? null,
     });
-
     if (!validation.success) {
       throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }

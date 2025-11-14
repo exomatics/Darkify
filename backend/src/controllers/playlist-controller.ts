@@ -93,8 +93,10 @@ export default {
   async createPlaylist(
     playlistInfo: Omit<ICreatePlaylist, 'restrictions'> & Pick<IPlaylist, 'restrictions'>,
   ) {
-    const coverId = await fileUploader.uploadImage(playlistInfo.file);
-
+    let coverId = null;
+    if (playlistInfo.file) {
+      coverId = await fileUploader.uploadImage(playlistInfo.file);
+    }
     const playlistResponse = await playlist.createPlaylist({ ...playlistInfo, coverId });
     if (!playlistResponse.success) {
       throw new NotFoundError(playlistResponse.reason);

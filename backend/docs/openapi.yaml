@@ -564,6 +564,7 @@ paths:
       parameters:
         - in: query
           name: search
+          description: 'name of the playlist'
           schema:
             type: string
             maxLength: 100
@@ -602,17 +603,18 @@ paths:
               type: object
               properties:
                 name:
-                  type: string
-                  maximum: 100
+                  type: ['string', 'null']
+                  maxLength: 100
+                cover:
+                  type: ['string', 'null']
+                  format: binary
                 description:
-                  type: [string, 'null']
+                  type: ['string', 'null']
                   maximum: 300
                 restrictions:
-                  type: string
+                  type: ['string', 'null']
+                  description: 'default restriction is private'
                   enum: [private, unlisted, public]
-                cover:
-                  type: string
-                  format: binary
       responses:
         '200':
           description: Playlist information
