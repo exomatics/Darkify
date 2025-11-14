@@ -770,7 +770,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
   /me/library/playlists/{playlistId}/reorder:
-    get:
+    put:
       tags: [Library]
       parameters:
         - $ref: '#/components/parameters/PlaylistIdParameter'
