@@ -586,8 +586,9 @@ paths:
                       type: string
                     description:
                       type: [string, 'null']
-                    coverId:
+                    coverUrl:
                       type: ['string', 'null']
+                      format: uri-reference
                     ownerName:
                       type: string
         '400':
@@ -962,7 +963,7 @@ components:
           type: [string, 'null']
           maximum: 300
         coverUrl:
-          type: string
+          type: ['string', 'null']
           format: uri-reference
         totalDuration:
           type: number
@@ -1036,7 +1037,7 @@ components:
                   visible_username:
                     type: string
               coverUrl:
-                type: string
+                type: ['string', 'null']
                 format: uri-reference
               description:
                 type: [string, 'null']
