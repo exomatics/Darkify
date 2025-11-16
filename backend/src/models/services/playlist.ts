@@ -641,7 +641,7 @@ class PlaylistManager {
     };
     const processedPlaylistRecords = playlistRecords.rows.map((playlistLibraryRecord) => {
       return {
-        ..._.omit(playlistLibraryRecord, ['user', 'playlist_id', 'order', 'user_id']),
+        ..._.omit(playlistLibraryRecord, ['user', 'playlist_id', 'user_id']),
         playlists: {
           ..._.omit(playlistLibraryRecord.playlists, ['cover_id', 'owner', 'user']),
           owner: {
@@ -762,7 +762,6 @@ class PlaylistManager {
           },
         },
       })) as number | null;
-      // console.log(maxOrder);
       newOrder = maxOrder === null ? 0 : maxOrder + 100;
     }
     const collision = await database.libraryPlaylists.findOne({
@@ -774,7 +773,8 @@ class PlaylistManager {
     if (collision) {
       // console.log(collision);
       await this.renormalizeLibraryOrder(libraryInfo.userId);
-      return { success: false, reason: 'renormalization' };
+      await this.reorderLibrary(libraryInfo);
+      return { success: true, data: null };
     }
     await database.libraryPlaylists.update(
       { order: newOrder },
@@ -896,7 +896,8 @@ class PlaylistManager {
 
     if (collision) {
       await this.renormalizePlaylistOrder(playlistInfo.playlistId);
-      return { success: false, data: 'renormalization' };
+      await this.reorderLibrary(playlistInfo);
+      return { success: true, data: null };
     }
     await database.playlistTrackModel.update(
       { order: newOrder },
@@ -906,8 +907,6 @@ class PlaylistManager {
   }
   async renormalizePlaylistOrder(playlistId: IPlaylist['playlistId']) {
     try {
-      // console.log(33);
-
       await database.sequelize.transaction(async (transaction) => {
         const rows = await database.playlistTrackModel.findAll({
           where: { playlist_id: playlistId },
