@@ -3,6 +3,7 @@ import _ from 'lodash';
 import { DEFAULT_LIMIT, DEFAULT_OFFSET, STATIC_IMAGES_PATH } from '../config/config.ts';
 import NotFoundError from '../errors/not-found-error.ts';
 import ValidationError from '../errors/validation-error.ts';
+import { sortBy, Order } from '../interfaces/playlist-interface.ts';
 import { FileUploader } from '../models/services/file-management.ts';
 import PlaylistManager from '../models/services/playlist.ts';
 import UserManager from '../models/services/user.ts';
@@ -12,8 +13,6 @@ import type {
   IPlaylist,
   IReorder,
   IUpdatePlaylist,
-  sortBy,
-  Order,
 } from '../interfaces/playlist-interface.ts';
 
 const playlist = new PlaylistManager();
@@ -31,32 +30,42 @@ export default {
     if (!userResponse.success) {
       throw new NotFoundError(userResponse.reason);
     }
+    let placeholderUrlCovers: string[] = [];
+    const playlistTracks = await this.getPlaylistTracks(
+      { ...playlistInfo, sort: { sortBy: sortBy.Date, order: Order.Asc } },
+      4,
+      0,
+    );
+
+    // eslint-disable-next-line github/array-foreach, unicorn/no-array-for-each
+    playlistTracks.items.forEach((playlistTrack) => {
+      if (playlistTrack.cover_url === null) {
+        return;
+      }
+      if (placeholderUrlCovers.includes(playlistTrack.cover_url)) {
+        placeholderUrlCovers = [placeholderUrlCovers[0]];
+        return;
+      }
+      placeholderUrlCovers.push(playlistTrack.cover_url);
+    });
+
+    if (placeholderUrlCovers.length !== 4 && placeholderUrlCovers.length > 0) {
+      placeholderUrlCovers = [placeholderUrlCovers[0]];
+    }
 
     return {
-      ..._.omit(playlistResponse.data, 'coverId'),
+      ..._.omit(playlistResponse.data, ['coverId', 'isPlaceholderCovers']),
       coverUrl: playlistResponse.data.coverId
         ? `${STATIC_IMAGES_PATH}/${playlistResponse.data.coverId}.jpg`
         : null,
+      placeholder_url_covers: placeholderUrlCovers.length === 0 ? null : placeholderUrlCovers,
       owner: _.pick(userResponse.data, ['id', 'visible_username']),
     };
   },
   async getPlaylistCover(playlistInfo: { playlistId: string; userId: string }) {
-    const playlistResponse = await playlist.getPlaylistInfo(playlistInfo);
-    if (!playlistResponse.success) {
-      throw new NotFoundError(playlistResponse.reason);
-    }
-    const userResponse = await user.getUserById(playlistResponse.data.owner);
-    if (!userResponse.success) {
-      throw new NotFoundError(userResponse.reason);
-    }
+    const playlistResponse = await this.getPlaylistInfo(playlistInfo);
 
-    return {
-      ..._.omit(playlistResponse.data, 'coverId'),
-      coverUrl: playlistResponse.data.coverId
-        ? `${STATIC_IMAGES_PATH}/${playlistResponse.data.coverId}.jpg`
-        : null,
-      owner: _.pick(userResponse.data, ['id', 'visible_username']),
-    };
+    return playlistResponse;
   },
   async deletePlaylist(playlistInfo: { playlistId: string; userId: string }) {
     const modelResponse = await playlist.deletePlaylist(playlistInfo);
@@ -110,17 +119,12 @@ export default {
     if (!playlistResponse.success) {
       throw new NotFoundError(playlistResponse.reason);
     }
-    const userResponse = await user.getUserById(playlistResponse.data.owner);
+    const userResponse = await user.getUserById(playlistResponse.data.userId);
     if (!userResponse.success) {
       throw new NotFoundError(userResponse.reason);
     }
-    return {
-      ..._.omit(playlistResponse.data, 'coverId'),
-      coverUrl: playlistResponse.data.coverId
-        ? `${STATIC_IMAGES_PATH}/${playlistResponse.data.coverId}.jpg`
-        : null,
-      owner: _.pick(userResponse.data, ['id', 'visible_username']),
-    };
+    const playlistData = await this.getPlaylistInfo(playlistResponse.data);
+    return { ...playlistData, id: playlistResponse.data.playlistId };
   },
   async addTrackToPlaylist(playlistInfo: { playlistId: string; trackId: string; userId: string }) {
     const playlistTrackId = crypto.randomUUID();
@@ -164,14 +168,11 @@ export default {
     if (!userResponse.success) {
       throw new NotFoundError(userResponse.reason);
     }
-
-    return {
-      ..._.omit(playlistResponse.data, 'coverId'),
-      coverUrl: playlistResponse.data.coverId
-        ? `${STATIC_IMAGES_PATH}/${playlistResponse.data.coverId}.jpg`
-        : null,
-      owner: _.pick(userResponse.data, ['id', 'visible_username']),
-    };
+    const playlistData = await this.getPlaylistInfo({
+      playlistId: playlistInfo.playlistId,
+      userId: playlistInfo.userId,
+    });
+    return playlistData;
   },
   async updateRestrictionsById(
     playlistInfo: Pick<IPlaylist, 'playlistId' | 'restrictions'> & { userId: string },
@@ -185,14 +186,11 @@ export default {
     if (!userResponse.success) {
       throw new NotFoundError(userResponse.reason);
     }
-
-    return {
-      ..._.omit(playlistResponse.data, 'coverId'),
-      coverUrl: playlistResponse.data.coverId
-        ? `${STATIC_IMAGES_PATH}/${playlistResponse.data.coverId}.jpg`
-        : null,
-      owner: _.pick(userResponse.data, ['id', 'visible_username']),
-    };
+    const playlistData = await this.getPlaylistInfo({
+      playlistId: playlistInfo.playlistId,
+      userId: playlistInfo.userId,
+    });
+    return playlistData;
   },
   async updateCoverById(
     playlistInfo: Pick<IPlaylist, 'playlistId'> & { file: Express.Multer.File; userId: string },
@@ -209,12 +207,10 @@ export default {
       throw new NotFoundError(userResponse.reason);
     }
 
-    return {
-      ..._.omit(playlistResponse.data, 'coverId'),
-      coverUrl: playlistResponse.data.coverId
-        ? `${STATIC_IMAGES_PATH}/${playlistResponse.data.coverId}.jpg`
-        : null,
-      owner: _.pick(userResponse.data, ['id', 'visible_username']),
-    };
+    const playlistData = await this.getPlaylistInfo({
+      playlistId: playlistInfo.playlistId,
+      userId: playlistInfo.userId,
+    });
+    return playlistData;
   },
 };
