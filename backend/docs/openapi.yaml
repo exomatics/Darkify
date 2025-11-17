@@ -930,8 +930,6 @@ components:
               id:
                 type: string
                 format: uuid
-              visible_username:
-                type: string
         lyrics:
           type: [string, 'null']
     PutTrackRequest:
@@ -969,6 +967,7 @@ components:
           maximum: 300
         placeholder_url_covers:
           type: [array, 'null']
+          description: 'only one or 4 urls or null if no urls on tracks'
           items:
             type: string
             format: uuid
@@ -1067,6 +1066,12 @@ components:
                   description:
                     type: [string, 'null']
                     maximum: 300
+                  placeholder_url_covers:
+                    type: [array, 'null']
+                    description: 'only one or 4 urls or null if no urls on tracks'
+                    items:
+                      type: string
+                      format: uuid
                   type:
                     type: string
                     enum: ['general', 'liked_songs', 'album']

@@ -108,7 +108,9 @@ const createTrackScheme = trackScheme
   .extend({
     name: trackNameScheme,
     admin_id: uuidScheme,
-    artists: z.array(uuidScheme),
+    artists: z.array(uuidScheme).refine((items) => new Set(items).size === items.length, {
+      message: 'Must be an array of unique strings',
+    }),
     file: fileScheme.array().nullable(),
   })
   .omit({ duration: true, id: true });
@@ -121,7 +123,7 @@ const getTracksScheme = z.object({
 const updateTrackScheme = trackScheme
   .extend({
     name: trackNameScheme.optional(),
-    artists: z.array(z.string()).optional(),
+    artists: z.array(uuidScheme).optional(),
     file: fileScheme.nullable(),
   })
   .omit({ duration: true })

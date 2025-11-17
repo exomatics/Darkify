@@ -34,6 +34,8 @@ export const errorMessages = {
     PasswordNoSpecialSymbols: 'Password must have at least on special symbol !@#$%^&*',
     SpecifyUsernameOrEmail: 'Either email or username need to be filled in',
     SpecifyWhatToUpdate: 'Specify what you want to update',
+    UniqueArrayOfUuid: 'Must be an array of unique uuids',
+    ExcludeAdminId: 'Artists array shouldnt include the admin_id',
   }),
   init: Object.freeze({
     KeysAlreadyGenerated: 'Key pair already exists. Skipping generation.',

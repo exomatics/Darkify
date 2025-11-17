@@ -96,20 +96,22 @@ router.post(
     { name: 'track', maxCount: 1 },
   ]),
   asyncHandler(async (request: PostTrackRequest, response: Response) => {
+    const proccesedArtists = JSON.parse(request.body.artists ?? '[]') as string[];
     const validation = createTrackScheme.safeParse({
-      artists: JSON.parse(request.body.artists ?? '[]') as string[],
+      ...request.body,
+      artists: [...proccesedArtists, request.jwtPayload.user_id],
       admin_id: request.jwtPayload.user_id,
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       file: request.files!.cover ?? null,
-      ...request.body,
     });
     if (!validation.success) {
       throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }
     const databaseResponse = await trackController.createTrack({
+      ...validation.data,
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       id: request.trackId!,
-      ...validation.data,
+      artists: proccesedArtists,
     });
 
     response.status(200).json(databaseResponse);
