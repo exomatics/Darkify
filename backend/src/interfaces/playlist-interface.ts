@@ -41,6 +41,7 @@ export enum sortBy {
   Date = 'date_added',
   Album = 'album',
   Duration = 'duration',
+  Artist = 'artist',
   Custom = 'order',
 }
 export enum Order {

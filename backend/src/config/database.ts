@@ -53,6 +53,13 @@ database.trackModel.belongsToMany(database.playlistModel, {
   foreignKey: 'track_id',
   otherKey: 'playlist_id',
 });
+
+database.playlistTrackModel.belongsTo(database.trackModel, { foreignKey: 'track_id' });
+database.trackModel.hasMany(database.playlistTrackModel, { foreignKey: 'track_id' });
+
+database.playlistTrackModel.belongsTo(database.playlistModel, { foreignKey: 'playlist_id' });
+database.playlistModel.hasMany(database.playlistTrackModel, { foreignKey: 'playlist_id' });
+
 database.userModel.hasMany(database.userFollowersModel, { foreignKey: 'user_id' });
 database.userFollowersModel.belongsTo(database.userModel, { foreignKey: 'user_id' });
 
@@ -75,19 +82,7 @@ database.trackModel.belongsToMany(database.userModel, {
   through: database.trackArtistsModel,
   otherKey: 'artist_id',
 });
-// Связь между Playlist и PlaylistFollowers
 
-// database.userModel.belongsToMany(database.playlistModel, {
-//   foreignKey: 'user_id',
-//   through: database.playlistFollowersModel,
-//   otherKey: 'playlist_id',
-// });
-
-// database.playlistModel.belongsToMany(database.userModel, {
-//   foreignKey: 'playlist_id',
-//   through: database.playlistFollowersModel,
-//   otherKey: 'user_id',
-// });
 database.playlistModel.hasMany(database.playlistFollowersModel, { foreignKey: 'playlist_id' });
 database.playlistFollowersModel.belongsTo(database.playlistModel, { foreignKey: 'playlist_id' });
 

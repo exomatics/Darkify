@@ -21,6 +21,8 @@ import type { Result, SuccessfulResult } from '../../types/result-type.ts';
 import type { LibraryPlaylistsModel } from '../library-playlists.ts';
 import type { PlaylistTrackModel } from '../playlist-tracks.ts';
 import type { PlaylistModel } from '../playlist.ts';
+import type { TrackModel } from '../track.ts';
+import type { UserModel } from '../user.ts';
 import type { Transaction } from 'sequelize';
 
 interface PlaylistTotalCount extends PlaylistModel {
@@ -230,99 +232,60 @@ class PlaylistManager {
         items: (Pick<Itrack, 'deleted' | 'name' | 'duration'> & {
           id: string;
           playlistTrackId: string;
-          dateAdded: string;
+          dateAdded: Date | null;
           cover_url: string | null;
-          artist: { id: string; visible_username: string };
+          artists: { id: string; visible_username: string }[];
         })[];
         total: number;
       },
       typeof errorMessages.playlist.NotExistsById
     >
   > {
-    const playlistRecord = await this.getPlaylistRecordById(
-      playlistInfo.playlistId,
-      playlistInfo.userId,
-    );
-    if (!playlistRecord.success) {
-      return playlistRecord;
-    }
-    // @ts-expect-error: sequelize typing doesn't support order of this type, but it's the only way it works
-    const playlistTracks = (await database.playlistModel.findAndCountAll({
-      attributes: [
-        // 'tracks.*',
-        // 'tracks.users.*',
-        // [sequelize.col('tracks.users.id'), 'artist_id'],
-        // 'id',
-      ],
-      where: { id: playlistInfo.playlistId },
-      // attributes: { include: [sequelize.col('tracks->playlist_track.order'), 'order'] },
-      /////////////////////////////////////////////////just change database.trackModel, database.playlistTrackModel to tracks and
-      order: [
-        [
-          database.trackModel,
-          database.playlistTrackModel,
-          [sequelize.col(playlistInfo.sort.sortBy), playlistInfo.sort.order],
-        ],
-      ],
-      //sequeilize docs are not completly useless!!!
-      // plain: true,
-      raw: true,
-      // nest: true,
-      // duplicating: false,
+    type OrderItem =
+      | string
+      | typeof database.trackModel
+      | typeof database.userModel
+      | ReturnType<typeof sequelize.col>;
+
+    type PlaylistTrackInstanceWithRelations = PlaylistTrackModel & {
+      track: TrackModel & {
+        users: UserModel[];
+      };
+    };
+
+    const orderOptions: Record<string, OrderItem[]> = {
+      name: [database.trackModel, sequelize.col('name')],
+      date: [database.trackModel, sequelize.col('date_added')],
+      // album: [database.trackModel, sequelize.col('album')],
+      artist: [database.trackModel, database.userModel, sequelize.col('visible_username')],
+      duration: [database.trackModel, sequelize.col('duration')],
+      order: [sequelize.col('order')],
+    };
+
+    const playlistTracks = (await database.playlistTrackModel.findAndCountAll({
+      where: { playlist_id: playlistInfo.playlistId },
+      attributes: ['id', 'playlist_id', 'track_id', 'order', 'date_added'],
+      //@ts-expect-error: sequelize typing doesn't support order of this type, but it's the only way it works
+      order: [[...orderOptions[playlistInfo.sort.sortBy], playlistInfo.sort.order]],
       include: [
         {
-          //I can bet my tooth that it doesn't fucking work
-          //also through and attributes are fucking shit
-          required: true,
           model: database.trackModel,
-          attributes: ['deleted', 'name', 'duration', 'lyrics', 'cover_id'],
-          through: { attributes: ['id', 'date_added'] },
-          // distinct: false,
-          // duplicating: false,
-          // raw: true,
-          // nest: false,
-          include: {
-            model: database.userModel,
-            // distinct: false,
-            // duplicating: false,
-            attributes: ['visible_username'],
-          },
+          required: true,
+          attributes: ['id', 'deleted', 'name', 'duration', 'lyrics', 'cover_id'],
+          include: [
+            {
+              model: database.userModel,
+              through: { attributes: [] },
+              attributes: ['id', 'visible_username'],
+            },
+          ],
         },
-        //trackArtists and user probably will need to go to other query
-        // {
-        //   model: database.trackArtistsModel,
-        //   attributes: ['artist_id'],
-        // },
-        // {
-        //   model: database.userModel,
-        //   attributes: ['visible_username'],
-        //   through: { attributes: ['artist_id'] },
-        // },
       ],
-      subQuery: false,
       offset,
       limit,
-    })) as {
-      rows: {
-        id: string;
-        'tracks.deleted': boolean;
-        'tracks.name': string;
-        'tracks.duration': number;
-        'tracks.lyrics': string;
-        'tracks.cover_id': string;
-        'tracks.playlist_track.order': number;
-        'tracks.playlist_track.track_id': string;
-        'tracks.playlist_track.playlist_id': string;
-        'tracks.playlist_track.id': string;
-        'tracks.playlist_track.date_added': string;
-        'track.users.id': string;
-        'tracks.users.visible_username': string;
-        'tracks.users.track_artists.artist_id': string;
-        'tracks.users.track_artists.is_admin': boolean;
-        'tracks.users.track_artists.track_id': string;
-      }[];
-      count: number;
-    };
+      logging: true,
+      subQuery: false,
+    })) as { rows: PlaylistTrackInstanceWithRelations[]; count: number };
     // console.log(3);
 
     // const count = await database.playlistTrackModel.count({
@@ -331,20 +294,15 @@ class PlaylistManager {
     //add track to test
     const processedPlaylistRows = playlistTracks.rows.map((row) => {
       return {
-        deleted: row['tracks.deleted'],
-        name: row['tracks.name'],
-        duration: row['tracks.duration'],
-        lyrics: row['tracks.lyrics'],
-        cover_url: row['tracks.cover_id']
-          ? `${STATIC_IMAGES_PATH}/${row['tracks.cover_id']}.jpg`
-          : null,
-        id: row['tracks.playlist_track.track_id'],
-        playlistTrackId: row['tracks.playlist_track.id'],
-        dateAdded: row['tracks.playlist_track.date_added'],
-        artist: {
-          id: row['tracks.users.track_artists.artist_id'],
-          visible_username: row['tracks.users.visible_username'],
-        },
+        deleted: row.track.deleted ?? false,
+        name: row.track.name,
+        duration: row.track.duration,
+        lyrics: row.track.lyrics,
+        cover_url: row.track.cover_id ? `${STATIC_IMAGES_PATH}/${row.track.cover_id}.jpg` : null,
+        id: row.track_id,
+        playlistTrackId: row.id,
+        dateAdded: row.date_added ?? null,
+        artists: row.track.users,
       };
     });
     return {

@@ -1018,15 +1018,17 @@ components:
               dateAdded:
                 type: string
                 format: date
-              artist:
-                type: object
-                properties:
-                  id:
-                    type: string
-                    format: uuid
-                  visible_username:
-                    type: string
-                    maxLength: 25
+              artists:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      format: uuid
+                    visible_username:
+                      type: string
+                      maxLength: 25
     PlaylistLibraryInfo:
       type: object
       properties:

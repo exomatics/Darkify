@@ -109,7 +109,7 @@ const createTrackScheme = trackScheme
     name: trackNameScheme,
     admin_id: uuidScheme,
     artists: z.array(uuidScheme).refine((items) => new Set(items).size === items.length, {
-      message: 'Must be an array of unique strings',
+      message: errorMessages.validation.UniqueArrayOfUuid,
     }),
     file: fileScheme.array().nullable(),
   })
