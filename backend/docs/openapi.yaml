@@ -967,6 +967,11 @@ components:
         description:
           type: [string, 'null']
           maximum: 300
+        placeholder_url_covers:
+          type: [array, 'null']
+          items:
+            type: string
+            format: uuid
         cover_url:
           type: ['string', 'null']
           format: uri-reference
