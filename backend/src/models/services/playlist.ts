@@ -255,13 +255,12 @@ class PlaylistManager {
 
     const orderOptions: Record<string, OrderItem[]> = {
       name: [database.trackModel, sequelize.col('name')],
-      date: [database.trackModel, sequelize.col('date_added')],
+      date_added: [sequelize.col('date_added')],
       // album: [database.trackModel, sequelize.col('album')],
       artist: [database.trackModel, database.userModel, sequelize.col('visible_username')],
       duration: [database.trackModel, sequelize.col('duration')],
       order: [sequelize.col('order')],
     };
-
     const playlistTracks = (await database.playlistTrackModel.findAndCountAll({
       where: { playlist_id: playlistInfo.playlistId },
       attributes: ['id', 'playlist_id', 'track_id', 'order', 'date_added'],
@@ -283,11 +282,9 @@ class PlaylistManager {
       ],
       offset,
       limit,
-      logging: true,
-      subQuery: false,
+      // logging: true,
     })) as { rows: PlaylistTrackInstanceWithRelations[]; count: number };
     // console.log(3);
-
     // const count = await database.playlistTrackModel.count({
     //   where: { playlist_id: playlistInfo.playlistId },
     // });
@@ -612,7 +609,6 @@ class PlaylistManager {
       sort.sortBy === LibrarySortBy.Alphabetic
         ? [[{ model: database.playlistModel }, sort.sortBy, sort.order]]
         : [[sort.sortBy, sort.order]];
-
     const playlistRecords = (await database.libraryPlaylists.findAndCountAll({
       where: { user_id: userId },
       raw: true,
