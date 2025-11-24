@@ -655,10 +655,11 @@ class PlaylistManager {
       }[];
     }>
   > {
-    const order =
-      (sort.sortBy === LibrarySortBy.Alphabetic
+    const order = (
+      sort.sortBy === LibrarySortBy.Alphabetic
         ? [[{ model: database.playlistModel }, sort.sortBy, sort.order]]
-        : [[sort.sortBy, sort.order]]) as sequelize.Order;
+        : [[sort.sortBy, sort.order]]
+    ) as sequelize.Order;
     const playlistRecords = (await database.libraryPlaylists.findAndCountAll({
       where: { user_id: userId },
       raw: true,
