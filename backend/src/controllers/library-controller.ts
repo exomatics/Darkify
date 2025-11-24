@@ -8,6 +8,14 @@ import type { IReorder, Order } from '../interfaces/playlist-interface.ts';
 const playlist = new PlaylistManager();
 
 export default {
+  async getLibrary(userId: string, sort: { sortBy: LibrarySortBy; order: Order }) {
+    const modelResponse = await playlist.getLibrary(userId, sort);
+    return {
+      playlists: modelResponse.data.items,
+      artists: [],
+      albums: [],
+    };
+  },
   async getLibraryPlaylists(
     userId: string,
     sort: { sortBy: LibrarySortBy; order: Order },

@@ -43,6 +43,11 @@ type IPlaylistInfo = Omit<IPlaylist, 'playlistId' | 'type'> & {
   songsCount: number;
   isOwner: boolean;
 };
+type PlaylistTrackInstanceWithRelations = PlaylistTrackModel & {
+  track: TrackModel & {
+    users: UserModel[];
+  };
+};
 
 class PlaylistManager {
   async createPlaylist(
@@ -246,12 +251,6 @@ class PlaylistManager {
       typeof errorMessages.playlist.NotExistsById
     >
   > {
-    type PlaylistTrackInstanceWithRelations = PlaylistTrackModel & {
-      track: TrackModel & {
-        users: UserModel[];
-      };
-    };
-
     const playlistTracks = (await database.playlistTrackModel.findAndCountAll({
       where: { playlist_id: playlistInfo.playlistId },
       attributes: ['id', 'playlist_id', 'track_id', 'order', 'date_added'],
@@ -308,11 +307,34 @@ class PlaylistManager {
     },
     limit: number = DEFAULT_LIMIT,
     offset: number = DEFAULT_OFFSET,
-  ) {
+  ): Promise<
+    Result<
+      {
+        total: number;
+        items: {
+          playlist_track_id: string;
+          date_added?: Date | null;
+          track: Omit<Itrack, 'cover_id' | 'admin_id' | 'name' | 'artists'> & {
+            cover_url: string | null;
+            artists: UserModel[];
+            creation_date: Date | null;
+          };
+        }[];
+      },
+      typeof errorMessages.playlist.NotExistsById
+    >
+  > {
     //probably need to search through playlist
+    const playistRecord = await this.getPlaylistRecordById(
+      searchInfo.playlistId,
+      searchInfo.userId,
+    );
+    if (!playistRecord.success) {
+      return playistRecord;
+    }
     const searchPattern = `%${searchInfo.search}%`;
-    const playlistTracks = await database.playlistTrackModel.findAndCountAll({
-      // attributes: ['id'],
+    const playlistTracks = (await database.playlistTrackModel.findAndCountAll({
+      attributes: ['id', 'date_added'],
       where: {
         playlist_id: searchInfo.playlistId,
       },
@@ -355,9 +377,29 @@ class PlaylistManager {
       ],
       offset,
       limit,
-      logging: true,
+    })) as {
+      rows: PlaylistTrackInstanceWithRelations[];
+      count: number;
+    };
+    const processedPlaylistTracks = playlistTracks.rows.map((row) => {
+      return {
+        playlist_track_id: row.id,
+        ..._.omit(row.dataValues, ['order', 'id']),
+        track: {
+          ..._.omit(row.track.dataValues, ['users', 'cover_id', 'admin_id']),
+          id: row.track.id,
+          name: row.track.name,
+          lyrics: row.track.lyrics,
+          play_count: row.track.play_count,
+          deleted: row.track.deleted,
+          duration: row.track.duration,
+          creation_date: row.track.creation_date ?? null,
+          cover_url: row.track.cover_id ? `${STATIC_IMAGES_PATH}/${row.track.cover_id}.jpg` : null,
+          artists: [...row.track.users],
+        },
+      };
     });
-    return playlistTracks;
+    return { success: true, data: { items: processedPlaylistTracks, total: playlistTracks.count } };
   }
   async getPlaylistsByName(
     playlistInfo: Pick<IPlaylist, 'name'> & { userId: string },
@@ -635,8 +677,8 @@ class PlaylistManager {
   async getLibrary(
     userId: string,
     sort: { sortBy: LibrarySortBy; order: Order },
-    limit = DEFAULT_LIMIT,
-    offset = DEFAULT_OFFSET,
+    limit?: number,
+    offset?: number,
   ): Promise<
     SuccessfulResult<{
       total: number;

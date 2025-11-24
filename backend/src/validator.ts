@@ -204,6 +204,12 @@ const updateLibraryPlayDate = z.object({
     //just add albums and artists in union later
   ]),
 });
+
+const getLibraryScheme = z.object({
+  userId: uuidScheme,
+  sort: z.object({ sortBy: z.enum(LibrarySortBy), order: z.enum(Order) }),
+});
+
 const getLibraryPlaylistsScheme = z.object({
   userId: uuidScheme,
   sort: z.object({ sortBy: z.enum(LibrarySortBy), order: z.enum(Order) }),
@@ -242,6 +248,7 @@ export {
   reorderPlaylistScheme,
   deletePlaylistScheme,
   updateLibraryPlayDate,
+  getLibraryScheme,
   getLibraryPlaylistsScheme,
   searchTrackInPlaylist,
 };

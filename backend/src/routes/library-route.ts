@@ -8,7 +8,11 @@ import ValidationError from '../errors/validation-error.ts';
 import { LibrarySortBy } from '../interfaces/library-interface.ts';
 import { Order } from '../interfaces/playlist-interface.ts';
 import asyncHandler from '../middleware/async-handler.ts';
-import { getLibraryPlaylistsScheme, reorderPlaylistScheme } from '../validator.ts';
+import {
+  getLibraryPlaylistsScheme,
+  getLibraryScheme,
+  reorderPlaylistScheme,
+} from '../validator.ts';
 
 import { ROUTES } from './routes.ts';
 
@@ -40,6 +44,28 @@ router.get(
       validation.data.sort,
       validation.data.limit,
       validation.data.offset,
+    );
+    response.status(200).json(databaseResponse);
+  }),
+);
+router.get(
+  ROUTES.LIBRARY.GET_ME_LIBRARY,
+  passport.authenticate('access-token', { session: false }) as RequestHandler,
+  asyncHandler(async (request: Request, response: Response) => {
+    const validation = getLibraryScheme.safeParse({
+      userId: request.jwtPayload.user_id,
+      sort: {
+        sortBy: request.query.sort ?? LibrarySortBy.Custom,
+        order: request.query.order ?? Order.Asc,
+      },
+    });
+    // console.log(request.jwtPayload.user_id, validation.data);
+    if (!validation.success) {
+      throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
+    }
+    const databaseResponse = await libraryController.getLibrary(
+      validation.data.userId,
+      validation.data.sort,
     );
     response.status(200).json(databaseResponse);
   }),

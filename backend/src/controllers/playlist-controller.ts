@@ -212,7 +212,7 @@ export default {
     });
     return playlistData;
   },
-  searchForPlaylistTrack(
+  async searchForPlaylistTrack(
     searchInfo: {
       search: string;
       playlistId: string;
@@ -222,7 +222,10 @@ export default {
     limit: number = DEFAULT_LIMIT,
     offset: number = DEFAULT_OFFSET,
   ) {
-    const trackRecords = playlist.searchForPlaylistTrack(searchInfo, limit, offset);
-    return trackRecords;
+    const modelResponse = await playlist.searchForPlaylistTrack(searchInfo, limit, offset);
+    if (!modelResponse.success) {
+      throw new NotFoundError(modelResponse.reason);
+    }
+    return modelResponse;
   },
 };

@@ -57,6 +57,7 @@ export const ROUTES = Object.freeze({
     DELETE_PLAYLIST: `${API_BASE}/playlists/:playlistId`,
   },
   LIBRARY: {
+    GET_ME_LIBRARY: `${API_BASE}/me/library`,
     GET_ME_PLAYLISTS: `${API_BASE}/me/library/playlists`,
     PUT_PLAYLISTS_REORDER: `${API_BASE}/me/library/playlists/:playlistId/reorder`,
   },

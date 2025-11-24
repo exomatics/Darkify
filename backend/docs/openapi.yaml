@@ -738,6 +738,93 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
+  /search/playlists/{playlistId}/tracks:
+    get:
+      tags: [Playlist]
+      parameters:
+        - in: query
+          name: search
+          description: 'name of the playlist, artist name or a part from the lyrics. search by album name is not implemented yet'
+          schema:
+            type: string
+            maxLength: 100
+        - $ref: '#/components/parameters/PaginationLimitParameter'
+        - $ref: '#/components/parameters/PaginationOffsetParameter'
+      requestBody:
+        description: sortBy date_added is default
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sort:
+                  type: object
+                  properties:
+                    sortBy:
+                      type: string
+                      default: 'order'
+                      enum: [date_added, date_played, name, order]
+                    order:
+                      type: string
+                      default: 'DESC'
+                      enum: [ASC, DESC]
+      responses:
+        '200':
+          description: playlist tracks
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: object
+                    properties:
+                      playlist_track_id:
+                        type: string
+                        format: uuid
+                      date_added:
+                        type: string
+                        format: date
+                      track:
+                        $ref: '#/components/schemas/TrackInfo'
+
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /me/library:
+    get:
+      tags: [Library]
+      description: 'get user library'
+      requestBody:
+        description: sortBy date_added is default. album and artists are not implemented yet
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sort:
+                  type: object
+                  properties:
+                    sortBy:
+                      type: string
+                      default: 'date_added'
+                      enum: [date_added, date_played, name, order]
+                    order:
+                      type: string
+                      default: 'DESC'
+                      enum: [ASC, DESC]
+      responses:
+        '200':
+          description: user library
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LibraryInfo'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
   /me/library/playlists:
     get:
       tags: [Library]
@@ -769,7 +856,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PlaylistLibraryInfo'
+                type: object
+                properties:
+                  items:
+                    allOf:
+                      - $ref: '#/components/schemas/PlaylistLibraryInfo'
+                  total:
+                    type: number
         '400':
           $ref: '#/components/responses/ValidationError'
         '401':
@@ -1030,53 +1123,58 @@ components:
                       type: string
                       maxLength: 25
     PlaylistLibraryInfo:
-      type: object
-      properties:
-        total:
-          type: number
-        items:
-          type: array
-          items:
+      type: array
+      items:
+        type: object
+        properties:
+          date_played:
+            type: string
+            format: date
+          date_added:
+            type: string
+            format: date
+          playlists:
             type: object
             properties:
-              date_played:
+              id:
                 type: string
-                format: date
-              date_added:
+                format: uuid
+              name:
                 type: string
-                format: date
-              playlists:
+                maxLength: 100
+              owner:
                 type: object
                 properties:
                   id:
                     type: string
                     format: uuid
-                  name:
+                  visible_username:
                     type: string
-                    maxLength: 100
-                  owner:
-                    type: object
-                    properties:
-                      id:
-                        type: string
-                        format: uuid
-                      visible_username:
-                        type: string
-                  cover_url:
-                    type: ['string', 'null']
-                    format: uri-reference
-                  description:
-                    type: [string, 'null']
-                    maximum: 300
-                  placeholder_url_covers:
-                    type: [array, 'null']
-                    description: 'only one or 4 urls or null if no urls on tracks'
-                    items:
-                      type: string
-                      format: uuid
-                  type:
-                    type: string
-                    enum: ['general', 'liked_songs', 'album']
+              cover_url:
+                type: ['string', 'null']
+                format: uri-reference
+              description:
+                type: [string, 'null']
+                maximum: 300
+              placeholder_url_covers:
+                type: [array, 'null']
+                description: 'only one or 4 urls or null if no urls on tracks'
+                items:
+                  type: string
+                  format: uuid
+              type:
+                type: string
+                enum: ['general', 'liked_songs', 'album']
+    LibraryInfo:
+      type: object
+      properties:
+        playlists:
+          allOf:
+            - $ref: '#/components/schemas/PlaylistLibraryInfo'
+        albums:
+          type: array
+        artists:
+          type: array
     ReorderRequestBody:
       type: object
       properties:
