@@ -697,15 +697,15 @@ class PlaylistManager {
       }[];
     }>
   > {
-    const order =
+    const order = (
       sort.sortBy === LibrarySortBy.Alphabetic
         ? [[{ model: database.playlistModel }, sort.sortBy, sort.order]]
-        : [[sort.sortBy, sort.order]];
+        : [[sort.sortBy, sort.order]]
+    ) as sequelize.Order;
     const playlistRecords = (await database.libraryPlaylists.findAndCountAll({
       where: { user_id: userId },
       raw: true,
       nest: true,
-      // @ts-expect-error: sequelize typing doesn't support order of this type, but it's the only way it works
       order,
       include: [
         {
