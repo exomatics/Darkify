@@ -265,11 +265,6 @@ class UserManager {
           { transaction },
         );
         await playlist.createLibraryRecord(user_id, playlist_id, transaction);
-        await database.playlistModel.update(
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          { tracks_count: playlistRecord.data.tracks_count! + 1 },
-          { where: { id: playlistRecord.data.id }, transaction },
-        );
       });
     } catch {
       throw new InternalError('failed to follow the playlist');
@@ -299,11 +294,6 @@ class UserManager {
       await database.sequelize.transaction(async (transaction) => {
         await playlistFollowersRecord.destroy({ transaction });
         await playlist.deleteLibraryRecord(user_id, playlist_id, transaction);
-        await database.playlistModel.update(
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          { tracks_count: playlistRecord.data.tracks_count! - 1 },
-          { where: { id: playlistRecord.data.id }, transaction },
-        );
       });
     } catch {
       throw new InternalError('failed to follow the playlist');

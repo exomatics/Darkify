@@ -44,4 +44,4 @@ function issueBothTokens(userInfo: { user_id: string; hash: string }) {
   const refreshTokenObject = issueRefreshToken(userInfo);
   return { accessToken: accessTokenObject, refreshToken: refreshTokenObject };
 }
-export { issueAccessToken, issueRefreshToken, issueBothTokens };
+export { issueAccessToken, issueBothTokens };

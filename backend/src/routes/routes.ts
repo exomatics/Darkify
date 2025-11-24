@@ -43,6 +43,7 @@ export const ROUTES = Object.freeze({
     GET_PLAYLIST: `${API_BASE}/playlists/:playlistId`,
     GET_PLAYLIST_COVER: `${API_BASE}/playlists/:playlistId/cover`,
     GET_PLAYLIST_TRACKS: `${API_BASE}/playlists/:playlistId/tracks`,
+    GET_SEARCH_PLAYLIST_TRACKS: `${API_BASE}/search/playlists/:playlistId/tracks`,
     GET_PLAYLISTS: `${API_BASE}/playlists/`,
     // GET_LIKED_SONGS_INFO: `${API_BASE}/collection`,
     // GET_LIKED_SONGS_TRACKS: `${API_BASE}/collection/tracks`,

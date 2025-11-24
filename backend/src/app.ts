@@ -44,9 +44,7 @@ app.use(rateLimiters.globalLimiter);
 app.use('/swagger', swaggerUi.serve, swaggerUi.setup(openapiDocument));
 app.use('/docs', express.static(PATH_TO_OPENAPI));
 app.use(STATIC_DIRECTORY_PATH, express.static(PATH_TO_UPLOADS));
-// eslint-disable-next-line security/detect-non-literal-regexp
 app.use(new RegExp(`${STATIC_IMAGES_PATH}.*`), rateLimiters.filesLimiter);
-// eslint-disable-next-line security/detect-non-literal-regexp
 app.use(new RegExp(`${STATIC_AUDIO_PATH}.*/.*/.*`), rateLimiters.filesLimiter);
 
 passportConfiguration(passport);

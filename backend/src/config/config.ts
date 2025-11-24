@@ -1,8 +1,15 @@
 import path from 'node:path';
 
+import sequelize from 'sequelize';
+
 import { Bitrate } from '../types/bitrate-type.ts';
+
+import database from './database.ts';
+
+import type { OrderItem } from '../interfaces/playlist-interface.ts';
+
 const __dirname = import.meta.dirname;
-export const PROJECT_ROOT = path.join(__dirname, '..', '..');
+const PROJECT_ROOT = path.join(__dirname, '..', '..');
 export const PUBLIC_KEY_FILE_NAME = 'id_rsa_pub.pem';
 export const PRIVATE_KEY_FILE_NAME = 'id_rsa_priv.pem';
 export const PATH_TO_KEYS = path.join(PROJECT_ROOT, 'keys');
@@ -32,4 +39,13 @@ export const BITRATE_OPTIONS = {
   [Bitrate.High]: '160',
   [Bitrate.VeryHigh]: '320',
   [Bitrate.Auto]: 'auto',
+};
+
+export const playlistOrderOptions: Record<string, OrderItem[]> = {
+  name: [database.trackModel, sequelize.col('name')],
+  date_added: [sequelize.col('date_added')],
+  // album: [database.trackModel, sequelize.col('album')],
+  artist: [database.trackModel, database.userModel, sequelize.col('visible_username')],
+  duration: [database.trackModel, sequelize.col('duration')],
+  order: [sequelize.col('order')],
 };

@@ -3,7 +3,7 @@ import _ from 'lodash';
 import { DEFAULT_LIMIT, DEFAULT_OFFSET, STATIC_IMAGES_PATH } from '../config/config.ts';
 import NotFoundError from '../errors/not-found-error.ts';
 import ValidationError from '../errors/validation-error.ts';
-import { sortBy, Order } from '../interfaces/playlist-interface.ts';
+import { PlaylistSortBy, Order } from '../interfaces/playlist-interface.ts';
 import { FileUploader } from '../models/services/file-management.ts';
 import PlaylistManager from '../models/services/playlist.ts';
 import UserManager from '../models/services/user.ts';
@@ -32,12 +32,11 @@ export default {
     }
     let placeholderUrlCovers: string[] = [];
     const playlistTracks = await this.getPlaylistTracks(
-      { ...playlistInfo, sort: { sortBy: sortBy.Date, order: Order.Asc } },
+      { ...playlistInfo, sort: { sortBy: PlaylistSortBy.Date, order: Order.Asc } },
       4,
       0,
     );
 
-    // eslint-disable-next-line github/array-foreach, unicorn/no-array-for-each
     playlistTracks.items.forEach((playlistTrack) => {
       if (playlistTrack.cover_url === null) {
         return;
@@ -78,7 +77,7 @@ export default {
     playlistInfo: {
       playlistId: string;
       userId: string;
-      sort: { sortBy: sortBy; order: Order };
+      sort: { sortBy: PlaylistSortBy; order: Order };
     },
     limit: number = DEFAULT_LIMIT,
     offset: number = DEFAULT_OFFSET,
@@ -212,5 +211,18 @@ export default {
       userId: playlistInfo.userId,
     });
     return playlistData;
+  },
+  searchForPlaylistTrack(
+    searchInfo: {
+      search: string;
+      playlistId: string;
+      userId: string;
+      sort: { sortBy: PlaylistSortBy; order: Order };
+    },
+    limit: number = DEFAULT_LIMIT,
+    offset: number = DEFAULT_OFFSET,
+  ) {
+    const trackRecords = playlist.searchForPlaylistTrack(searchInfo, limit, offset);
+    return trackRecords;
   },
 };

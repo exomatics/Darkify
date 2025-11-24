@@ -101,16 +101,14 @@ router.post(
       ...request.body,
       artists: [...proccesedArtists, request.jwtPayload.user_id],
       admin_id: request.jwtPayload.user_id,
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      file: request.files!.cover ?? null,
+      file: request.files?.cover ?? null,
     });
     if (!validation.success) {
       throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }
     const databaseResponse = await trackController.createTrack({
       ...validation.data,
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      id: request.trackId!,
+      id: request.trackId ?? '',
       artists: proccesedArtists,
     });
 

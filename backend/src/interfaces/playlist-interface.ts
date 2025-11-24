@@ -1,3 +1,6 @@
+import type database from '../config/database.ts';
+import type sequelize from 'sequelize';
+
 export enum Restrictions {
   Public = 'public',
   Private = 'private',
@@ -36,7 +39,7 @@ export enum Type {
   Liked = 'liked_songs',
   Album = 'album',
 }
-export enum sortBy {
+export enum PlaylistSortBy {
   Title = 'name',
   Date = 'date_added',
   Album = 'album',
@@ -48,3 +51,9 @@ export enum Order {
   Asc = 'ASC',
   Desc = 'DESC',
 }
+
+export type OrderItem =
+  | string
+  | typeof database.trackModel
+  | typeof database.userModel
+  | ReturnType<typeof sequelize.col>;

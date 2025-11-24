@@ -3,12 +3,17 @@ import crypto from 'node:crypto';
 import _ from 'lodash';
 import sequelize, { Op } from 'sequelize';
 
-import { DEFAULT_LIMIT, DEFAULT_OFFSET, STATIC_IMAGES_PATH } from '../../config/config.ts';
+import {
+  DEFAULT_LIMIT,
+  DEFAULT_OFFSET,
+  playlistOrderOptions,
+  STATIC_IMAGES_PATH,
+} from '../../config/config.ts';
 import database from '../../config/database.ts';
 import { errorMessages } from '../../errors/error-messages.ts';
 import InternalError from '../../errors/internal-error.ts';
 import { LibrarySortBy } from '../../interfaces/library-interface.ts';
-import { Type, Restrictions, sortBy, Order } from '../../interfaces/playlist-interface.ts';
+import { Type, Restrictions, PlaylistSortBy, Order } from '../../interfaces/playlist-interface.ts';
 
 import type {
   ICreatePlaylist,
@@ -45,16 +50,15 @@ class PlaylistManager {
   ): Promise<
     Result<{ playlistId: string; userId: string }, typeof errorMessages.playlist.NotExistsById>
   > {
-    let playlistRecord;
+    let playlistRecord: Partial<PlaylistModel> = {};
     try {
       await database.sequelize.transaction(async (transaction) => {
         const playlistCount = await database.playlistModel.count({
           where: { owner: playlistInfo.owner },
           transaction,
         });
-        // eslint-disable-next-line i18n-text/no-en
         const defaultPlaylistName = `My Playlist ${String(playlistCount + 1)}`;
-        playlistRecord = await database.playlistModel.create(
+        const localPlaylistRecord = await database.playlistModel.create(
           {
             id: crypto.randomUUID(),
             name: playlistInfo.name ?? defaultPlaylistName,
@@ -66,15 +70,19 @@ class PlaylistManager {
           },
           { transaction },
         );
-        await this.createLibraryRecord(playlistRecord.owner, playlistRecord.id, transaction);
+        await this.createLibraryRecord(
+          localPlaylistRecord.owner,
+          localPlaylistRecord.id,
+          transaction,
+        );
+        playlistRecord = localPlaylistRecord;
       });
     } catch {
       throw new InternalError('failed to create playlist');
     }
     return {
       success: true,
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-unsafe-member-access
-      data: { playlistId: playlistRecord!.id, userId: playlistRecord!.owner },
+      data: { playlistId: playlistRecord.id ?? '', userId: playlistRecord.owner ?? '' },
     };
   }
   async deletePlaylist(playlistInfo: {
@@ -139,27 +147,25 @@ class PlaylistManager {
     }
     try {
       await database.sequelize.transaction(async (transaction) => {
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-        const maxOrder = (await database.playlistTrackModel.max('order', {
+        const maxOrder = await database.playlistTrackModel.max('order', {
           where: {
             playlist_id: playlistTrackInfo.playlistId,
             [Op.and]: [
               sequelize.where(sequelize.fn('MOD', sequelize.col('order'), '100'), '=', '0'),
             ],
           },
-        })) as number | null;
+        });
         await database.playlistTrackModel.create(
           {
             playlist_id: playlistTrackInfo.playlistId,
             id: playlistTrackInfo.playlistTrackId,
             track_id: playlistTrackInfo.trackId,
-            order: maxOrder === null ? 100 : maxOrder + 100,
+            order: typeof maxOrder === 'number' ? maxOrder + 100 : 100,
           },
           { transaction },
         );
         await database.playlistModel.update(
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          { tracks_count: playlistRecord.data.tracks_count! + 1 },
+          { tracks_count: (playlistRecord.data.tracks_count ?? 0) + 1 },
           { where: { id: playlistRecord.data.id }, transaction },
         );
       });
@@ -205,8 +211,7 @@ class PlaylistManager {
         await playlistTrackRecord.destroy({ transaction });
 
         await database.playlistModel.update(
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          { tracks_count: playlistRecord.data.tracks_count! - 1 },
+          { tracks_count: (playlistRecord.data.tracks_count ?? 0) - 1 },
           { where: { id: playlistRecord.data.id }, transaction },
         );
       });
@@ -222,7 +227,7 @@ class PlaylistManager {
     playlistInfo: {
       playlistId: string;
       userId: string;
-      sort: { sortBy: sortBy; order: Order };
+      sort: { sortBy: PlaylistSortBy; order: Order };
     },
     limit: number = DEFAULT_LIMIT,
     offset: number = DEFAULT_OFFSET,
@@ -241,31 +246,18 @@ class PlaylistManager {
       typeof errorMessages.playlist.NotExistsById
     >
   > {
-    type OrderItem =
-      | string
-      | typeof database.trackModel
-      | typeof database.userModel
-      | ReturnType<typeof sequelize.col>;
-
     type PlaylistTrackInstanceWithRelations = PlaylistTrackModel & {
       track: TrackModel & {
         users: UserModel[];
       };
     };
 
-    const orderOptions: Record<string, OrderItem[]> = {
-      name: [database.trackModel, sequelize.col('name')],
-      date_added: [sequelize.col('date_added')],
-      // album: [database.trackModel, sequelize.col('album')],
-      artist: [database.trackModel, database.userModel, sequelize.col('visible_username')],
-      duration: [database.trackModel, sequelize.col('duration')],
-      order: [sequelize.col('order')],
-    };
     const playlistTracks = (await database.playlistTrackModel.findAndCountAll({
       where: { playlist_id: playlistInfo.playlistId },
       attributes: ['id', 'playlist_id', 'track_id', 'order', 'date_added'],
       //@ts-expect-error: sequelize typing doesn't support order of this type, but it's the only way it works
-      order: [[...orderOptions[playlistInfo.sort.sortBy], playlistInfo.sort.order]],
+      order: [[...playlistOrderOptions[playlistInfo.sort.sortBy], playlistInfo.sort.order]],
+      distinct: true,
       include: [
         {
           model: database.trackModel,
@@ -306,6 +298,66 @@ class PlaylistManager {
       success: true,
       data: { total: playlistTracks.count, items: processedPlaylistRows },
     };
+  }
+  async searchForPlaylistTrack(
+    searchInfo: {
+      search: string;
+      playlistId: string;
+      userId: string;
+      sort: { sortBy: PlaylistSortBy; order: Order };
+    },
+    limit: number = DEFAULT_LIMIT,
+    offset: number = DEFAULT_OFFSET,
+  ) {
+    //probably need to search through playlist
+    const searchPattern = `%${searchInfo.search}%`;
+    const playlistTracks = await database.playlistTrackModel.findAndCountAll({
+      // attributes: ['id'],
+      where: {
+        playlist_id: searchInfo.playlistId,
+      },
+      //@ts-expect-error: sequelize typing doesn't support order of this type, but it's the only way it works
+      order: [[...playlistOrderOptions[searchInfo.sort.sortBy], searchInfo.sort.order]],
+      distinct: true,
+      // group: ['id', 'playlist_id', 'track_id', 'order'],
+      include: [
+        {
+          model: database.trackModel,
+          // required: false,
+          where: {
+            [Op.or]: [
+              { name: { [Op.iLike]: searchPattern } },
+              { lyrics: { [Op.iLike]: searchPattern } },
+              sequelize.literal(`
+                EXISTS (
+                  SELECT 1
+                  FROM "track_artists" ta
+                  JOIN "users" u ON u.id = ta.artist_id
+                  WHERE ta.track_id = "track"."id"
+                    AND u.visible_username ILIKE ${database.sequelize.escape(searchPattern)}
+                )
+              `),
+            ],
+            // [(database.userModel, sequelize.col('visible_username'))]: {
+            //   [Op.iLike]: searchInfo.search,
+            // },
+          },
+          include: [
+            {
+              model: database.userModel,
+              attributes: ['id', 'visible_username'],
+              through: { attributes: [] },
+              // where: { visible_username: { [Op.iLike]: `%${searchInfo.search}%` } },
+              // required: false,
+            },
+          ],
+        },
+      ],
+      offset,
+      limit,
+      logging: true,
+    });
+    return playlistTracks;
   }
   async getPlaylistsByName(
     playlistInfo: Pick<IPlaylist, 'name'> & { userId: string },
@@ -361,7 +413,7 @@ class PlaylistManager {
           {
             playlistId: playlistRecord.id,
             userId: playlistInfo.userId,
-            sort: { sortBy: sortBy.Date, order: Order.Asc },
+            sort: { sortBy: PlaylistSortBy.Date, order: Order.Asc },
           },
           4,
           0,
@@ -369,8 +421,6 @@ class PlaylistManager {
         if (!playlistTracks.success) {
           throw new InternalError('I dont know');
         }
-
-        // eslint-disable-next-line github/array-foreach, unicorn/no-array-for-each
         playlistTracks.data.items.forEach((playlistTrack) => {
           if (playlistTrack.cover_url === null) {
             return;
@@ -657,7 +707,7 @@ class PlaylistManager {
           {
             playlistId: playlistLibraryRecord.playlist_id,
             userId: playlistLibraryRecord.user_id,
-            sort: { sortBy: sortBy.Date, order: Order.Asc },
+            sort: { sortBy: PlaylistSortBy.Date, order: Order.Asc },
           },
           4,
           0,
@@ -666,7 +716,6 @@ class PlaylistManager {
           throw new InternalError('I dont know');
         }
 
-        // eslint-disable-next-line github/array-foreach, unicorn/no-array-for-each
         playlistTracks.data.items.forEach((playlistTrack) => {
           if (playlistTrack.cover_url === null) {
             return;
@@ -706,19 +755,18 @@ class PlaylistManager {
     };
   }
   async createLibraryRecord(userId: string, playlistId: string, transaction: Transaction) {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-    const maxOrder = (await database.libraryPlaylists.max('order', {
+    const maxOrder = await database.libraryPlaylists.max('order', {
       where: {
         user_id: userId,
         [Op.and]: [sequelize.where(sequelize.fn('MOD', sequelize.col('order'), '100'), '=', '0')],
       },
       transaction,
-    })) as number | null;
+    });
     await database.libraryPlaylists.create(
       {
         playlist_id: playlistId,
         user_id: userId,
-        order: maxOrder === null ? 100 : maxOrder + 100,
+        order: typeof maxOrder === 'number' ? maxOrder + 100 : 100,
       },
       { transaction },
     );
@@ -788,17 +836,14 @@ class PlaylistManager {
     let newOrder;
     if (toIndexPlaylistRecord || afterPlaylistRecord) {
       newOrder = Math.floor(
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion , @typescript-eslint/no-unnecessary-type-assertion
-        (toIndexPlaylistRecord!.data!.order + afterPlaylistRecord!.order) / 2,
+        ((toIndexPlaylistRecord?.data?.order ?? 0) + (afterPlaylistRecord?.order ?? 0)) / 2,
       );
     }
     if (libraryInfo.toIndex === 0) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion , @typescript-eslint/no-unnecessary-type-assertion
-      newOrder = Math.floor(toIndexPlaylistRecord!.data!.order / 2);
+      newOrder = Math.floor((toIndexPlaylistRecord?.data?.order ?? 0) / 2);
     }
     if (afterPlaylistRecord === null || libraryInfo.toIndex === -1) {
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-      const maxOrder = (await database.libraryPlaylists.max('order', {
+      const maxOrder = await database.libraryPlaylists.max('order', {
         where: {
           [Op.and]: {
             user_id: libraryInfo.userId,
@@ -807,8 +852,8 @@ class PlaylistManager {
             ],
           },
         },
-      })) as number | null;
-      newOrder = maxOrder === null ? 0 : maxOrder + 100;
+      });
+      newOrder = typeof maxOrder === 'number' ? maxOrder + 100 : 0;
     }
     const collision = await database.libraryPlaylists.findOne({
       where: {
@@ -910,17 +955,14 @@ class PlaylistManager {
     let newOrder;
     if (toIndexPlaylistRecord || afterPlaylistTrackRecord) {
       newOrder = Math.floor(
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion , @typescript-eslint/no-unnecessary-type-assertion
-        (toIndexPlaylistRecord!.data!.order + afterPlaylistTrackRecord!.order) / 2,
+        ((toIndexPlaylistRecord?.data?.order ?? 0) + (afterPlaylistTrackRecord?.order ?? 0)) / 2,
       );
     }
     if (playlistInfo.toIndex === 0) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion , @typescript-eslint/no-unnecessary-type-assertion
-      newOrder = Math.floor(toIndexPlaylistRecord!.data!.order / 2);
+      newOrder = Math.floor((toIndexPlaylistRecord?.data?.order ?? 0) / 2);
     }
     if (afterPlaylistTrackRecord === null || playlistInfo.toIndex === -1) {
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-      const maxOrder = (await database.playlistTrackModel.max('order', {
+      const maxOrder = await database.playlistTrackModel.max('order', {
         where: {
           [Op.and]: {
             playlist_id: playlistInfo.playlistId,
@@ -929,8 +971,8 @@ class PlaylistManager {
             ],
           },
         },
-      })) as number | null;
-      newOrder = maxOrder === null ? 0 : maxOrder + 100;
+      });
+      newOrder = typeof maxOrder === 'number' ? maxOrder + 100 : 0;
     }
 
     const collision = await database.playlistTrackModel.findOne({

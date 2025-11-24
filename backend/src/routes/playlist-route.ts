@@ -4,7 +4,7 @@ import { z } from 'zod/v4';
 
 import playlistController from '../controllers/playlist-controller.ts';
 import ValidationError from '../errors/validation-error.ts';
-import { Order, Restrictions, sortBy } from '../interfaces/playlist-interface.ts';
+import { Order, Restrictions, PlaylistSortBy } from '../interfaces/playlist-interface.ts';
 import asyncHandler from '../middleware/async-handler.ts';
 import { FileUploader } from '../models/services/file-management.ts';
 import {
@@ -19,6 +19,7 @@ import {
   updatePlaylistRestrictions,
   updatePlaylistCoverScheme,
   deletePlaylistScheme,
+  searchTrackInPlaylist,
 } from '../validator.ts';
 
 import { ROUTES } from './routes.ts';
@@ -84,7 +85,7 @@ router.get(
       playlistId: request.params.playlistId,
       userId: request.jwtPayload.user_id,
       sort: {
-        sortBy: request.query.sort ?? sortBy.Custom,
+        sortBy: request.query.sort ?? PlaylistSortBy.Custom,
         order: request.query.order ?? Order.Desc,
       },
       //final test of sorting and ordering
@@ -130,7 +131,40 @@ router.get(
     response.status(200).json(databaseResponse);
   }),
 );
-export type PostPlaylistRequest = Request<ParamsDictionary, unknown, ICreatePlaylist | null>;
+router.get(
+  ROUTES.PLAYLISTS.GET_SEARCH_PLAYLIST_TRACKS,
+  passport.authenticate('access-token', { session: false }) as RequestHandler,
+  asyncHandler(async (request: Request, response: Response) => {
+    const validation = searchTrackInPlaylist.safeParse({
+      userId: request.jwtPayload.user_id,
+      playlistId: request.params.playlistId,
+      search: request.query.search,
+      sort: {
+        sortBy: request.query.sort ?? PlaylistSortBy.Custom,
+        order: request.query.order ?? Order.Desc,
+      },
+      limit: +(request.query.limit ?? 5),
+      offset: +(request.query.offset ?? 0),
+    });
+
+    if (!validation.success) {
+      throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
+    }
+
+    const databaseResponse = await playlistController.searchForPlaylistTrack(
+      {
+        search: validation.data.search,
+        playlistId: validation.data.playlistId,
+        userId: validation.data.userId,
+        sort: validation.data.sort,
+      },
+      validation.data.limit,
+      validation.data.offset,
+    );
+    response.status(200).json(databaseResponse);
+  }),
+);
+type PostPlaylistRequest = Request<ParamsDictionary, unknown, ICreatePlaylist | null>;
 router.post(
   ROUTES.PLAYLISTS.POST_PLAYLIST,
   passport.authenticate('access-token', { session: false }) as RequestHandler,

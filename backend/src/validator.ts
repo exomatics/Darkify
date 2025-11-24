@@ -1,10 +1,8 @@
 import { z } from 'zod/v4';
 
-import database from './config/database.ts';
 import { errorMessages } from './errors/error-messages.ts';
-import NotFoundError from './errors/not-found-error.ts';
 import { LibrarySortBy } from './interfaces/library-interface.ts';
-import { Restrictions, Type, Order, sortBy } from './interfaces/playlist-interface.ts';
+import { Restrictions, Type, Order, PlaylistSortBy } from './interfaces/playlist-interface.ts';
 import { LibrarySections } from './interfaces/user-interface.ts';
 import { Bitrate } from './types/bitrate-type.ts';
 
@@ -29,13 +27,6 @@ const hashScheme = z
   .length(128);
 const usernameScheme = z.string().max(25);
 const emailScheme = z.email();
-const userIdScheme = uuidScheme.refine(async (user_id) => {
-  const fullUserInfo = await database.userModel.findByPk(user_id);
-  if (!fullUserInfo) {
-    throw new NotFoundError(errorMessages.user.NotExistsById);
-  }
-  return true;
-});
 const passwordScheme = z
   .string()
   .min(8)
@@ -190,7 +181,7 @@ const updatePlaylistCoverScheme = z.object({
 const getAllFromPlaylistScheme = z.object({
   playlistId: uuidScheme,
   userId: uuidScheme,
-  sort: z.object({ sortBy: z.enum(sortBy), order: z.enum(Order) }),
+  sort: z.object({ sortBy: z.enum(PlaylistSortBy), order: z.enum(Order) }),
   ...paginationScheme.shape,
 });
 const deletePlaylistScheme = z.object({
@@ -218,6 +209,13 @@ const getLibraryPlaylistsScheme = z.object({
   sort: z.object({ sortBy: z.enum(LibrarySortBy), order: z.enum(Order) }),
   ...paginationScheme.shape,
 });
+const searchTrackInPlaylist = z.object({
+  userId: uuidScheme,
+  playlistId: uuidScheme,
+  search: z.string().max(100).nonoptional(),
+  sort: z.object({ sortBy: z.enum(PlaylistSortBy), order: z.enum(Order) }),
+  ...paginationScheme.shape,
+});
 export {
   uuidScheme,
   loginScheme,
@@ -225,7 +223,6 @@ export {
   registerScheme,
   updateUserScheme,
   updateUserSettingsScheme,
-  userIdScheme,
   userFollowScheme,
   playlistFollowScheme,
   userAvatarScheme,
@@ -246,4 +243,5 @@ export {
   deletePlaylistScheme,
   updateLibraryPlayDate,
   getLibraryPlaylistsScheme,
+  searchTrackInPlaylist,
 };
