@@ -13,11 +13,12 @@ import {
   playlistFollowScheme,
   userAvatarScheme,
   updateUserSettingsScheme,
+  updateLibraryPlayDate,
 } from '../validator.ts';
 
 import { ROUTES } from './routes.ts';
 
-import type { IUser } from '../interfaces/user-interface.ts';
+import type { IUser, UpdateLibraryPlayDate } from '../interfaces/user-interface.ts';
 import type { Request, RequestHandler, Response } from 'express';
 import type { ParamsDictionary } from 'express-serve-static-core';
 
@@ -85,6 +86,7 @@ router.get(
     response.status(200).json(databaseResponse);
   }),
 );
+
 router.put(
   ROUTES.USERS.PUT_ME,
   passport.authenticate('access-token', { session: false }) as RequestHandler,
@@ -199,13 +201,36 @@ router.post(
     if (!validation.success) {
       throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }
-    //pW9(_%1]
     const databaseResponse = await userController.unfollowPlaylist(
       validation.data.user_id,
       validation.data.playlist_id,
     );
     response.status(200).json(databaseResponse);
   }),
+);
+router.post(
+  ROUTES.USERS.PUT_EVENTS_PLAYED,
+  passport.authenticate('access-token', { session: false }) as RequestHandler,
+  asyncHandler(
+    async (
+      request: Request<ParamsDictionary, unknown, { event_data: UpdateLibraryPlayDate }>,
+      response: Response,
+    ) => {
+      const validation = updateLibraryPlayDate.safeParse({
+        user_id: request.jwtPayload.user_id,
+        event_data: request.body.event_data,
+      });
+      if (!validation.success) {
+        throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
+      }
+      //pW9(_%1]
+      const databaseResponse = await userController.updateLibraryPlayDate(
+        validation.data.user_id,
+        validation.data.event_data,
+      );
+      response.status(200).json(databaseResponse);
+    },
+  ),
 );
 router.put(
   ROUTES.USERS.PUT_ME_AVATAR,

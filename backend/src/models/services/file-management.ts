@@ -81,7 +81,7 @@ class FileUploader {
     const fileName = crypto.randomUUID();
     const pathToFile = path.join(PATH_TO_IMAGES, `${fileName}.jpg`);
     await sharp(file.buffer).toFormat('jpg').toFile(pathToFile);
-    return { success: true, data: fileName };
+    return fileName;
   }
   uploadTrackMiddleware = multer({
     storage: multer.diskStorage({

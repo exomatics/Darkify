@@ -2,39 +2,37 @@ import { DataTypes, Model } from 'sequelize';
 
 import type { InferAttributes, InferCreationAttributes, Sequelize } from 'sequelize';
 
-class PlaylistTrackModel extends Model<
-  InferAttributes<PlaylistTrackModel>,
-  InferCreationAttributes<PlaylistTrackModel>
+class LibraryPlaylistsModel extends Model<
+  InferAttributes<LibraryPlaylistsModel>,
+  InferCreationAttributes<LibraryPlaylistsModel>
 > {
   declare playlist_id: string;
-  declare track_id: string;
+  declare user_id: string;
+  declare date_added?: string;
+  declare date_played?: string;
   declare order: number;
-  declare date_added?: Date;
-  declare id: string;
 }
-const playlistTrackModel = (sequelize: Sequelize) => {
-  return sequelize.define<PlaylistTrackModel>(
-    'playlist_track',
+const libraryPlaylists = (sequelize: Sequelize) => {
+  return sequelize.define<LibraryPlaylistsModel>(
+    'library_playlists',
     {
-      id: {
-        type: DataTypes.UUID,
-        allowNull: false,
-        unique: true,
-        primaryKey: true,
-      },
       playlist_id: {
         type: DataTypes.UUID,
         allowNull: false,
         primaryKey: true,
+        // unique: 'compositeIndex',
       },
-      track_id: {
+      user_id: {
         type: DataTypes.UUID,
         allowNull: false,
         primaryKey: true,
+        // unique: 'compositeIndex',
+      },
+      date_played: {
+        type: DataTypes.DATE,
       },
       order: {
         type: DataTypes.INTEGER,
-        primaryKey: true,
       },
       date_added: {
         type: DataTypes.DATE,
@@ -47,4 +45,4 @@ const playlistTrackModel = (sequelize: Sequelize) => {
   );
 };
 
-export { PlaylistTrackModel, playlistTrackModel };
+export { libraryPlaylists, LibraryPlaylistsModel };

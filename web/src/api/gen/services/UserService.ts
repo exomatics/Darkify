@@ -192,7 +192,7 @@ export class UserService {
             method: 'POST',
             url: '/users/follow/playlist/{playlistId}',
             path: {
-                'playlist_id': playlistId,
+                'playlistId': playlistId,
             },
             errors: {
                 400: `Validation failed`,
@@ -213,7 +213,7 @@ export class UserService {
             method: 'POST',
             url: '/users/unfollow/playlist/{playlistId}',
             path: {
-                'playlist_id': playlistId,
+                'playlistId': playlistId,
             },
             errors: {
                 400: `Validation failed`,

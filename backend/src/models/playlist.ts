@@ -1,5 +1,6 @@
 import { DataTypes, Model } from 'sequelize';
 
+import type { Restrictions, Type } from '../interfaces/playlist-interface.ts';
 import type { InferAttributes, InferCreationAttributes, Sequelize } from 'sequelize';
 
 class PlaylistModel extends Model<
@@ -7,12 +8,14 @@ class PlaylistModel extends Model<
   InferCreationAttributes<PlaylistModel>
 > {
   declare id: string;
-  declare track: string;
   declare name: string;
-  declare description: string;
-  declare cover_url: string;
+  declare tracks_count?: number;
+  declare description: string | null;
+  declare cover_id: string | null;
+  declare likes?: string;
   declare owner: string;
-  declare restrictions: string;
+  declare restrictions: Restrictions;
+  declare type: Type;
 }
 const playlistModel = (sequelize: Sequelize) => {
   return sequelize.define<PlaylistModel>(
@@ -23,28 +26,38 @@ const playlistModel = (sequelize: Sequelize) => {
         allowNull: false,
         primaryKey: true,
       },
-      track: {
-        type: DataTypes.UUID,
-        unique: true,
-      },
       name: {
         type: DataTypes.STRING(100),
+        allowNull: false,
+      },
+      tracks_count: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
         allowNull: false,
       },
       description: {
         type: DataTypes.STRING(300),
       },
-      cover_url: {
-        type: DataTypes.TEXT,
+      cover_id: {
+        type: DataTypes.UUID,
+        unique: true,
+      },
+      likes: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
         allowNull: false,
       },
       owner: {
         type: DataTypes.UUID,
-        unique: true,
+        allowNull: false,
       },
       restrictions: {
-        type: DataTypes.UUID,
-        unique: true,
+        type: DataTypes.ENUM({ values: ['private', 'public', 'unlisted'] }),
+        allowNull: false,
+      },
+      type: {
+        type: DataTypes.ENUM({ values: ['general', 'liked'] }),
+        allowNull: false,
       },
     },
     {

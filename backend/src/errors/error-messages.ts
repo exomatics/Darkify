@@ -14,6 +14,11 @@ export const errorMessages = {
   }),
   playlist: Object.freeze({
     NotExistsById: 'Playlist with this id does not exist',
+    TrackNotExistsByIndex: 'Track with this index doesnt exist in this playlist',
+    // TrackNotBelongs: 'Track with this id doesnt belong to this playlist',
+    IsNotAnOwner: 'User is not the owner of the playlist',
+    LibraryNotExistsById: 'Library playlist with this id does not exist',
+    LibraryNotExistsByIndex: 'Library playlist with this index doesnt exist in this library',
   }),
   track: Object.freeze({
     NotExistsById: 'Track with this id does not exist',
@@ -28,7 +33,9 @@ export const errorMessages = {
     PasswordHasSpaces: 'Password must not contain spaces',
     PasswordNoSpecialSymbols: 'Password must have at least on special symbol !@#$%^&*',
     SpecifyUsernameOrEmail: 'Either email or username need to be filled in',
-    SpecifyToUpdateTrack: 'Specify what you want to update',
+    SpecifyWhatToUpdate: 'Specify what you want to update',
+    UniqueArrayOfUuid: 'Must be an array of unique uuids',
+    ExcludeAdminId: 'Artists array shouldnt include the admin_id',
   }),
   init: Object.freeze({
     KeysAlreadyGenerated: 'Key pair already exists. Skipping generation.',

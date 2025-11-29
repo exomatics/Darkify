@@ -4,6 +4,9 @@
   "private": true,
   "main": "app.ts",
   "type": "module",
+  "engines": {
+    "node": ">=23.0.0"
+  },
   "scripts": {
     "dev": "node --watch --env-file=.env --loader ts-node/esm --no-warnings=ExperimentalWarning ./src/app.ts",
     "start": "node --env-file=.env --loader ts-node/esm --no-warnings=ExperimentalWarning ./src/app.ts",
@@ -22,6 +25,7 @@
   "author": "Miroshnichenko Roman <rborisovic74@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "@sequelize/core": "7.0.0-alpha.46",
     "@types/express-serve-static-core": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/passport-strategy": "^0.2.38",
@@ -38,12 +42,10 @@
     "multer": "1.4.5-lts.2",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
-    "pg": "^8.16.0",
-    "pg-hstore": "^2.3.4",
+    "pg": "^8.16.3",
     "sequelize": "^6.37.7",
     "sharp": "^0.34.2",
     "swagger-ui-express": "^5.0.1",
-    "uuid": "^11.1.0",
     "winston": "^3.17.0",
     "yaml": "^2.8.0",
     "zod": "^3.25.67"
@@ -61,12 +63,13 @@
     "@types/passport-jwt": "^4.0.1",
     "eslint": "^9.29.0",
     "eslint-plugin-github": "^5.1.8",
-    "eslint-plugin-no-loops": "^0.4.0",
+    "eslint-plugin-n": "^17.23.1",
     "eslint-plugin-security": "^3.0.1",
     "eslint-plugin-sonarjs": "^3.0.2",
     "eslint-plugin-unicorn": "^56.0.1",
     "eslint-plugin-unused-imports": "^4.1.4",
     "globals": "^15.15.0",
+    "knip": "^5.70.1",
     "prettier": "^3.5.3",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3",

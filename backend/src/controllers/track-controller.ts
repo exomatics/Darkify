@@ -95,7 +95,6 @@ export default {
     let coverId;
     if (trackInfo.file) {
       coverId = await fileUploader.uploadImage(trackInfo.file[0]);
-      coverId = coverId.data;
     }
     const modelResponse = await track.createTrack({ ...trackInfo, cover_id: coverId ?? null });
     if (!modelResponse.success) {
@@ -108,7 +107,6 @@ export default {
     let coverId;
     if (trackInfo.file) {
       coverId = await fileUploader.uploadImage(trackInfo.file);
-      coverId = coverId.data;
     }
     const modelResponse = await track.updateTrack({ ...trackInfo, cover_id: coverId ?? null });
 

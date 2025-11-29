@@ -11,19 +11,20 @@ import generatePassword from '../../utils/password-generation.ts';
 import verifyPassword from '../../utils/password-verification.ts';
 
 import { FileUploader } from './file-management.ts';
+import PlaylistManager from './playlist.ts';
 
 import type { IUser } from '../../interfaces/user-interface.ts';
 import type { Result } from '../../types/result-type.ts';
-import type { PlaylistModel } from '../playlist.ts';
 import type { UserFollowingModel } from '../user-following.ts';
 import type { UserModel } from '../user.ts';
 import type { InferAttributes, InferCreationAttributes, Model } from 'sequelize';
-
 interface ResultUserData {
   user_id: string;
   visible_username: string;
   avatar_url: string | null;
 }
+
+const playlist = new PlaylistManager();
 
 class UserManager {
   async getUserById(
@@ -235,15 +236,6 @@ class UserManager {
       throw new InternalError('failed to unfollow user');
     }
   }
-  async isPlaylistExist(
-    playlist_id: string,
-  ): Promise<Result<PlaylistModel, typeof errorMessages.playlist.NotExistsById>> {
-    const playlistRecord = await database.playlistModel.findByPk(playlist_id);
-    if (!playlistRecord) {
-      return { success: false, reason: errorMessages.playlist.NotExistsById };
-    }
-    return { success: true, data: playlistRecord };
-  }
   async followPlaylist(
     user_id: string,
     playlist_id: string,
@@ -253,7 +245,7 @@ class UserManager {
       typeof errorMessages.playlist.NotExistsById | typeof errorMessages.user.AlreadyFollowsPlaylist
     >
   > {
-    const playlistRecord = await this.isPlaylistExist(playlist_id);
+    const playlistRecord = await playlist.getPlaylistRecordById(playlist_id, user_id);
     if (!playlistRecord.success) {
       return playlistRecord;
     }
@@ -263,7 +255,20 @@ class UserManager {
     if (playlistFollowersRecord) {
       return { success: false, reason: errorMessages.user.AlreadyFollowsPlaylist };
     }
-    await database.playlistFollowersModel.create({ user_id, playlist_id });
+    try {
+      await database.sequelize.transaction(async (transaction) => {
+        await database.playlistFollowersModel.create(
+          {
+            user_id,
+            playlist_id,
+          },
+          { transaction },
+        );
+        await playlist.createLibraryRecord(user_id, playlist_id, transaction);
+      });
+    } catch {
+      throw new InternalError('failed to follow the playlist');
+    }
     return { success: true, data: null };
   }
   async unfollowPlaylist(
@@ -275,9 +280,9 @@ class UserManager {
       typeof errorMessages.playlist.NotExistsById | typeof errorMessages.user.NotFollowsPlaylist
     >
   > {
-    const platlistRecord = await this.isPlaylistExist(playlist_id);
-    if (!platlistRecord.success) {
-      return platlistRecord;
+    const playlistRecord = await playlist.getPlaylistRecordById(playlist_id, user_id);
+    if (!playlistRecord.success) {
+      return playlistRecord;
     }
     const playlistFollowersRecord = await database.playlistFollowersModel.findOne({
       where: { user_id, playlist_id },
@@ -285,7 +290,15 @@ class UserManager {
     if (!playlistFollowersRecord) {
       return { success: false, reason: errorMessages.user.NotFollowsPlaylist };
     }
-    await playlistFollowersRecord.destroy();
+    try {
+      await database.sequelize.transaction(async (transaction) => {
+        await playlistFollowersRecord.destroy({ transaction });
+        await playlist.deleteLibraryRecord(user_id, playlist_id, transaction);
+      });
+    } catch {
+      throw new InternalError('failed to follow the playlist');
+    }
+
     return { success: true, data: null };
   }
   async deleteUser(
@@ -412,7 +425,7 @@ class UserManager {
       return { success: false, reason: errorMessages.user.NotExistsById };
     }
     const fileUploadData = await new FileUploader().uploadImage(fileBuffer);
-    await userRecord.data.update({ avatar_url: fileUploadData.data });
+    await userRecord.data.update({ avatar_url: fileUploadData });
     return {
       success: true,
       data: userRecord.data.avatar_url

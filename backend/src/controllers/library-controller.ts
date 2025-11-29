@@ -1,0 +1,42 @@
+import { DEFAULT_LIMIT, DEFAULT_OFFSET } from '../config/config.ts';
+import ValidationError from '../errors/validation-error.ts';
+import PlaylistManager from '../models/services/playlist.ts';
+
+import type { LibrarySortBy } from '../interfaces/library-interface.ts';
+import type { IReorder, Order } from '../interfaces/playlist-interface.ts';
+
+const playlist = new PlaylistManager();
+
+export default {
+  async getLibrary(userId: string, sort: { sortBy: LibrarySortBy; order: Order }) {
+    const modelResponse = await playlist.getLibrary(userId, sort);
+    return {
+      playlists: modelResponse.data.items,
+      artists: [],
+      albums: [],
+    };
+  },
+  async getLibraryPlaylists(
+    userId: string,
+    sort: { sortBy: LibrarySortBy; order: Order },
+    limit: number = DEFAULT_LIMIT,
+    offset: number = DEFAULT_OFFSET,
+  ) {
+    const modelResponse = await playlist.getLibrary(userId, sort, limit, offset);
+    const { items, total } = modelResponse.data;
+    return {
+      next: offset + items.length + 1 <= total ? offset + items.length : null,
+      offset,
+      ...modelResponse.data,
+    };
+  },
+  async reorderLibraryPlaylist(libraryInfo: IReorder) {
+    const modelResponse = await playlist.reorderLibrary(libraryInfo);
+
+    if (!modelResponse.success) {
+      throw new ValidationError(modelResponse.reason);
+    }
+
+    return modelResponse.data;
+  },
+};

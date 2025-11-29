@@ -2,15 +2,16 @@ import eslint from '@eslint/js';
 import github from 'eslint-plugin-github';
 import { importX } from 'eslint-plugin-import-x';
 import { createTypeScriptImportResolver } from 'eslint-import-resolver-typescript';
-import noLoopsPlugin from 'eslint-plugin-no-loops';
 import pluginSecurity from 'eslint-plugin-security';
 import sonarjs from 'eslint-plugin-sonarjs';
 import eslintPluginUnicorn from 'eslint-plugin-unicorn';
 import unusedImports from 'eslint-plugin-unused-imports';
 import tseslint from 'typescript-eslint';
 import globals from 'globals';
+import nodePlugin from 'eslint-plugin-n';
 
 export default tseslint.config(
+  nodePlugin.configs['flat/recommended-script'],
   eslint.configs.recommended,
   tseslint.configs.strictTypeChecked,
   tseslint.configs.strict,
@@ -26,7 +27,6 @@ export default tseslint.config(
     plugins: {
       'import-x': importX,
       'unused-imports': unusedImports,
-      'no-loops': noLoopsPlugin,
     },
   },
   {
@@ -34,14 +34,19 @@ export default tseslint.config(
       'import/extensions': 'off',
       strict: 'error',
       'importPlugin/extensions': 'off',
+      'i18n-text/no-en': 'off',
       'no-unused-vars': 'off',
       'unicorn/no-null': 'off',
+      'github/array-foreach': 'off',
+      'unicorn/no-array-for-each': 'off',
+      'github/no-then': 'off',
       camelcase: 'off',
       'import-x/no-named-as-default-member': 'off',
       'security/detect-non-literal-fs-filename': 'off',
       'sonarjs/no-hardcoded-passwords': 'off',
       '@typescript-eslint/no-explicit-any': 'error',
       'unused-imports/no-unused-imports': 'error',
+      'n/no-missing-import': 'warn',
       'unused-imports/no-unused-vars': [
         'warn',
         {
@@ -72,11 +77,7 @@ export default tseslint.config(
       'no-param-reassign': 'error',
       '@typescript-eslint/consistent-type-imports': 'error',
       'no-multiple-empty-lines': 'error',
-      'github/array-foreach': 'error',
       'github/async-preventdefault': 'warn',
-      'github/no-then': 'error',
-      'github/no-blur': 'error',
-      'no-loops/no-loops': 'error',
       'import/order': [
         'error',
         {

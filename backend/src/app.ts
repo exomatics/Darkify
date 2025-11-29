@@ -20,9 +20,10 @@ import { jwtProcess } from './middleware/jwt-processing.ts';
 import { rateLimiters } from './middleware/rate-limiter.ts';
 import { FileUploader } from './models/services/file-management.ts';
 import authRouter from './routes/auth-route.ts';
+import libraryRouter from './routes/library-route.ts';
+import playlistRouter from './routes/playlist-route.ts';
 import trackRouter from './routes/track-route.ts';
 import userRouter from './routes/user-route.ts';
-
 FileUploader.init();
 
 const openapiFile = fs.readFileSync(PATH_TO_OPENAPI, 'utf8');
@@ -49,8 +50,10 @@ app.use(new RegExp(`${STATIC_AUDIO_PATH}.*/.*/.*`), rateLimiters.filesLimiter);
 passportConfiguration(passport);
 app.use(passport.initialize());
 app.use(jwtProcess);
-app.use('/', trackRouter);
 app.use('/', userRouter);
 app.use('/', authRouter);
+app.use('/', trackRouter);
+app.use('/', playlistRouter);
+app.use('/', libraryRouter);
 app.use(errorHandler);
 app.listen(3000, () => logger.info('server is running'));
