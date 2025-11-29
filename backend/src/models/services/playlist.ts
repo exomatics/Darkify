@@ -6,6 +6,7 @@ import sequelize, { Op } from 'sequelize';
 import {
   DEFAULT_LIMIT,
   DEFAULT_OFFSET,
+  ORDER_NUMBER,
   playlistOrderOptions,
   STATIC_IMAGES_PATH,
 } from '../../config/config.ts';
@@ -156,7 +157,11 @@ class PlaylistManager {
           where: {
             playlist_id: playlistTrackInfo.playlistId,
             [Op.and]: [
-              sequelize.where(sequelize.fn('MOD', sequelize.col('order'), '100'), '=', '0'),
+              sequelize.where(
+                sequelize.fn('MOD', sequelize.col('order'), String(ORDER_NUMBER)),
+                '=',
+                '0',
+              ),
             ],
           },
         });
@@ -165,7 +170,7 @@ class PlaylistManager {
             playlist_id: playlistTrackInfo.playlistId,
             id: playlistTrackInfo.playlistTrackId,
             track_id: playlistTrackInfo.trackId,
-            order: typeof maxOrder === 'number' ? maxOrder + 100 : 100,
+            order: typeof maxOrder === 'number' ? maxOrder + ORDER_NUMBER : ORDER_NUMBER,
           },
           { transaction },
         );
@@ -254,8 +259,9 @@ class PlaylistManager {
     const playlistTracks = (await database.playlistTrackModel.findAndCountAll({
       where: { playlist_id: playlistInfo.playlistId },
       attributes: ['id', 'playlist_id', 'track_id', 'order', 'date_added'],
-      //@ts-expect-error: sequelize typing doesn't support order of this type, but it's the only way it works
-      order: [[...playlistOrderOptions[playlistInfo.sort.sortBy], playlistInfo.sort.order]],
+      order: [
+        [...playlistOrderOptions[playlistInfo.sort.sortBy], playlistInfo.sort.order],
+      ] as sequelize.Order,
       distinct: true,
       include: [
         {
@@ -338,8 +344,9 @@ class PlaylistManager {
       where: {
         playlist_id: searchInfo.playlistId,
       },
-      //@ts-expect-error: sequelize typing doesn't support order of this type, but it's the only way it works
-      order: [[...playlistOrderOptions[searchInfo.sort.sortBy], searchInfo.sort.order]],
+      order: [
+        [...playlistOrderOptions[searchInfo.sort.sortBy], searchInfo.sort.order],
+      ] as sequelize.Order,
       distinct: true,
       // group: ['id', 'playlist_id', 'track_id', 'order'],
       include: [
@@ -461,7 +468,7 @@ class PlaylistManager {
           0,
         );
         if (!playlistTracks.success) {
-          throw new InternalError('I dont know');
+          throw new InternalError();
         }
         playlistTracks.data.items.forEach((playlistTrack) => {
           if (playlistTrack.cover_url === null) {
@@ -637,8 +644,6 @@ class PlaylistManager {
           model: database.trackModel,
           attributes: [],
           through: { attributes: [] },
-          // required: true,
-          // duplicating: false,
         },
       ],
     })) as PlaylistTotalCount[];
@@ -755,7 +760,7 @@ class PlaylistManager {
           0,
         );
         if (!playlistTracks.success) {
-          throw new InternalError('I dont know');
+          throw new InternalError();
         }
 
         playlistTracks.data.items.forEach((playlistTrack) => {
@@ -800,7 +805,13 @@ class PlaylistManager {
     const maxOrder = await database.libraryPlaylists.max('order', {
       where: {
         user_id: userId,
-        [Op.and]: [sequelize.where(sequelize.fn('MOD', sequelize.col('order'), '100'), '=', '0')],
+        [Op.and]: [
+          sequelize.where(
+            sequelize.fn('MOD', sequelize.col('order'), String(ORDER_NUMBER)),
+            '=',
+            '0',
+          ),
+        ],
       },
       transaction,
     });
@@ -808,7 +819,7 @@ class PlaylistManager {
       {
         playlist_id: playlistId,
         user_id: userId,
-        order: typeof maxOrder === 'number' ? maxOrder + 100 : 100,
+        order: typeof maxOrder === 'number' ? maxOrder + ORDER_NUMBER : ORDER_NUMBER,
       },
       { transaction },
     );
@@ -890,12 +901,16 @@ class PlaylistManager {
           [Op.and]: {
             user_id: libraryInfo.userId,
             [Op.and]: [
-              sequelize.where(sequelize.fn('MOD', sequelize.col('order'), '100'), '=', '0'),
+              sequelize.where(
+                sequelize.fn('MOD', sequelize.col('order'), String(ORDER_NUMBER)),
+                '=',
+                '0',
+              ),
             ],
           },
         },
       });
-      newOrder = typeof maxOrder === 'number' ? maxOrder + 100 : 0;
+      newOrder = typeof maxOrder === 'number' ? maxOrder + ORDER_NUMBER : 0;
     }
     const collision = await database.libraryPlaylists.findOne({
       where: {
@@ -928,7 +943,7 @@ class PlaylistManager {
         const updates = rows.map((row, orderMultiplier) => ({
           user_id: userId,
           playlist_id: row.playlist_id,
-          order: (orderMultiplier + 1) * 100,
+          order: (orderMultiplier + 1) * ORDER_NUMBER,
         }));
 
         await database.libraryPlaylists.bulkCreate(updates, {
@@ -1009,12 +1024,16 @@ class PlaylistManager {
           [Op.and]: {
             playlist_id: playlistInfo.playlistId,
             [Op.and]: [
-              sequelize.where(sequelize.fn('MOD', sequelize.col('order'), '100'), '=', '0'),
+              sequelize.where(
+                sequelize.fn('MOD', sequelize.col('order'), String(ORDER_NUMBER)),
+                '=',
+                '0',
+              ),
             ],
           },
         },
       });
-      newOrder = typeof maxOrder === 'number' ? maxOrder + 100 : 0;
+      newOrder = typeof maxOrder === 'number' ? maxOrder + ORDER_NUMBER : 0;
     }
 
     const collision = await database.playlistTrackModel.findOne({
@@ -1048,7 +1067,7 @@ class PlaylistManager {
         const updates = rows.map((row, orderMultiplier) => ({
           playlist_id: playlistId,
           track_id: row.track_id,
-          order: (orderMultiplier + 1) * 100,
+          order: (orderMultiplier + 1) * ORDER_NUMBER,
           id: row.id,
         }));
 

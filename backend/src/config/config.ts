@@ -32,7 +32,7 @@ export const STATIC_IMAGES_PATH = `${STATIC_DIRECTORY_PATH}/images`;
 export const STATIC_AUDIO_PATH = `${STATIC_DIRECTORY_PATH}/audio`;
 
 export const PATH_TO_OPENAPI = path.resolve(PROJECT_ROOT, 'docs', 'openapi.yaml');
-
+export const ORDER_NUMBER = 100;
 export const BITRATE_OPTIONS = {
   [Bitrate.Low]: '24',
   [Bitrate.Normal]: '96',

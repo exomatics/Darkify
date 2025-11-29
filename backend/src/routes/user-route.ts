@@ -201,7 +201,6 @@ router.post(
     if (!validation.success) {
       throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }
-    //pW9(_%1]
     const databaseResponse = await userController.unfollowPlaylist(
       validation.data.user_id,
       validation.data.playlist_id,
