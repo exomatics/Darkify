@@ -108,16 +108,19 @@ export default {
     };
   },
   async createPlaylist(
-    playlistInfo: Omit<ICreatePlaylist, 'restrictions'> & Pick<IPlaylist, 'restrictions'>,
+    playlistInfo: Omit<ICreatePlaylist, 'restrictions' | 'playlistId'> &
+      Pick<IPlaylist, 'restrictions'>,
   ) {
     let coverId = null;
     if (playlistInfo.file) {
       coverId = await fileUploader.uploadImage(playlistInfo.file);
     }
-    const playlistResponse = await playlist.createPlaylist({ ...playlistInfo, coverId });
-    if (!playlistResponse.success) {
-      throw new NotFoundError(playlistResponse.reason);
-    }
+    const playlistId = crypto.randomUUID();
+    const playlistResponse = await playlist.createPlaylist({
+      ...playlistInfo,
+      playlistId,
+      coverId,
+    });
     const userResponse = await user.getUserById(playlistResponse.data.userId);
     if (!userResponse.success) {
       throw new NotFoundError(userResponse.reason);

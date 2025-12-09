@@ -1,0 +1,138 @@
+import _ from 'lodash';
+
+import { DEFAULT_LIMIT, DEFAULT_OFFSET } from '../config/config.ts';
+import { errorMessages } from '../errors/error-messages.ts';
+import NotFoundError from '../errors/not-found-error.ts';
+import ValidationError from '../errors/validation-error.ts';
+import PlaylistManager from '../models/services/playlist.ts';
+import UserManager from '../models/services/user.ts';
+
+import type { PlaylistSortBy, Order, IReorder } from '../interfaces/playlist-interface.ts';
+
+const playlist = new PlaylistManager();
+
+const user = new UserManager();
+
+export default {
+  async getPlaylistInfo(playlistInfo: { userId: string }) {
+    const playlistResponse = await playlist.getPlaylistInfo({
+      playlistId: playlistInfo.userId,
+      userId: playlistInfo.userId,
+    });
+    if (!playlistResponse.success) {
+      throw new NotFoundError(playlistResponse.reason);
+    }
+
+    const userResponse = await user.getUserById(playlistResponse.data.owner);
+    if (!userResponse.success) {
+      throw new NotFoundError(userResponse.reason);
+    }
+
+    return {
+      count: playlistResponse.data.songsCount,
+      // coverUrl: playlistResponse.data.coverId
+    };
+  },
+  async deletePlaylist(playlistInfo: { playlistId: string; userId: string }) {
+    const modelResponse = await playlist.deletePlaylist(playlistInfo);
+    if (!modelResponse.success) {
+      throw new NotFoundError(modelResponse.reason);
+    }
+    return modelResponse.data;
+  },
+  async getLikedTracks(
+    playlistInfo: {
+      userId: string;
+      sort: { sortBy: PlaylistSortBy; order: Order };
+    },
+    limit: number = DEFAULT_LIMIT,
+    offset: number = DEFAULT_OFFSET,
+  ) {
+    const modelResponse = await playlist.getAllTracksFromPlaylist(
+      { ...playlistInfo, playlistId: playlistInfo.userId, isLiked: true },
+      limit,
+      offset,
+    );
+
+    if (!modelResponse.success) {
+      throw new NotFoundError(modelResponse.reason);
+    }
+    const { items, total } = modelResponse.data;
+    return {
+      next: offset + items.length + 1 <= total ? offset + items.length : null,
+      offset,
+      ...modelResponse.data,
+    };
+  },
+  async addTrackToLiked(playlistInfo: { trackId: string; userId: string }) {
+    const trackResponse = await playlist.IsTrackExistsById({
+      ...playlistInfo,
+      playlistId: playlistInfo.userId,
+    });
+    if (trackResponse.success) {
+      throw new ValidationError(errorMessages.liked.TrackMustBeUnique);
+    }
+    const playlistTrackId = crypto.randomUUID();
+    const playlistResponse = await playlist.addTrackToPlaylist({
+      ...playlistInfo,
+      playlistTrackId,
+      playlistId: playlistInfo.userId,
+    });
+
+    if (!playlistResponse.success) {
+      throw new ValidationError(playlistResponse.reason);
+    }
+
+    return playlistResponse.data;
+  },
+  async removeTrackfromLiked(playlistInfo: { playlistTrackId: string; userId: string }) {
+    const modelResponse = await playlist.removeTrackfromPlaylist({
+      ...playlistInfo,
+      playlistId: playlistInfo.userId,
+    });
+
+    if (!modelResponse.success) {
+      throw new NotFoundError(modelResponse.reason);
+    }
+
+    return modelResponse.data;
+  },
+  async reorderLiked(playlistInfo: Omit<IReorder, 'playlistId'>) {
+    const modelResponse = await playlist.reorderPlaylistTrack({
+      ...playlistInfo,
+      playlistId: playlistInfo.userId,
+    });
+
+    if (!modelResponse.success) {
+      throw new ValidationError(modelResponse.reason);
+    }
+
+    return modelResponse.data;
+  },
+  async searchForPlaylistTrack(
+    searchInfo: {
+      search?: string;
+      userId: string;
+      sort: { sortBy: PlaylistSortBy; order: Order };
+    },
+    limit: number = DEFAULT_LIMIT,
+    offset: number = DEFAULT_OFFSET,
+  ) {
+    if (searchInfo.search) {
+      const modelResponse = await playlist.searchForPlaylistTrack(
+        { ...searchInfo, search: searchInfo.search, playlistId: searchInfo.userId, isLiked: true },
+        limit,
+        offset,
+      );
+      if (!modelResponse.success) {
+        throw new NotFoundError(modelResponse.reason);
+      }
+      return modelResponse;
+    } else {
+      const modelResponse = await this.getLikedTracks({
+        ..._.omit(searchInfo, 'search'),
+      });
+      return modelResponse;
+    }
+  },
+};

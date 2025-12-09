@@ -424,26 +424,6 @@ paths:
               schema:
                 type: string
                 format: binary
-
-  #   GET_PLAYLIST: `${API_BASE}/playlist/:playlistId`, xxxx
-  #   GET_PLAYLIST_COVER: `${API_BASE}/playlist/cover/:playlistId`, xxxx
-  #   GET_PLAYLIST_TRACKS: `${API_BASE}/playlist/tracks/:playlistId`, xxxx
-  #   GET_PLAYLISTS: `${API_BASE}/playlist/search/:playlistName` xxxx,
-  #   GET_ME_LIBRARY: `${API_BASE}/me/library`, // should be in user ----
-  #   GET_LIKED_SONGS_INFO: `${API_BASE}/collection`, ----
-  #   GET_LIKED_SONGS_TRACKS: `${API_BASE}/collection/tracks`, ----
-  #   POST_PLAYLIST: `${API_BASE}/playlist`, xxxx
-  #   //!!
-  #   POST_ADD_TRACK: `${API_BASE}/playlist/add-track/:trackId`, xxxx
-  #   POST_REMOVE_TRACK: `${API_BASE}/playlist/remove-track/:playlistTrackId`, xxxx
-  #   //!!
-  #   PUT_PLAYLIST_INFO: `${API_BASE}/playlist/:playlistId`, xxxx
-  #   PUT_PLAYLIST_RESTRICTIONS: `${API_BASE}/playlist-restrictions/:playlistId`, xxxx
-  #   PUT_PLAYLIST_COVER: `${API_BASE}/playlist/cover/:playlistId`, xxxx
-  #   //!!
-  #   PUT_PLAYLIST_REORDER: `${API_BASE}/playlist/reorder/`,
-  #   //!!
-  #   DELETE_PLAYLIST: `${API_BASE}/playlist/:playlistId`, xxxx
   /playlists/{playlistId}:
     get:
       tags: [Playlist]
@@ -744,7 +724,7 @@ paths:
       parameters:
         - in: query
           name: search
-          description: 'name of the playlist, artist name or a part from the lyrics. search by album name is not implemented yet'
+          description: 'name of the track, artist name or a part from the lyrics. search by album name is not implemented yet'
           schema:
             type: string
             maxLength: 100
@@ -774,20 +754,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  items:
-                    type: object
-                    properties:
-                      playlist_track_id:
-                        type: string
-                        format: uuid
-                      date_added:
-                        type: string
-                        format: date
-                      track:
-                        $ref: '#/components/schemas/TrackInfo'
-
+                $ref: '#/components/schemas/PlaylistTrackInfo'
         '400':
           $ref: '#/components/responses/ValidationError'
         '401':
@@ -881,6 +848,124 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/SuccessStatus'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /liked:
+    get:
+      tags: [Liked]
+      responses:
+        '200':
+          description: Data of all playlists with playlistName. ILIKE
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: number
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /liked/add-track/{trackId}:
+    post:
+      tags: [Liked]
+      parameters:
+        - in: path
+          name: trackId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 'playlistTrackId to remove track'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  playlistTrackId:
+                    type: string
+                    format: uuid
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /liked/remove-track/{playlistTrackId}:
+    post:
+      tags: [Liked]
+      parameters:
+        - $ref: '#/components/parameters/PlaylistIdParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/SuccessStatus'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /liked/reorder:
+    put:
+      tags: [Liked]
+      description: 'Reorder liked`s custom order. Indexes must be exactly indexes, in other words start from 0. To reorder to 0 index, need to send toIndex 0. To reored to the last index, need to send toIndex -1 or the last existing index.'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                fromIndex:
+                  type: number
+                  minimum: 0
+                toIndex:
+                  type: number
+                  minimum: -1
+      responses:
+        '200':
+          $ref: '#/components/responses/PlaylistInfoResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /liked/tracks:
+    get:
+      tags: [Playlist]
+      parameters:
+        - in: query
+          name: search
+          description: 'name of the track, artist name or a part from the lyrics. search by album name is not implemented yet'
+          schema:
+            type: string
+            maxLength: 100
+        - $ref: '#/components/parameters/PaginationLimitParameter'
+        - $ref: '#/components/parameters/PaginationOffsetParameter'
+      requestBody:
+        description: sortBy date_added is default
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sort:
+                  type: object
+                  properties:
+                    sortBy:
+                      type: string
+                      default: 'order'
+                      enum: [date_added, date_played, name, order]
+                    order:
+                      type: string
+                      default: 'DESC'
+                      enum: [ASC, DESC]
+      responses:
+        '200':
+          description: playlist tracks
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlaylistTrackInfo'
         '400':
           $ref: '#/components/responses/ValidationError'
         '401':

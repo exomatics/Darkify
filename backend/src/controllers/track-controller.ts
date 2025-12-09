@@ -89,14 +89,11 @@ export default {
       file: Express.Multer.File[] | null;
     },
   ) {
-    // if(!trackInfo.file){
-    //   // throw new
-    // }
-    let coverId;
+    let coverId = null;
     if (trackInfo.file) {
       coverId = await fileUploader.uploadImage(trackInfo.file[0]);
     }
-    const modelResponse = await track.createTrack({ ...trackInfo, cover_id: coverId ?? null });
+    const modelResponse = await track.createTrack({ ...trackInfo, cover_id: coverId });
     if (!modelResponse.success) {
       throw new InternalError(modelResponse.reason);
     }
