@@ -4,10 +4,14 @@ import { DEFAULT_LIMIT, DEFAULT_OFFSET } from '../config/config.ts';
 import { errorMessages } from '../errors/error-messages.ts';
 import NotFoundError from '../errors/not-found-error.ts';
 import ValidationError from '../errors/validation-error.ts';
+import {
+  type PlaylistSortBy,
+  type Order,
+  type IReorder,
+  Type,
+} from '../interfaces/playlist-interface.ts';
 import PlaylistManager from '../models/services/playlist.ts';
 import UserManager from '../models/services/user.ts';
-
-import type { PlaylistSortBy, Order, IReorder } from '../interfaces/playlist-interface.ts';
 
 const playlist = new PlaylistManager();
 
@@ -49,7 +53,7 @@ export default {
     offset: number = DEFAULT_OFFSET,
   ) {
     const modelResponse = await playlist.getAllTracksFromPlaylist(
-      { ...playlistInfo, playlistId: playlistInfo.userId, isLiked: true },
+      { ...playlistInfo, playlistId: playlistInfo.userId, type: Type.Liked },
       limit,
       offset,
     );

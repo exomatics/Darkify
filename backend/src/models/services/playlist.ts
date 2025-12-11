@@ -274,25 +274,22 @@ class PlaylistManager {
       playlistId: string;
       userId: string;
       sort: { sortBy: PlaylistSortBy; order: Order };
-      isLiked?: boolean;
+      type?: Type;
     },
     limit: number = DEFAULT_LIMIT,
     offset: number = DEFAULT_OFFSET,
   ): Promise<
-    Result<
-      {
-        items: (Pick<Itrack, 'deleted' | 'name' | 'duration'> & {
-          id: string;
-          playlist_track_id: string;
-          date_added: Date | null;
-          cover_url: string | null;
-          artists: { id: string; visible_username: string }[];
-          is_liked?: true;
-        })[];
-        total: number;
-      },
-      typeof errorMessages.playlist.NotExistsById
-    >
+    Result<{
+      items: (Pick<Itrack, 'deleted' | 'name' | 'duration'> & {
+        id: string;
+        playlist_track_id?: string;
+        date_added: Date | null;
+        cover_url: string | null;
+        artists: { id: string; visible_username: string }[];
+        is_liked?: boolean;
+      })[];
+      total: number;
+    }>
   > {
     const playlistTracks = (await database.playlistTrackModel.findAndCountAll({
       where: { playlist_id: playlistInfo.playlistId },
@@ -314,48 +311,35 @@ class PlaylistManager {
             },
           ],
         },
+        { model: database.playlistModel, required: true },
       ],
       offset,
       limit,
-      // logging: true,
     })) as { rows: PlaylistTrackInstanceWithRelations[]; count: number };
-    // console.log(3);
-    // const count = await database.playlistTrackModel.count({
-    //   where: { playlist_id: playlistInfo.playlistId },
-    // });
-    //add track to test
-    const processedPlaylistRows = playlistInfo.isLiked
-      ? playlistTracks.rows.map((row) => {
-          return {
-            deleted: row.track.deleted ?? false,
-            name: row.track.name,
-            duration: row.track.duration,
-            lyrics: row.track.lyrics,
-            cover_url: row.track.cover_id
-              ? `${STATIC_IMAGES_PATH}/${row.track.cover_id}.jpg`
-              : null,
-            is_liked: true,
-            id: row.track_id,
-            playlist_track_id: row.id,
-            date_added: row.date_added ?? null,
-            artists: row.track.users,
-          };
-        })
-      : playlistTracks.rows.map((row) => {
-          return {
-            deleted: row.track.deleted ?? false,
-            name: row.track.name,
-            duration: row.track.duration,
-            lyrics: row.track.lyrics,
-            cover_url: row.track.cover_id
-              ? `${STATIC_IMAGES_PATH}/${row.track.cover_id}.jpg`
-              : null,
-            id: row.track_id,
-            playlist_track_id: row.id,
-            date_added: row.date_added ?? null,
-            artists: row.track.users,
-          };
-        });
+    const processedPlaylistRows = playlistTracks.rows.map(
+      (row: PlaylistTrackInstanceWithRelations) => {
+        const basePlaylistRow = {
+          deleted: row.track.deleted ?? false,
+          name: row.track.name,
+          duration: row.track.duration,
+          lyrics: row.track.lyrics,
+          cover_url: row.track.cover_id ? `${STATIC_IMAGES_PATH}/${row.track.cover_id}.jpg` : null,
+          id: row.track_id,
+          date_added: row.date_added ?? null,
+          artists: row.track.users,
+        };
+        return playlistInfo.type === Type.Liked
+          ? {
+              ...basePlaylistRow,
+              is_liked: true,
+              playlist_track_id: row.id,
+            }
+          : {
+              ...basePlaylistRow,
+              playlist_track_id: row.id,
+            };
+      },
+    );
     return {
       success: true,
       data: { total: playlistTracks.count, items: processedPlaylistRows },
