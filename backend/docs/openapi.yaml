@@ -1080,6 +1080,9 @@ components:
           type: [string, 'null']
         play_count:
           type: number
+        album_id:
+          type: string
+          format: uuid
         creation_date:
           type: string
           format: date

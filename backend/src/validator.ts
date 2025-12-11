@@ -99,6 +99,7 @@ const createTrackScheme = trackScheme
   .extend({
     name: trackNameScheme,
     admin_id: uuidScheme,
+    album_id: uuidScheme,
     artists: z.array(uuidScheme).refine((items) => new Set(items).size === items.length, {
       message: errorMessages.validation.UniqueArrayOfUuid,
     }),

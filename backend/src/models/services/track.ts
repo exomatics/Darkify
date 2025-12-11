@@ -241,7 +241,7 @@ class TrackManager {
   async createTrackRecord(
     trackInfo: Pick<
       Itrack,
-      'cover_id' | 'id' | 'admin_id' | 'artists' | 'name' | 'lyrics' | 'duration'
+      'cover_id' | 'id' | 'admin_id' | 'artists' | 'album_id' | 'name' | 'lyrics' | 'duration'
     >,
   ): Promise<Result<TrackResult, typeof errorMessages.track.NotExistsById>> {
     try {
@@ -255,6 +255,7 @@ class TrackManager {
             admin_id: trackInfo.admin_id,
             name: trackInfo.name,
             play_count: 0,
+            album_id: trackInfo.album_id,
             lyrics: trackInfo.lyrics ?? null,
             duration: trackInfo.duration,
             cover_id: trackInfo.cover_id,
@@ -279,7 +280,10 @@ class TrackManager {
     }
   }
   async createTrack(
-    trackInfo: Pick<Itrack, 'cover_id' | 'id' | 'admin_id' | 'artists' | 'name' | 'lyrics'>,
+    trackInfo: Pick<
+      Itrack,
+      'cover_id' | 'id' | 'admin_id' | 'artists' | 'album_id' | 'name' | 'lyrics'
+    >,
   ): Promise<
     Result<
       TrackResult,

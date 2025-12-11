@@ -20,6 +20,11 @@ export const errorMessages = {
     LibraryNotExistsByIndex: 'Library playlist with this index doesnt exist in this library',
     TrackNotExistsByIndex: 'Track with this index doesnt exist in this playlist',
   }),
+  album: Object.freeze({
+    NotExistsById: 'Album with this id does not exist',
+    playlistAlbumRecordNotExists: 'playlistAlbumRecord with this albumId doesn not exist',
+    AlbumIsNotAnAlbum: 'Playlist is not an Album',
+  }),
   liked: Object.freeze({
     CantDelete: 'You cant delete liked songs',
     TrackMustBeUnique: 'Songs in Liked must be unique',

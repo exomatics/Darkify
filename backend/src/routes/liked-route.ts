@@ -32,7 +32,7 @@ router.get(
       throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }
 
-    const databaseResponse = await likedController.getPlaylistInfo({
+    const databaseResponse = await likedController.getLikedInfo({
       userId: validation.data,
     });
     response.status(200).json(databaseResponse);
@@ -56,7 +56,7 @@ router.get(
     if (!validation.success) {
       throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }
-    const databaseResponse = await likedController.searchForPlaylistTrack(
+    const databaseResponse = await likedController.searchForLikedTrack(
       {
         userId: validation.data.userId,
         search: validation.data.search,

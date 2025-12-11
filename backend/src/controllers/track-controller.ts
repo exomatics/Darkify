@@ -12,6 +12,7 @@ import { errorMessages } from '../errors/error-messages.ts';
 import InternalError from '../errors/internal-error.ts';
 import NotFoundError from '../errors/not-found-error.ts';
 import { FileUploader } from '../models/services/file-management.ts';
+import PlaylistManager from '../models/services/playlist.ts';
 import TrackManager from '../models/services/track.ts';
 import UserManager from '../models/services/user.ts';
 import { Bitrate } from '../types/bitrate-type.ts';
@@ -19,6 +20,8 @@ import { Bitrate } from '../types/bitrate-type.ts';
 import type { Itrack, UpdateTrack } from '../interfaces/track-interface.ts';
 const track = new TrackManager();
 const user = new UserManager();
+const playlist = new PlaylistManager();
+
 const fileUploader = new FileUploader();
 
 export default {
@@ -89,6 +92,13 @@ export default {
       file: Express.Multer.File[] | null;
     },
   ) {
+    const albumRecord = await playlist.getUserAlbumRecordById(
+      trackInfo.album_id,
+      trackInfo.admin_id,
+    );
+    if (!albumRecord.success) {
+      throw new NotFoundError(errorMessages.album.NotExistsById);
+    }
     let coverId = null;
     if (trackInfo.file) {
       coverId = await fileUploader.uploadImage(trackInfo.file[0]);

@@ -18,7 +18,7 @@ const playlist = new PlaylistManager();
 const user = new UserManager();
 
 export default {
-  async getPlaylistInfo(playlistInfo: { userId: string }) {
+  async getLikedInfo(playlistInfo: { userId: string }) {
     const playlistResponse = await playlist.getPlaylistInfo({
       playlistId: playlistInfo.userId,
       userId: playlistInfo.userId,
@@ -36,13 +36,6 @@ export default {
       count: playlistResponse.data.songsCount,
       // coverUrl: playlistResponse.data.coverId
     };
-  },
-  async deletePlaylist(playlistInfo: { playlistId: string; userId: string }) {
-    const modelResponse = await playlist.deletePlaylist(playlistInfo);
-    if (!modelResponse.success) {
-      throw new NotFoundError(modelResponse.reason);
-    }
-    return modelResponse.data;
   },
   async getLikedTracks(
     playlistInfo: {
@@ -113,7 +106,7 @@ export default {
 
     return modelResponse.data;
   },
-  async searchForPlaylistTrack(
+  async searchForLikedTrack(
     searchInfo: {
       search?: string;
       userId: string;

@@ -2,6 +2,7 @@ interface Itrack {
   id: string;
   admin_id: string;
   name: string;
+  album_id: string;
   artists: string[];
   lyrics?: string | null;
   play_count: number;
