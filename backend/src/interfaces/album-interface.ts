@@ -8,5 +8,5 @@ export enum AlbumsSortBy {
 export interface IUpdateAlbum {
   playlistId: string;
   name?: string | null;
-  releaseDate?: Date;
+  releaseDate?: Date | null;
 }

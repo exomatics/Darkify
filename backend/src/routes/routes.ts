@@ -37,6 +37,8 @@ export const ROUTES = Object.freeze({
     POST_UNFOLLOW_USER: `${API_BASE}/users/unfollow/user/:user_id`,
     POST_FOLLOW_PLAYLIST: `${API_BASE}/users/follow/playlist/:playlist_id`,
     POST_UNFOLLOW_PLAYLIST: `${API_BASE}/users/unfollow/playlist/:playlist_id`,
+    POST_FOLLOW_ALBUM: `${API_BASE}/users/follow/album/:playlist_id`,
+    POST_UNFOLLOW_ALBUM: `${API_BASE}/users/unfollow/album/:playlist_id`,
     PUT_ME_AVATAR: `${API_BASE}/users/me/avatar`,
   },
   PLAYLISTS: {
@@ -67,5 +69,18 @@ export const ROUTES = Object.freeze({
     GET_ME_LIBRARY: `${API_BASE}/me/library`,
     GET_ME_PLAYLISTS: `${API_BASE}/me/library/playlists`,
     PUT_PLAYLISTS_REORDER: `${API_BASE}/me/library/playlists/:playlistId/reorder`,
+  },
+  ALBUMS: {
+    GET_ALBUM: `${API_BASE}/albums/:albumId`,
+    GET_ALBUM_COVER: `${API_BASE}/albums/:albumId/cover`,
+    GET_ME_ALBUMS: `${API_BASE}/albums/me`,
+    GET_ALBUM_TRACKS: `${API_BASE}/albums/:albumId/tracks`,
+    POST_ALBUM: `${API_BASE}/albums`,
+    POST_ADD_TRACK: `${API_BASE}/albums/add-track/:trackId`,
+    POST_REMOVE_TRACK: `${API_BASE}/albums/remove-track/:playlistTrackId`,
+    PUT_ALBUM_INFO: `${API_BASE}/albums/:albumId`,
+    PUT_ALBUM_COVER: `${API_BASE}/albums/:albumId/cover`,
+    PUT_ALBUM_REORDER: `${API_BASE}/albums/:albumId/tracks/reorder`,
+    DELETE_ALBUM: `${API_BASE}/albums/:albumId`,
   },
 } as const);

@@ -19,6 +19,7 @@ import errorHandler from './middleware/error-handler.ts';
 import { jwtProcess } from './middleware/jwt-processing.ts';
 import { rateLimiters } from './middleware/rate-limiter.ts';
 import { FileUploader } from './models/services/file-management.ts';
+import albumRouter from './routes/album-route.ts';
 import authRouter from './routes/auth-route.ts';
 import libraryRouter from './routes/library-route.ts';
 import likedRouter from './routes/liked-route.ts';
@@ -57,5 +58,7 @@ app.use('/', trackRouter);
 app.use('/', playlistRouter);
 app.use('/', libraryRouter);
 app.use('/', likedRouter);
+app.use('/', albumRouter);
+
 app.use(errorHandler);
 app.listen(3000, () => logger.info('server is running'));

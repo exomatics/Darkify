@@ -37,26 +37,26 @@ export default {
     }
     return {
       ..._.omit(playlistResponse.data, ['coverId']),
-      coverUrl: playlistResponse.data.coverId
+      cover_url: playlistResponse.data.coverId
         ? `${STATIC_IMAGES_PATH}/${playlistResponse.data.coverId}.jpg`
         : null,
       published,
       owner: _.pick(userResponse.data, ['id', 'visible_username']),
     };
   },
-  async getPlaylistCover(playlistInfo: { playlistId: string; userId: string }) {
+  async getAlbumCover(playlistInfo: { playlistId: string; userId: string }) {
     const playlistResponse = await this.getAlbumInfo(playlistInfo);
 
-    return playlistResponse;
+    return { cover_url: playlistResponse.cover_url };
   },
   async deleteAlbum(playlistInfo: { playlistId: string; userId: string }) {
     const modelResponse = await playlist.deleteAlbum(playlistInfo);
     if (!modelResponse.success) {
       throw new NotFoundError(modelResponse.reason);
     }
-    return null;
+    return modelResponse.data;
   },
-  async getPlaylistTracks(
+  async getAlbumTracks(
     playlistInfo: {
       playlistId: string;
       userId: string;
@@ -117,7 +117,7 @@ export default {
     const playlistData = await this.getAlbumInfo(playlistResponse.data);
     return { id: playlistResponse.data.playlistId, name: playlistData.name };
   },
-  async addTrackToPlaylist(playlistInfo: { playlistId: string; trackId: string; userId: string }) {
+  async addTrackToAlbum(playlistInfo: { playlistId: string; trackId: string; userId: string }) {
     const playlistTrackId = crypto.randomUUID();
     const modelResponse = await playlist.addTrackToPlaylist({ ...playlistInfo, playlistTrackId });
 
@@ -127,7 +127,7 @@ export default {
 
     return { track_album_id: modelResponse.data.playlistTrackId };
   },
-  async removeTrackfromPlaylist(playlistInfo: {
+  async removeTrackfromAlbum(playlistInfo: {
     playlistId: string;
     playlistTrackId: string;
     userId: string;
@@ -140,7 +140,7 @@ export default {
 
     return modelResponse.data;
   },
-  async reorderPlaylistTrack(playlistInfo: IReorder) {
+  async reorderAlbumTrack(playlistInfo: IReorder) {
     const modelResponse = await playlist.reorderPlaylistTrack(playlistInfo);
 
     if (!modelResponse.success) {
@@ -149,7 +149,7 @@ export default {
 
     return modelResponse.data;
   },
-  async updatePlaylistInfo(playlistInfo: IUpdateAlbum & { userId: string }) {
+  async updateAlbumInfo(playlistInfo: IUpdateAlbum & { userId: string }) {
     const playlistResponse = await playlist.updatePlaylistInfo(playlistInfo);
     if (!playlistResponse.success) {
       throw new ValidationError(playlistResponse.reason);
