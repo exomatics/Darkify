@@ -285,7 +285,7 @@ router.delete(
   passport.authenticate('access-token', { session: false }) as RequestHandler,
   asyncHandler(
     async (
-      request: Request<ParamsDictionary, unknown, { keepTracks?: boolean }>,
+      request: Request<ParamsDictionary, unknown, { keepTracks?: boolean } | undefined>,
       response: Response,
     ) => {
       const validation = deleteAlbumScheme.safeParse({

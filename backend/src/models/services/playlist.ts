@@ -146,7 +146,7 @@ class PlaylistManager {
           transaction: playlistInfo.transaction ?? transaction,
         });
       });
-    } catch (error) {
+    } catch {
       throw new InternalError('failed to delete playlist');
     }
     return { success: true, data: null };
@@ -701,9 +701,6 @@ class PlaylistManager {
           4,
           0,
         );
-        if (!playlistTracks.success) {
-          throw new InternalError();
-        }
         playlistTracks.data.items.forEach((playlistTrack) => {
           if (playlistTrack.cover_url === null) {
             return;
@@ -1135,10 +1132,6 @@ class PlaylistManager {
           4,
           0,
         );
-        if (!playlistTracks.success) {
-          throw new InternalError();
-        }
-
         playlistTracks.data.items.forEach((playlistTrack) => {
           if (playlistTrack.cover_url === null) {
             return;
