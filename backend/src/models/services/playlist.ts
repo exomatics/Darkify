@@ -779,9 +779,14 @@ class PlaylistManager {
       limit,
     })) as { rows: PlaylistAlbumInstanceWithRelations[]; count: number };
     const processedPlaylistRecords = playlistRecords.rows.map((albumRecord) => {
+      let published = false;
+      if (albumRecord.playlist_albums.date_released === null) {
+        published = true;
+      }
       return {
         id: albumRecord.id,
         name: albumRecord.name,
+        published,
         cover_url: albumRecord.cover_id
           ? `${STATIC_IMAGES_PATH}/${albumRecord.cover_id}.jpg`
           : null,
@@ -812,12 +817,26 @@ class PlaylistManager {
     if (!playlistAlbumRecord.success) {
       return playlistAlbumRecord;
     }
-    await database.playlistAlbumsModel.update(
-      { date_released: albumInfo.releaseDate ?? playlistAlbumRecord.data.date_released },
-      {
-        where: { playlist_id: albumInfo.albumId },
-      },
-    );
+    try {
+      await database.sequelize.transaction(async (transaction) => {
+        await database.playlistAlbumsModel.update(
+          { date_released: albumInfo.releaseDate ?? playlistAlbumRecord.data.date_released },
+          {
+            where: { playlist_id: albumInfo.albumId },
+            transaction,
+          },
+        );
+        await database.playlistModel.update(
+          { restrictions: Restrictions.Public },
+          {
+            where: { id: albumInfo.albumId },
+            transaction,
+          },
+        );
+      });
+    } catch {
+      throw new InternalError('failed to update release date of the album');
+    }
     return { success: true, data: null };
   }
   async updateLibraryPlayDate(

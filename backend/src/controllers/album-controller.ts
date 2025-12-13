@@ -93,19 +93,6 @@ export default {
       ...albumTracks.data,
     };
   },
-  async getPlaylistsByName(
-    playlistInfo: Pick<IPlaylist, 'name'> & { userId: string },
-    limit: number = DEFAULT_LIMIT,
-    offset: number = DEFAULT_OFFSET,
-  ) {
-    const modelResponse = await playlist.getPlaylistsByName(playlistInfo, limit, offset);
-    const { items, total } = modelResponse.data;
-    return {
-      next: offset + items.length + 1 <= total ? offset + items.length : null,
-      offset,
-      ...modelResponse.data,
-    };
-  },
   async createAlbum(
     albumInfo: Omit<ICreatePlaylist, 'restrictions' | 'playlistId' | 'description'> &
       Pick<IPlaylist, 'restrictions'>,
