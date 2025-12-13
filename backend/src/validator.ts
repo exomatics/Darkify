@@ -100,7 +100,7 @@ const createTrackScheme = trackScheme
   .extend({
     name: trackNameScheme,
     admin_id: uuidScheme,
-    album_id: uuidScheme,
+    albumId: uuidScheme.nullable(),
     artists: z.array(uuidScheme).refine((items) => new Set(items).size === items.length, {
       message: errorMessages.validation.UniqueArrayOfUuid,
     }),
@@ -246,11 +246,16 @@ const createAlbumScheme = playlistScheme
   .omit({ playlistId: true, description: true, type: true, coverId: true })
   .extend({ file: fileScheme.nullable() });
 
-const updateAlbumInfoScheme = playlistScheme
-  .pick({
-    name: true,
+const updateAlbumInfoScheme = z
+  .object({
+    name: z.string().max(100).optional(),
+    albumId: uuidScheme,
+    userId: uuidScheme,
+    releaseDate: z.iso.datetime().optional(),
   })
-  .extend({ albumId: uuidScheme, userId: uuidScheme, releaseDate: z.iso.date() });
+  .refine(({ name, releaseDate }) => {
+    return requireAtLeastOneCheck({ name, releaseDate });
+  }, errorMessages.validation.SpecifyWhatToUpdate);
 
 const getAlbumInfoScheme = getPlaylistInfoScheme
   .omit({ playlistId: true })
@@ -276,7 +281,7 @@ const updateAlbumCoverScheme = updatePlaylistCoverScheme
 
 const deleteAlbumScheme = deletePlaylistScheme
   .omit({ playlistId: true })
-  .extend({ albumId: uuidScheme });
+  .extend({ albumId: uuidScheme, keepTracks: z.boolean().optional() });
 export {
   uuidScheme,
   loginScheme,

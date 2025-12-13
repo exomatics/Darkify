@@ -18,14 +18,17 @@ export const errorMessages = {
     IsNotAnOwner: 'User is not the owner of the playlist',
     LibraryNotExistsById: 'Library playlist with this id does not exist',
     LibraryNotExistsByIndex: 'Library playlist with this index doesnt exist in this library',
+    playlistTrackNotExistsByID: 'playlistTrack with this id does not exist',
     TrackNotExistsByIndex: 'Track with this index doesnt exist in this playlist',
   }),
   album: Object.freeze({
     NotExistsById: 'Album with this id does not exist',
+    failedToAddTrack: 'failed to add track to album',
     playlistAlbumRecordNotExists: 'playlistAlbumRecord with this albumId doesn not exist',
     AlbumIsNotAnAlbum: 'Playlist is not an Album',
   }),
   liked: Object.freeze({
+    NotExistsById: 'Liked does not exist',
     CantDelete: 'You cant delete liked songs',
     TrackMustBeUnique: 'Songs in Liked must be unique',
   }),
@@ -34,6 +37,8 @@ export const errorMessages = {
     NotExistsByName: 'There is no tracks with such name',
     FfmpegError: 'Error while converting to hls',
     FailedToCreate: 'Failed to create track',
+    NotTheAdmin: 'You are not the admin of this track',
+    TrackAlreadyBelongsToAlbum: 'Track already belongs to this album',
   }),
   validation: Object.freeze({
     PasswordNoCapital: 'Password has no capital letters',

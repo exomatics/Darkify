@@ -17,19 +17,17 @@ import database from '../../config/database.ts';
 import { errorMessages } from '../../errors/error-messages.ts';
 import InternalError from '../../errors/internal-error.ts';
 
-import type { Itrack, UpdateTrack } from '../../interfaces/track-interface.ts';
+import type { Itrack, TrackResult, UpdateTrack } from '../../interfaces/track-interface.ts';
 import type { Result } from '../../types/result-type.ts';
+import type { PlaylistModel } from '../playlist.ts';
 import type { TrackModel } from '../track.ts';
 import type { UserModel } from '../user.ts';
+import type { Transaction } from 'sequelize';
 
 interface TrackModelWithUsers extends TrackModel {
-  dataValues: TrackModel['dataValues'] & { users: UserModel[] };
+  dataValues: TrackModel['dataValues'] & { users: UserModel[]; album?: PlaylistModel };
 }
 
-type TrackResult = Omit<Itrack, 'artists' | 'cover_id' | 'admin_id'> & {
-  artists: { id: string; visible_username: string }[];
-  cover_url: string | null;
-};
 class TrackManager {
   async getTrackById(
     trackId: string,
@@ -42,6 +40,7 @@ class TrackManager {
           through: { attributes: [] },
           attributes: ['id', 'visible_username'],
         },
+        { association: 'album', attributes: ['id', 'name'] },
       ],
     })) as TrackModelWithUsers | null;
     if (!trackRecord) {
@@ -52,6 +51,11 @@ class TrackManager {
       artists: trackRecord.dataValues.users.map((trackArtists) => {
         return { id: trackArtists.id, visible_username: trackArtists.visible_username };
       }),
+      album: trackRecord.dataValues.album ?? {
+        id: trackRecord.dataValues.id,
+        name: trackRecord.dataValues.name,
+      },
+
       cover_url: trackRecord.dataValues.cover_id
         ? `${STATIC_IMAGES_PATH}/${trackRecord.dataValues.cover_id}.jpg`
         : null,
@@ -80,6 +84,7 @@ class TrackManager {
           through: { attributes: [] },
           attributes: ['id', 'visible_username'],
         },
+        { association: 'album', attributes: ['id', 'name'] },
       ],
       offset,
       limit,
@@ -96,6 +101,10 @@ class TrackManager {
         artists: trackRecord.dataValues.users.map((trackArtists) => {
           return { id: trackArtists.id, visible_username: trackArtists.visible_username };
         }),
+        album: trackRecord.dataValues.album ?? {
+          id: trackRecord.dataValues.id,
+          name: trackRecord.dataValues.name,
+        },
         cover_url: trackRecord.dataValues.cover_id
           ? `${STATIC_IMAGES_PATH}/${trackRecord.dataValues.cover_id}.jpg`
           : null,
@@ -242,7 +251,7 @@ class TrackManager {
     trackInfo: Pick<
       Itrack,
       'cover_id' | 'id' | 'admin_id' | 'artists' | 'album_id' | 'name' | 'lyrics' | 'duration'
-    >,
+    > & { transaction?: Transaction },
   ): Promise<Result<TrackResult, typeof errorMessages.track.NotExistsById>> {
     try {
       const trackArtists = trackInfo.artists.map((value) => {
@@ -255,7 +264,7 @@ class TrackManager {
             admin_id: trackInfo.admin_id,
             name: trackInfo.name,
             play_count: 0,
-            album_id: trackInfo.album_id,
+            album_id: trackInfo.album_id ?? null,
             lyrics: trackInfo.lyrics ?? null,
             duration: trackInfo.duration,
             cover_id: trackInfo.cover_id,
@@ -270,20 +279,20 @@ class TrackManager {
           { transaction },
         );
       });
-      const trackArtistsRecord = await this.getTrackById(trackInfo.id);
-      if (!trackArtistsRecord.success) {
-        return trackArtistsRecord;
-      }
-      return { success: true, data: trackArtistsRecord.data };
     } catch {
       throw new InternalError(errorMessages.track.FailedToCreate);
     }
+    const trackArtistsRecord = await this.getTrackById(trackInfo.id);
+    if (!trackArtistsRecord.success) {
+      return trackArtistsRecord;
+    }
+    return { success: true, data: trackArtistsRecord.data };
   }
   async createTrack(
     trackInfo: Pick<
       Itrack,
       'cover_id' | 'id' | 'admin_id' | 'artists' | 'album_id' | 'name' | 'lyrics'
-    >,
+    > & { transaction?: Transaction },
   ): Promise<
     Result<
       TrackResult,
@@ -303,6 +312,36 @@ class TrackManager {
     }
 
     return { success: true, data: trackRecord.data };
+  }
+  async updateTrackAlbum(trackInfo: {
+    trackId: string;
+    albumId: string | null;
+    adminId: string;
+    transaction: Transaction;
+  }): Promise<
+    Result<
+      null,
+      | typeof errorMessages.track.NotExistsById
+      | typeof errorMessages.track.TrackAlreadyBelongsToAlbum
+      | typeof errorMessages.track.NotTheAdmin
+    >
+  > {
+    const trackRecord = await this.getTrackRecordById(trackInfo.trackId);
+    if (!trackRecord.success) {
+      return trackRecord;
+    }
+    if (trackRecord.data.album_id === trackInfo.albumId) {
+      return { success: false, reason: errorMessages.track.TrackAlreadyBelongsToAlbum };
+    }
+    if (trackRecord.data.admin_id !== trackInfo.adminId) {
+      return { success: false, reason: errorMessages.track.NotTheAdmin };
+    }
+    await trackRecord.data.update(
+      { album_id: trackInfo.albumId },
+      { transaction: trackInfo.transaction },
+    );
+
+    return { success: true, data: null };
   }
   async updateTrack(
     trackInfo: UpdateTrack,

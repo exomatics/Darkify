@@ -8,7 +8,7 @@ class TrackModel extends Model<InferAttributes<TrackModel>, InferCreationAttribu
   declare name: string;
   declare lyrics: string | null;
   declare play_count: number;
-  declare album_id: string;
+  declare album_id: string | null;
   declare deleted?: boolean;
   declare duration: number;
   declare cover_id: string | null;
@@ -40,7 +40,6 @@ const trackModel = (sequelize: Sequelize) => {
       },
       album_id: {
         type: DataTypes.UUID,
-        allowNull: false,
       },
       deleted: {
         type: DataTypes.BOOLEAN,

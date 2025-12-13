@@ -47,6 +47,7 @@ type IPlaylistInfo = Omit<IPlaylist, 'playlistId' | 'type'> & {
 type PlaylistTrackInstanceWithRelations = PlaylistTrackModel & {
   track: TrackModel & {
     users: UserModel[];
+    album: PlaylistModel | null;
   };
 };
 
@@ -98,7 +99,10 @@ class PlaylistManager {
       data: { playlistId: playlistRecord.id ?? '', userId: playlistRecord.owner ?? '' },
     };
   }
-  async createPlaylistAlbum(albumInfo: { playlistId: string; userId: string }) {
+  async createPlaylistAlbum(albumInfo: {
+    playlistId: string;
+    userId: string;
+  }): Promise<Result<null, typeof errorMessages.album.NotExistsById>> {
     const albumRecord = await this.getUserAlbumRecordById(albumInfo.playlistId, albumInfo.userId);
     if (!albumRecord.success) {
       return albumRecord;
@@ -107,6 +111,7 @@ class PlaylistManager {
       playlist_id: albumInfo.playlistId,
       date_released: null,
     });
+    return { success: true, data: null };
   }
   async deletePlaylist(playlistInfo: {
     playlistId: string;
@@ -141,19 +146,48 @@ class PlaylistManager {
           transaction: playlistInfo.transaction ?? transaction,
         });
       });
-    } catch {
-      throw new InternalError(`failed to delete playlist`);
+    } catch (error) {
+      throw new InternalError('failed to delete playlist');
     }
     return { success: true, data: null };
   }
-
+  async deleteAllTracksFromAlbum(playlistInfo: {
+    playlistId: string;
+    userId: string;
+    keepTracks?: boolean;
+    transaction: Transaction;
+  }): Promise<Result<null, typeof errorMessages.album.NotExistsById>> {
+    const playlistRecord = await this.getUserAlbumRecordById(
+      playlistInfo.playlistId,
+      playlistInfo.userId,
+    );
+    if (!playlistRecord.success) {
+      return playlistRecord;
+    }
+    await database.trackModel.update(
+      { deleted: true },
+      { where: { album_id: playlistInfo.playlistId }, transaction: playlistInfo.transaction },
+    );
+    return { success: true, data: null };
+  }
   async deleteAlbum(playlistInfo: {
     playlistId: string;
+    keepTracks?: boolean;
     userId: string;
   }): Promise<Result<null, DeleteAlbumErrors>> {
     let result: Result<null, DeleteAlbumErrors> = { success: true, data: null };
     try {
       await database.sequelize.transaction(async (transaction) => {
+        if (!playlistInfo.keepTracks) {
+          const deleteTracksResponse = await this.deleteAllTracksFromAlbum({
+            ...playlistInfo,
+            transaction,
+          });
+          if (!deleteTracksResponse.success) {
+            result = deleteTracksResponse;
+            return;
+          }
+        }
         const playlistResponse = await this.deletePlaylist({ ...playlistInfo, transaction });
         if (!playlistResponse.success) {
           result = playlistResponse;
@@ -210,18 +244,21 @@ class PlaylistManager {
     }
     return { success: true, data: playlistRecord };
   }
+  async getPlaylistTrackRecordById(
+    playlistTrackId: string,
+  ): Promise<Result<PlaylistTrackModel, typeof errorMessages.playlist.playlistTrackNotExistsByID>> {
+    const playlistTrackRecord = await database.playlistTrackModel.findByPk(playlistTrackId);
+    if (!playlistTrackRecord) {
+      return { success: false, reason: errorMessages.playlist.playlistTrackNotExistsByID };
+    }
+    return { success: true, data: playlistTrackRecord };
+  }
   async getUserAlbumRecordById(
     playlistId: string,
     userId: string,
   ): Promise<Result<PlaylistModel, typeof errorMessages.album.NotExistsById>> {
     const playlistRecord = await database.playlistModel.findByPk(playlistId);
-    if (!playlistRecord) {
-      return { success: false, reason: errorMessages.album.NotExistsById };
-    }
-    if (playlistRecord.owner !== userId) {
-      return { success: false, reason: errorMessages.album.NotExistsById };
-    }
-    if (playlistRecord.type !== Type.Album) {
+    if (!playlistRecord || playlistRecord.owner !== userId || playlistRecord.type !== Type.Album) {
       return { success: false, reason: errorMessages.album.NotExistsById };
     }
     return { success: true, data: playlistRecord };
@@ -291,6 +328,7 @@ class PlaylistManager {
     trackId: string;
     playlistTrackId: string;
     userId: string;
+    transaction?: Transaction;
   }): Promise<
     Result<
       { playlistTrackId: string },
@@ -328,11 +366,14 @@ class PlaylistManager {
             track_id: playlistTrackInfo.trackId,
             order: typeof maxOrder === 'number' ? maxOrder + ORDER_NUMBER : ORDER_NUMBER,
           },
-          { transaction },
+          { transaction: playlistTrackInfo.transaction ?? transaction },
         );
         await database.playlistModel.update(
           { tracks_count: (playlistRecord.data.tracks_count ?? 0) + 1 },
-          { where: { id: playlistRecord.data.id }, transaction },
+          {
+            where: { id: playlistRecord.data.id },
+            transaction: playlistTrackInfo.transaction ?? transaction,
+          },
         );
       });
     } catch {
@@ -344,6 +385,7 @@ class PlaylistManager {
     playlistId: string;
     playlistTrackId: string;
     userId: string;
+    transaction?: Transaction;
   }): Promise<
     Result<
       null,
@@ -374,11 +416,16 @@ class PlaylistManager {
 
     try {
       await database.sequelize.transaction(async (transaction) => {
-        await playlistTrackRecord.destroy({ transaction });
+        await playlistTrackRecord.destroy({
+          transaction: playlistTrackInfo.transaction ?? transaction,
+        });
 
         await database.playlistModel.update(
           { tracks_count: (playlistRecord.data.tracks_count ?? 0) - 1 },
-          { where: { id: playlistRecord.data.id }, transaction },
+          {
+            where: { id: playlistRecord.data.id },
+            transaction: playlistTrackInfo.transaction ?? transaction,
+          },
         );
       });
     } catch {
@@ -399,7 +446,7 @@ class PlaylistManager {
     limit: number = DEFAULT_LIMIT,
     offset: number = DEFAULT_OFFSET,
   ): Promise<
-    Result<{
+    SuccessfulResult<{
       items: (Pick<Itrack, 'deleted' | 'name' | 'duration'> & {
         id: string;
         playlist_track_id?: string;
@@ -430,7 +477,7 @@ class PlaylistManager {
               through: { attributes: [] },
               attributes: ['id', 'visible_username'],
             },
-            { association: 'album' },
+            { association: 'album', attributes: ['id', 'name'] },
           ],
         },
         { model: database.playlistModel, required: true },
@@ -447,6 +494,7 @@ class PlaylistManager {
           duration: row.track.duration,
           lyrics: row.track.lyrics,
           cover_url: row.track.cover_id ? `${STATIC_IMAGES_PATH}/${row.track.cover_id}.jpg` : null,
+          album: row.track.album ?? { id: row.track.id, name: row.track.name },
           id: row.track_id,
           date_added: row.date_added ?? null,
           artists: row.track.users,
@@ -489,29 +537,18 @@ class PlaylistManager {
     limit: number = DEFAULT_LIMIT,
     offset: number = DEFAULT_OFFSET,
   ): Promise<
-    Result<
-      {
-        items: (Pick<Itrack, 'deleted' | 'name' | 'duration'> & {
-          id: string;
-          playlist_track_id: string;
-          date_added: Date | null;
-          cover_url: string | null;
-          artists: { id: string; visible_username: string }[];
-          is_liked?: true;
-        })[];
-        total: number;
-      },
-      typeof errorMessages.playlist.NotExistsById
-    >
+    SuccessfulResult<{
+      items: (Pick<Itrack, 'deleted' | 'name' | 'duration'> & {
+        id: string;
+        playlist_track_id: string;
+        date_added: Date | null;
+        cover_url: string | null;
+        artists: { id: string; visible_username: string }[];
+        is_liked?: true;
+      })[];
+      total: number;
+    }>
   > {
-    //probably need to search through playlist
-    const playistRecord = await this.getPlaylistRecordById(
-      searchInfo.playlistId,
-      searchInfo.userId,
-    );
-    if (!playistRecord.success) {
-      return playistRecord;
-    }
     const searchPattern = `%${searchInfo.search}%`;
     const playlistTracks = (await database.playlistTrackModel.findAndCountAll({
       attributes: ['id', 'date_added'],
@@ -553,6 +590,7 @@ class PlaylistManager {
               // where: { visible_username: { [Op.iLike]: `%${searchInfo.search}%` } },
               // required: false,
             },
+            { association: 'album' },
           ],
         },
       ],
@@ -573,6 +611,7 @@ class PlaylistManager {
             lyrics: row.track.lyrics,
             play_count: row.track.play_count,
             deleted: row.track.deleted,
+            album: row.track.album ?? { id: row.track.id, name: row.track.name },
             duration: row.track.duration,
             is_liked: true,
             creation_date: row.track.creation_date ?? null,

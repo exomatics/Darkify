@@ -77,7 +77,7 @@ export const ROUTES = Object.freeze({
     GET_ALBUM_TRACKS: `${API_BASE}/albums/:albumId/tracks`,
     POST_ALBUM: `${API_BASE}/albums`,
     POST_ADD_TRACK: `${API_BASE}/albums/add-track/:trackId`,
-    POST_REMOVE_TRACK: `${API_BASE}/albums/remove-track/:playlistTrackId`,
+    POST_REMOVE_TRACK: `${API_BASE}/albums/remove-track/:albumTrackId`,
     PUT_ALBUM_INFO: `${API_BASE}/albums/:albumId`,
     PUT_ALBUM_COVER: `${API_BASE}/albums/:albumId/cover`,
     PUT_ALBUM_REORDER: `${API_BASE}/albums/:albumId/tracks/reorder`,

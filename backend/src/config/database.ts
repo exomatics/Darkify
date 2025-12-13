@@ -66,6 +66,8 @@ database.trackModel.belongsTo(database.playlistModel.scope('albumOnly'), {
   as: 'album',
   foreignKey: 'album_id',
   targetKey: 'id',
+  onDelete: 'SET NULL',
+  onUpdate: 'CASCADE',
 });
 
 database.playlistTrackModel.belongsTo(database.playlistModel, { foreignKey: 'playlist_id' });

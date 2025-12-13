@@ -56,7 +56,7 @@ const playlistModel = (sequelize: Sequelize) => {
         allowNull: false,
       },
       type: {
-        type: DataTypes.ENUM({ values: ['general', 'liked'] }),
+        type: DataTypes.ENUM({ values: ['general', 'liked', 'album'] }),
         allowNull: false,
       },
     },

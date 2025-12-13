@@ -45,20 +45,24 @@ export default {
     limit: number = DEFAULT_LIMIT,
     offset: number = DEFAULT_OFFSET,
   ) {
-    const modelResponse = await playlist.getAllTracksFromPlaylist(
+    const playlistRecord = await playlist.getPlaylistRecordById(
+      playlistInfo.userId,
+      playlistInfo.userId,
+    );
+    if (!playlistRecord.success) {
+      throw new NotFoundError(errorMessages.liked.NotExistsById);
+    }
+    const likedTracks = await playlist.getAllTracksFromPlaylist(
       { ...playlistInfo, playlistId: playlistInfo.userId, type: Type.Liked },
       limit,
       offset,
     );
 
-    if (!modelResponse.success) {
-      throw new NotFoundError(modelResponse.reason);
-    }
-    const { items, total } = modelResponse.data;
+    const { items, total } = likedTracks.data;
     return {
       next: offset + items.length + 1 <= total ? offset + items.length : null,
       offset,
-      ...modelResponse.data,
+      ...likedTracks.data,
     };
   },
   async addTrackToLiked(playlistInfo: { trackId: string; userId: string }) {
@@ -116,15 +120,20 @@ export default {
     offset: number = DEFAULT_OFFSET,
   ) {
     if (searchInfo.search) {
-      const modelResponse = await playlist.searchForPlaylistTrack(
+      const playlistRecord = await playlist.getPlaylistRecordById(
+        searchInfo.userId,
+        searchInfo.userId,
+      );
+      if (!playlistRecord.success) {
+        throw new NotFoundError(errorMessages.liked.NotExistsById);
+      }
+      const searchResponse = await playlist.searchForPlaylistTrack(
         { ...searchInfo, search: searchInfo.search, playlistId: searchInfo.userId, isLiked: true },
         limit,
         offset,
       );
-      if (!modelResponse.success) {
-        throw new NotFoundError(modelResponse.reason);
-      }
-      return modelResponse;
+
+      return searchResponse;
     } else {
       const modelResponse = await this.getLikedTracks({
         ..._.omit(searchInfo, 'search'),

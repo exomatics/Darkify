@@ -23,7 +23,7 @@ import {
 import { ROUTES } from './routes.ts';
 
 import type { AlbumsSortBy, IUpdateAlbum } from '../interfaces/album-interface.ts';
-import type { ICreatePlaylist, IReorder } from '../interfaces/playlist-interface.ts';
+import type { IReorder } from '../interfaces/playlist-interface.ts';
 import type { Request, Response, RequestHandler } from 'express';
 import type { ParamsDictionary } from 'express-serve-static-core';
 
@@ -131,7 +131,7 @@ router.get(
     },
   ),
 );
-type PostPlaylistRequest = Request<ParamsDictionary, unknown, ICreatePlaylist | null>;
+type PostPlaylistRequest = Request<ParamsDictionary, unknown, { name: string }>;
 router.post(
   ROUTES.ALBUMS.POST_ALBUM,
   passport.authenticate('access-token', { session: false }) as RequestHandler,
@@ -139,6 +139,7 @@ router.post(
   asyncHandler(async (request: PostPlaylistRequest, response: Response) => {
     const validation = createAlbumScheme.safeParse({
       owner: request.jwtPayload.user_id,
+      name: request.body.name,
       restrictions: Restrictions.Private,
       file: request.file ?? null,
     });
@@ -161,7 +162,7 @@ router.post(
     ) => {
       const validation = addToAlbumScheme.safeParse({
         albumId: request.body.albumId,
-        trackId: request.body.trackId,
+        trackId: request.params.trackId,
         userId: request.jwtPayload.user_id,
       });
 
@@ -182,11 +183,15 @@ router.post(
   passport.authenticate('access-token', { session: false }) as RequestHandler,
   asyncHandler(
     async (
-      request: Request<ParamsDictionary, unknown, { albumId: string; albumTrackId: string }>,
+      request: Request<
+        ParamsDictionary,
+        unknown,
+        { albumId: string; albumTrackId: string; trackId: string }
+      >,
       response: Response,
     ) => {
       const validation = removeFromAlbumScheme.safeParse({
-        albumTrackId: request.body.albumTrackId,
+        albumTrackId: request.params.albumTrackId,
         albumId: request.body.albumId,
         userId: request.jwtPayload.user_id,
       });
@@ -246,7 +251,7 @@ router.put(
       const databaseResponse = await albumController.updateAlbumInfo({
         ...validation.data,
         playlistId: validation.data.albumId,
-        releaseDate: new Date(validation.data.releaseDate),
+        releaseDate: validation.data.releaseDate ? new Date(validation.data.releaseDate) : null,
       });
 
       response.status(200).json(databaseResponse);
@@ -278,21 +283,27 @@ router.put(
 router.delete(
   ROUTES.ALBUMS.DELETE_ALBUM,
   passport.authenticate('access-token', { session: false }) as RequestHandler,
-  asyncHandler(async (request: Request<ParamsDictionary, unknown, null>, response: Response) => {
-    const validation = deleteAlbumScheme.safeParse({
-      albumId: request.params.albumId,
-      userId: request.jwtPayload.user_id,
-    });
-    if (!validation.success) {
-      throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
-    }
-    const databaseResponse = await albumController.deleteAlbum({
-      ...validation.data,
-      playlistId: validation.data.albumId,
-    });
+  asyncHandler(
+    async (
+      request: Request<ParamsDictionary, unknown, { keepTracks?: boolean }>,
+      response: Response,
+    ) => {
+      const validation = deleteAlbumScheme.safeParse({
+        albumId: request.params.albumId,
+        userId: request.jwtPayload.user_id,
+        keepTracks: request.body?.keepTracks,
+      });
+      if (!validation.success) {
+        throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
+      }
+      const databaseResponse = await albumController.deleteAlbum({
+        ...validation.data,
+        playlistId: validation.data.albumId,
+      });
 
-    response.status(200).json(databaseResponse);
-  }),
+      response.status(200).json(databaseResponse);
+    },
+  ),
 );
 
 export default router;
