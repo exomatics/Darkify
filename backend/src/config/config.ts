@@ -44,8 +44,13 @@ export const BITRATE_OPTIONS = {
 export const playlistOrderOptions: Record<string, OrderItem[]> = {
   name: [database.trackModel, sequelize.col('name')],
   date_added: [sequelize.col('date_added')],
-  // album: [database.trackModel, sequelize.col('album')],
+  album: [database.trackModel, 'album', sequelize.col('name')],
   artist: [database.trackModel, database.userModel, sequelize.col('visible_username')],
   duration: [database.trackModel, sequelize.col('duration')],
   order: [sequelize.col('order')],
+};
+
+export const albumOrderOptions: Record<string, OrderItem[]> = {
+  ...playlistOrderOptions,
+  playCount: [database.trackModel, sequelize.col('play_count')],
 };

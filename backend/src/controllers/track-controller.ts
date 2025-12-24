@@ -112,7 +112,6 @@ export default {
       const trackResponse = await track.createTrack({
         ...trackInfo,
         cover_id: coverId,
-        transaction,
       });
       if (!trackResponse.success) {
         throw new InternalError(trackResponse.reason);

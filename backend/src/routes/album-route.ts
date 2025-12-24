@@ -4,6 +4,7 @@ import { z } from 'zod/v4';
 
 import albumController from '../controllers/album-controller.ts';
 import ValidationError from '../errors/validation-error.ts';
+import { AlbumsSortBy } from '../interfaces/album-interface.ts';
 import { Order, Restrictions, PlaylistSortBy } from '../interfaces/playlist-interface.ts';
 import asyncHandler from '../middleware/async-handler.ts';
 import { FileUploader } from '../models/services/file-management.ts';
@@ -22,7 +23,7 @@ import {
 
 import { ROUTES } from './routes.ts';
 
-import type { AlbumsSortBy, IUpdateAlbum } from '../interfaces/album-interface.ts';
+import type { IUpdateAlbum } from '../interfaces/album-interface.ts';
 import type { IReorder } from '../interfaces/playlist-interface.ts';
 import type { Request, Response, RequestHandler } from 'express';
 import type { ParamsDictionary } from 'express-serve-static-core';
@@ -82,7 +83,6 @@ router.get(
         sortBy: request.query.sort ?? PlaylistSortBy.Custom,
         order: request.query.order ?? Order.Desc,
       },
-      //final test of sorting and ordering
       limit: +(request.query.limit ?? 5),
       offset: +(request.query.offset ?? 0),
     });
@@ -112,7 +112,10 @@ router.get(
     ) => {
       const validation = getMyAlbumsScheme.safeParse({
         userId: request.jwtPayload.user_id,
-        sort: request.body.sort,
+        sort: {
+          sortBy: request.query.sort ?? AlbumsSortBy.Custom,
+          order: request.query.order ?? Order.Desc,
+        },
         limit: +(request.query.limit ?? 5),
         offset: +(request.query.offset ?? 0),
       });

@@ -40,7 +40,7 @@ class TrackManager {
           through: { attributes: [] },
           attributes: ['id', 'visible_username'],
         },
-        { association: 'album', attributes: ['id', 'name'] },
+        { association: 'album', attributes: ['id', 'name'], required: false },
       ],
     })) as TrackModelWithUsers | null;
     if (!trackRecord) {
@@ -251,7 +251,7 @@ class TrackManager {
     trackInfo: Pick<
       Itrack,
       'cover_id' | 'id' | 'admin_id' | 'artists' | 'album_id' | 'name' | 'lyrics' | 'duration'
-    > & { transaction?: Transaction },
+    >,
   ): Promise<Result<TrackResult, typeof errorMessages.track.NotExistsById>> {
     try {
       const trackArtists = trackInfo.artists.map((value) => {
@@ -271,6 +271,7 @@ class TrackManager {
           },
           { transaction },
         );
+
         await database.trackArtistsModel.bulkCreate(
           [
             { track_id: trackInfo.id, is_admin: true, artist_id: trackInfo.admin_id },
@@ -292,7 +293,7 @@ class TrackManager {
     trackInfo: Pick<
       Itrack,
       'cover_id' | 'id' | 'admin_id' | 'artists' | 'album_id' | 'name' | 'lyrics'
-    > & { transaction?: Transaction },
+    >,
   ): Promise<
     Result<
       TrackResult,
