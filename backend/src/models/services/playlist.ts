@@ -59,7 +59,8 @@ type DeleteAlbumErrors =
 
 class PlaylistManager {
   async createPlaylist(
-    playlistInfo: ICreatePlaylist & Pick<IPlaylist, 'restrictions'> & { coverId?: string | null },
+    playlistInfo: ICreatePlaylist &
+      Pick<IPlaylist, 'restrictions'> & { coverId?: string | null; transaction?: Transaction },
   ): Promise<SuccessfulResult<{ playlistId: string; userId: string }>> {
     let playlistRecord: Partial<PlaylistModel> = {};
     try {
@@ -82,17 +83,17 @@ class PlaylistManager {
             restrictions: playlistInfo.restrictions,
             type: playlistInfo.type ?? Type.General,
           },
-          { transaction },
+          { transaction: playlistInfo.transaction ?? transaction },
         );
         await this.createLibraryRecord(
           localPlaylistRecord.owner,
           localPlaylistRecord.id,
-          transaction,
+          playlistInfo.transaction ?? transaction,
         );
         playlistRecord = localPlaylistRecord;
       });
     } catch {
-      throw new InternalError('failed to create playlist');
+      throw new InternalError(errorMessages.playlist.FailedToCreate);
     }
     return {
       success: true,

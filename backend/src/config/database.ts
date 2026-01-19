@@ -1,5 +1,6 @@
 import { Sequelize } from 'sequelize';
 
+import { artistModel } from '../models/artists.ts';
 import { libraryPlaylists } from '../models/library-playlists.ts';
 import { playlistAlbumsModel } from '../models/playlist-albums.ts';
 import { playlistFollowersModel } from '../models/playlist-followers.ts';
@@ -43,6 +44,7 @@ const database: Idb = {
   userFollowingModel: userFollowingModel(sequelize),
   libraryPlaylists: libraryPlaylists(sequelize),
   playlistAlbumsModel: playlistAlbumsModel(sequelize),
+  artistModel: artistModel(sequelize),
 };
 
 database.playlistModel.belongsToMany(database.trackModel, {
@@ -102,13 +104,16 @@ database.playlistFollowersModel.belongsTo(database.playlistModel, { foreignKey: 
 database.userModel.hasMany(database.playlistFollowersModel, { foreignKey: 'user_id' });
 database.playlistFollowersModel.belongsTo(database.userModel, { foreignKey: 'user_id' });
 
-database.libraryPlaylists.hasMany(database.playlistModel, { foreignKey: 'id' });
+database.libraryPlaylists.hasMany(database.playlistModel, { foreignKey: 'playlist_id' });
 database.playlistModel.belongsTo(database.libraryPlaylists, { foreignKey: 'id' });
 database.libraryPlaylists.belongsTo(database.userModel, { foreignKey: 'user_id' });
 database.userModel.hasMany(database.libraryPlaylists, { foreignKey: 'user_id' });
 
 database.playlistModel.hasOne(database.playlistAlbumsModel, { foreignKey: 'playlist_id' });
 database.playlistAlbumsModel.belongsTo(database.playlistModel, { foreignKey: 'playlist_id' });
+
+database.userModel.hasOne(database.artistModel, { foreignKey: 'user_id' });
+database.artistModel.belongsTo(database.userModel, { foreignKey: 'user_id' });
 
 const sequelizeSync = async (sequelizeConfig: Sequelize) => {
   await sequelizeConfig.sync();

@@ -1,26 +1,44 @@
+import database from '../config/database.ts';
 import NotFoundError from '../errors/not-found-error.ts';
 import ValidationError from '../errors/validation-error.ts';
 import { Restrictions, Type } from '../interfaces/playlist-interface.ts';
 import PlaylistManager from '../models/services/playlist.ts';
 import UserManager from '../models/services/user.ts';
 
+import type { errorMessages } from '../errors/error-messages.ts';
 import type { IUser } from '../interfaces/user-interface.ts';
+import type { Result } from '../types/result-type.ts';
 
 const user = new UserManager();
 const playlist = new PlaylistManager();
 export default {
   async registerUser(userInfo: { password: string; email: string }) {
+    let userResponse:
+      | undefined
+      | Result<
+          {
+            accessToken: { token: string; expires: string };
+            refreshToken: { token: string; expires: string };
+          },
+          typeof errorMessages.user.EmailAlreadyExists
+        >;
     const user_id = crypto.randomUUID();
-    const userResponse = await user.registerUser({ ...userInfo, user_id });
-    if (!userResponse.success) {
-      throw new ValidationError(userResponse.reason);
-    }
-    await playlist.createPlaylist({
-      restrictions: Restrictions.Private,
-      playlistId: user_id,
-      owner: user_id,
-      type: Type.Liked,
+    await database.sequelize.transaction(async (transaction) => {
+      userResponse = await user.registerUser({ ...userInfo, transaction, user_id });
+      if (!userResponse.success) {
+        throw new ValidationError(userResponse.reason);
+      }
+      await playlist.createPlaylist({
+        restrictions: Restrictions.Private,
+        playlistId: user_id,
+        owner: user_id,
+        type: Type.Liked,
+        transaction,
+      });
     });
+    if (!userResponse?.success) {
+      throw new ValidationError(userResponse?.reason);
+    }
     return {
       ...userResponse.data,
     };

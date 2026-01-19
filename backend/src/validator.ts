@@ -282,6 +282,14 @@ const updateAlbumCoverScheme = updatePlaylistCoverScheme
 const deleteAlbumScheme = deletePlaylistScheme
   .omit({ playlistId: true })
   .extend({ albumId: uuidScheme, keepTracks: z.boolean().optional() });
+
+const artistScheme = z.object({
+  userId: uuidScheme,
+  description: z.string().max(1500).nonempty().optional(),
+  bannerId: uuidScheme.optional(),
+});
+
+const createArtistScheme = artistScheme.omit({ bannerId: true });
 export {
   uuidScheme,
   loginScheme,
@@ -325,4 +333,5 @@ export {
   reorderAlbumScheme,
   updateAlbumCoverScheme,
   deleteAlbumScheme,
+  createArtistScheme,
 };

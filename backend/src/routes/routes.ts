@@ -81,4 +81,7 @@ export const ROUTES = Object.freeze({
     PUT_ALBUM_REORDER: `${API_BASE}/albums/:albumId/tracks/reorder`,
     DELETE_ALBUM: `${API_BASE}/albums/:albumId`,
   },
+  ARTISTS: {
+    POST_ARTIST: `${API_BASE}/artists`,
+  },
 } as const);
