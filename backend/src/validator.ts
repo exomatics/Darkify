@@ -222,6 +222,15 @@ const searchTrackInPlaylist = z.object({
   sort: z.object({ sortBy: z.enum(PlaylistSortBy), order: z.enum(Order) }),
   ...paginationScheme.shape,
 });
+const getLikedScheme = z.object({
+  userId: uuidScheme,
+  search: z.string().max(100).optional(),
+  sort: z.object({ sortBy: z.enum(PlaylistSortBy), order: z.enum(Order) }),
+  ...paginationScheme.shape,
+});
+const reorderLikedScheme = reorderPlaylistScheme.omit({ playlistId: true });
+const addToLikedScheme = addToPlaylist.omit({ playlistId: true });
+const removeFromLikedScheme = removeFromPlaylist.omit({ playlistId: true });
 export {
   uuidScheme,
   loginScheme,
@@ -251,4 +260,8 @@ export {
   getLibraryScheme,
   getLibraryPlaylistsScheme,
   searchTrackInPlaylist,
+  getLikedScheme,
+  reorderLikedScheme,
+  addToLikedScheme,
+  removeFromLikedScheme,
 };

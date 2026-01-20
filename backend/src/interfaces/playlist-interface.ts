@@ -13,15 +13,12 @@ export interface IPlaylist {
   coverId: string | null;
   owner: string;
   restrictions: Restrictions;
-  type: Type;
+  type?: Type;
 }
-export type ICreatePlaylist = Omit<
-  IPlaylist,
-  'playlistId' | 'name' | 'type' | 'coverId' | 'restrictions'
-> & {
-  name: string | null;
+export type ICreatePlaylist = Omit<IPlaylist, 'name' | 'coverId' | 'restrictions'> & {
+  name?: string | null;
   restrictions?: Restrictions;
-  file: Express.Multer.File | null;
+  file?: Express.Multer.File | null;
 };
 export interface IReorder {
   playlistId: string;
@@ -36,7 +33,7 @@ export interface IUpdatePlaylist {
 }
 export enum Type {
   General = 'general',
-  Liked = 'liked_songs',
+  Liked = 'liked',
   Album = 'album',
 }
 export enum PlaylistSortBy {

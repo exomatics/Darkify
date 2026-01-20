@@ -56,6 +56,13 @@ export const ROUTES = Object.freeze({
     PUT_PLAYLIST_REORDER: `${API_BASE}/playlists/:playlistId/reorder/`,
     DELETE_PLAYLIST: `${API_BASE}/playlists/:playlistId`,
   },
+  LIKED: {
+    GET_LIKED: `${API_BASE}/liked`,
+    POST_ADD_TRACK: `${API_BASE}/liked/add-track/:trackId`,
+    POST_REMOVE_TRACK: `${API_BASE}/liked/remove-track/:playlistTrackId`,
+    PUT_LIKED_REORDER: `${API_BASE}/liked/reorder`,
+    GET_LIKED_TRACKS: `${API_BASE}/liked/tracks`,
+  },
   LIBRARY: {
     GET_ME_LIBRARY: `${API_BASE}/me/library`,
     GET_ME_PLAYLISTS: `${API_BASE}/me/library/playlists`,

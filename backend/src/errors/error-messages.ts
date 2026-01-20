@@ -14,11 +14,15 @@ export const errorMessages = {
   }),
   playlist: Object.freeze({
     NotExistsById: 'Playlist with this id does not exist',
-    TrackNotExistsByIndex: 'Track with this index doesnt exist in this playlist',
-    // TrackNotBelongs: 'Track with this id doesnt belong to this playlist',
+    TrackNotExistsById: 'Track with this id doesnt exist in this playlist',
     IsNotAnOwner: 'User is not the owner of the playlist',
     LibraryNotExistsById: 'Library playlist with this id does not exist',
     LibraryNotExistsByIndex: 'Library playlist with this index doesnt exist in this library',
+    TrackNotExistsByIndex: 'Track with this index doesnt exist in this playlist',
+  }),
+  liked: Object.freeze({
+    CantDelete: 'You cant delete liked songs',
+    TrackMustBeUnique: 'Songs in Liked must be unique',
   }),
   track: Object.freeze({
     NotExistsById: 'Track with this id does not exist',

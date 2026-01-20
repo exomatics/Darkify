@@ -26,6 +26,7 @@ const trackArtistsModel = (sequelize: Sequelize) => {
       track_id: {
         type: DataTypes.UUID,
         allowNull: false,
+        primaryKey: true,
       },
     },
     {

@@ -312,7 +312,7 @@ class UserManager {
 
     return { success: true, data: null };
   }
-  async registerUser(userInfo: { password: string; email: string }): Promise<
+  async registerUser(userInfo: { password: string; email: string; user_id: string }): Promise<
     Result<
       {
         accessToken: { token: string; expires: string };
@@ -328,7 +328,7 @@ class UserManager {
     }
 
     const newUser = await database.userModel.create({
-      id: crypto.randomUUID(),
+      id: userInfo.user_id,
       is_artist: false,
       hash,
       salt,

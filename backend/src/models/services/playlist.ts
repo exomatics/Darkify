@@ -1,5 +1,3 @@
-import crypto from 'node:crypto';
-
 import _ from 'lodash';
 import sequelize, { Op } from 'sequelize';
 
@@ -52,10 +50,8 @@ type PlaylistTrackInstanceWithRelations = PlaylistTrackModel & {
 
 class PlaylistManager {
   async createPlaylist(
-    playlistInfo: ICreatePlaylist & Pick<IPlaylist, 'restrictions'> & { coverId: string | null },
-  ): Promise<
-    Result<{ playlistId: string; userId: string }, typeof errorMessages.playlist.NotExistsById>
-  > {
+    playlistInfo: ICreatePlaylist & Pick<IPlaylist, 'restrictions'> & { coverId?: string | null },
+  ): Promise<SuccessfulResult<{ playlistId: string; userId: string }>> {
     let playlistRecord: Partial<PlaylistModel> = {};
     try {
       await database.sequelize.transaction(async (transaction) => {
@@ -63,16 +59,19 @@ class PlaylistManager {
           where: { owner: playlistInfo.owner },
           transaction,
         });
-        const defaultPlaylistName = `My Playlist ${String(playlistCount + 1)}`;
+        const defaultPlaylistName =
+          playlistInfo.type === Type.Liked
+            ? `Liked Songs`
+            : `My Playlist ${String(playlistCount + 1)}`;
         const localPlaylistRecord = await database.playlistModel.create(
           {
-            id: crypto.randomUUID(),
+            id: playlistInfo.playlistId,
             name: playlistInfo.name ?? defaultPlaylistName,
             description: playlistInfo.description ?? null,
             cover_id: playlistInfo.coverId ?? null,
             owner: playlistInfo.owner,
             restrictions: playlistInfo.restrictions,
-            type: Type.General,
+            type: playlistInfo.type ?? Type.General,
           },
           { transaction },
         );
@@ -94,13 +93,21 @@ class PlaylistManager {
   async deletePlaylist(playlistInfo: {
     playlistId: string;
     userId: string;
-  }): Promise<Result<null, typeof errorMessages.playlist.NotExistsById>> {
+  }): Promise<
+    Result<
+      null,
+      typeof errorMessages.playlist.NotExistsById | typeof errorMessages.liked.CantDelete
+    >
+  > {
     const playlistRecord = await this.getPlaylistRecordById(
       playlistInfo.playlistId,
       playlistInfo.userId,
     );
     if (!playlistRecord.success) {
       return playlistRecord;
+    }
+    if (playlistRecord.data.type === Type.Liked) {
+      return { success: false, reason: errorMessages.liked.CantDelete };
     }
     try {
       await database.sequelize.transaction(async (transaction) => {
@@ -129,7 +136,36 @@ class PlaylistManager {
     }
     return { success: true, data: playlistRecord };
   }
+  async IsTrackExistsById(playlistInfo: {
+    playlistId: string;
+    trackId: string;
+    userId: string;
+  }): Promise<
+    Result<
+      null,
+      | typeof errorMessages.playlist.NotExistsById
+      | typeof errorMessages.playlist.IsNotAnOwner
+      | typeof errorMessages.playlist.TrackNotExistsById
+    >
+  > {
+    const playlistRecord = await this.getPlaylistRecordById(
+      playlistInfo.playlistId,
+      playlistInfo.userId,
+    );
+    if (!playlistRecord.success) {
+      return playlistRecord;
+    }
+    const playlistTrackRecord = await database.playlistTrackModel.findOne({
+      where: {
+        [Op.and]: [{ playlist_id: playlistInfo.playlistId }, { track_id: playlistInfo.trackId }],
+      },
+    });
+    if (!playlistTrackRecord) {
+      return { success: false, reason: errorMessages.playlist.TrackNotExistsById };
+    }
 
+    return { success: true, data: null };
+  }
   async addTrackToPlaylist(playlistTrackInfo: {
     playlistId: string;
     trackId: string;
@@ -238,23 +274,22 @@ class PlaylistManager {
       playlistId: string;
       userId: string;
       sort: { sortBy: PlaylistSortBy; order: Order };
+      type?: Type;
     },
     limit: number = DEFAULT_LIMIT,
     offset: number = DEFAULT_OFFSET,
   ): Promise<
-    Result<
-      {
-        items: (Pick<Itrack, 'deleted' | 'name' | 'duration'> & {
-          id: string;
-          playlistTrackId: string;
-          dateAdded: Date | null;
-          cover_url: string | null;
-          artists: { id: string; visible_username: string }[];
-        })[];
-        total: number;
-      },
-      typeof errorMessages.playlist.NotExistsById
-    >
+    Result<{
+      items: (Pick<Itrack, 'deleted' | 'name' | 'duration'> & {
+        id: string;
+        playlist_track_id?: string;
+        date_added: Date | null;
+        cover_url: string | null;
+        artists: { id: string; visible_username: string }[];
+        is_liked?: boolean;
+      })[];
+      total: number;
+    }>
   > {
     const playlistTracks = (await database.playlistTrackModel.findAndCountAll({
       where: { playlist_id: playlistInfo.playlistId },
@@ -276,29 +311,35 @@ class PlaylistManager {
             },
           ],
         },
+        { model: database.playlistModel, required: true },
       ],
       offset,
       limit,
-      // logging: true,
     })) as { rows: PlaylistTrackInstanceWithRelations[]; count: number };
-    // console.log(3);
-    // const count = await database.playlistTrackModel.count({
-    //   where: { playlist_id: playlistInfo.playlistId },
-    // });
-    //add track to test
-    const processedPlaylistRows = playlistTracks.rows.map((row) => {
-      return {
-        deleted: row.track.deleted ?? false,
-        name: row.track.name,
-        duration: row.track.duration,
-        lyrics: row.track.lyrics,
-        cover_url: row.track.cover_id ? `${STATIC_IMAGES_PATH}/${row.track.cover_id}.jpg` : null,
-        id: row.track_id,
-        playlistTrackId: row.id,
-        dateAdded: row.date_added ?? null,
-        artists: row.track.users,
-      };
-    });
+    const processedPlaylistRows = playlistTracks.rows.map(
+      (row: PlaylistTrackInstanceWithRelations) => {
+        const basePlaylistRow = {
+          deleted: row.track.deleted ?? false,
+          name: row.track.name,
+          duration: row.track.duration,
+          lyrics: row.track.lyrics,
+          cover_url: row.track.cover_id ? `${STATIC_IMAGES_PATH}/${row.track.cover_id}.jpg` : null,
+          id: row.track_id,
+          date_added: row.date_added ?? null,
+          artists: row.track.users,
+        };
+        return playlistInfo.type === Type.Liked
+          ? {
+              ...basePlaylistRow,
+              is_liked: true,
+              playlist_track_id: row.id,
+            }
+          : {
+              ...basePlaylistRow,
+              playlist_track_id: row.id,
+            };
+      },
+    );
     return {
       success: true,
       data: { total: playlistTracks.count, items: processedPlaylistRows },
@@ -310,22 +351,22 @@ class PlaylistManager {
       playlistId: string;
       userId: string;
       sort: { sortBy: PlaylistSortBy; order: Order };
+      isLiked?: boolean;
     },
     limit: number = DEFAULT_LIMIT,
     offset: number = DEFAULT_OFFSET,
   ): Promise<
     Result<
       {
-        total: number;
-        items: {
+        items: (Pick<Itrack, 'deleted' | 'name' | 'duration'> & {
+          id: string;
           playlist_track_id: string;
-          date_added?: Date | null;
-          track: Omit<Itrack, 'cover_id' | 'admin_id' | 'name' | 'artists'> & {
-            cover_url: string | null;
-            artists: UserModel[];
-            creation_date: Date | null;
-          };
-        }[];
+          date_added: Date | null;
+          cover_url: string | null;
+          artists: { id: string; visible_username: string }[];
+          is_liked?: true;
+        })[];
+        total: number;
       },
       typeof errorMessages.playlist.NotExistsById
     >
@@ -388,24 +429,45 @@ class PlaylistManager {
       rows: PlaylistTrackInstanceWithRelations[];
       count: number;
     };
-    const processedPlaylistTracks = playlistTracks.rows.map((row) => {
-      return {
-        playlist_track_id: row.id,
-        ..._.omit(row.dataValues, ['order', 'id']),
-        track: {
-          ..._.omit(row.track.dataValues, ['users', 'cover_id', 'admin_id']),
-          id: row.track.id,
-          name: row.track.name,
-          lyrics: row.track.lyrics,
-          play_count: row.track.play_count,
-          deleted: row.track.deleted,
-          duration: row.track.duration,
-          creation_date: row.track.creation_date ?? null,
-          cover_url: row.track.cover_id ? `${STATIC_IMAGES_PATH}/${row.track.cover_id}.jpg` : null,
-          artists: [...row.track.users],
-        },
-      };
-    });
+    const processedPlaylistTracks = searchInfo.isLiked
+      ? playlistTracks.rows.map((row) => {
+          return {
+            ..._.omit(row.track.dataValues, ['users', 'cover_id', 'admin_id']),
+            playlist_track_id: row.id,
+            date_added: row.date_added ?? null,
+            id: row.track.id,
+            name: row.track.name,
+            lyrics: row.track.lyrics,
+            play_count: row.track.play_count,
+            deleted: row.track.deleted,
+            duration: row.track.duration,
+            is_liked: true,
+            creation_date: row.track.creation_date ?? null,
+            cover_url: row.track.cover_id
+              ? `${STATIC_IMAGES_PATH}/${row.track.cover_id}.jpg`
+              : null,
+            artists: [...row.track.users],
+          };
+        })
+      : playlistTracks.rows.map((row) => {
+          return {
+            ..._.omit(row.track.dataValues, ['users', 'cover_id', 'admin_id']),
+            playlist_track_id: row.id,
+            date_added: row.date_added ?? null,
+            id: row.track.id,
+            name: row.track.name,
+            lyrics: row.track.lyrics,
+            play_count: row.track.play_count,
+            deleted: row.track.deleted,
+            duration: row.track.duration,
+            creation_date: row.track.creation_date ?? null,
+            cover_url: row.track.cover_id
+              ? `${STATIC_IMAGES_PATH}/${row.track.cover_id}.jpg`
+              : null,
+            artists: [...row.track.users],
+          };
+        });
+
     return { success: true, data: { items: processedPlaylistTracks, total: playlistTracks.count } };
   }
   async getPlaylistsByName(
