@@ -1,3 +1,4 @@
+import { STATIC_IMAGES_PATH } from '../config/config.ts';
 import database from '../config/database.ts';
 import { errorMessages } from '../errors/error-messages.ts';
 import InternalError from '../errors/internal-error.ts';
@@ -34,5 +35,25 @@ export default {
       throw new InternalError(errorMessages.artist.FailedToTurnToArtist);
     }
     return null;
+  },
+  async getArtistInfo(artistInfo: { artistId: string; userId: string }) {
+    const userRecord = await user.getUserById(artistInfo.userId);
+    if (!userRecord.success) {
+      throw new NotFoundError(userRecord.reason);
+    }
+    const artistData = await artist.getArtistInfo(artistInfo);
+    if (!artistData.success) {
+      throw new NotFoundError(artistData.reason);
+    }
+    return {
+      ...artistData.data,
+      name: userRecord.data.visible_username,
+      banner_url: artistData.data.banner_id
+        ? `${STATIC_IMAGES_PATH}/${artistData.data.banner_id}.jpg`
+        : null,
+      avatar_url: userRecord.data.avatar_url
+        ? `${STATIC_IMAGES_PATH}/${userRecord.data.avatar_url}.jpg`
+        : null,
+    };
   },
 };

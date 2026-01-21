@@ -6,7 +6,7 @@ import artistController from '../controllers/artist-controller.ts';
 import ValidationError from '../errors/validation-error.ts';
 import asyncHandler from '../middleware/async-handler.ts';
 import { FileUploader } from '../models/services/file-management.ts';
-import { createArtistScheme } from '../validator.ts';
+import { createArtistScheme, getArtistScheme } from '../validator.ts';
 
 import { ROUTES } from './routes.ts';
 
@@ -28,12 +28,34 @@ router.post(
       const validation = createArtistScheme.safeParse({
         userId: request.jwtPayload.user_id,
         description: request.body?.description,
+        file: request.file ?? null,
       });
 
       if (!validation.success) {
         throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
       }
       const databaseResponse = await artistController.turnToArtist(validation.data);
+
+      response.status(200).json(databaseResponse);
+    },
+  ),
+);
+router.get(
+  ROUTES.ARTISTS.GET_ARTIST,
+  passport.authenticate('access-token', { session: false }) as RequestHandler,
+  asyncHandler(
+    async (
+      request: Request<ParamsDictionary | { artistId: string }, unknown, null>,
+      response: Response,
+    ) => {
+      const validation = getArtistScheme.safeParse({
+        userId: request.jwtPayload.user_id,
+        artistId: request.params.artistId,
+      });
+      if (!validation.success) {
+        throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
+      }
+      const databaseResponse = await artistController.getArtistInfo(validation.data);
 
       response.status(200).json(databaseResponse);
     },

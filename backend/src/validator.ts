@@ -289,7 +289,14 @@ const artistScheme = z.object({
   bannerId: uuidScheme.optional(),
 });
 
-const createArtistScheme = artistScheme.omit({ bannerId: true });
+const createArtistScheme = artistScheme
+  .omit({ bannerId: true })
+  .extend({ file: fileScheme.nullable() });
+
+const getArtistScheme = z.object({
+  userId: uuidScheme,
+  artistId: uuidScheme,
+});
 export {
   uuidScheme,
   loginScheme,
@@ -334,4 +341,5 @@ export {
   updateAlbumCoverScheme,
   deleteAlbumScheme,
   createArtistScheme,
+  getArtistScheme,
 };

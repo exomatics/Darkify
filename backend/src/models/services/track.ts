@@ -40,9 +40,11 @@ class TrackManager {
           through: { attributes: [] },
           attributes: ['id', 'visible_username'],
         },
-        { association: 'album', attributes: ['id', 'name'] },
+        { association: 'album', required: false, attributes: ['id', 'name'] },
       ],
+      logging: true,
     })) as TrackModelWithUsers | null;
+
     if (!trackRecord) {
       return { success: false, reason: errorMessages.track.NotExistsById };
     }
@@ -271,6 +273,7 @@ class TrackManager {
           },
           { transaction },
         );
+
         await database.trackArtistsModel.bulkCreate(
           [
             { track_id: trackInfo.id, is_admin: true, artist_id: trackInfo.admin_id },

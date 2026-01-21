@@ -1,11 +1,19 @@
 import { type Transaction } from 'sequelize';
+import sequelize from 'sequelize';
 
 import database from '../../config/database.ts';
 import { errorMessages } from '../../errors/error-messages.ts';
 
 import type { IArtist } from '../../interfaces/artist-interface.ts';
 import type { Result } from '../../types/result-type.ts';
+import type { ArtistModel } from '../artists.ts';
+import type { TrackModel } from '../track.ts';
+import type { UserModel } from '../user.ts';
 
+interface TracksWithArtists extends TrackModel {
+  dataValues: TrackModel['dataValues'] & { total_listens: number };
+  users: UserModel[];
+}
 class ArtistManagement {
   async turnToArtist(
     artistInfo: IArtist & {
@@ -26,57 +34,74 @@ class ArtistManagement {
     );
     return { success: true, data: null };
   }
-  async getArtistById(artistId: string) {
+  async getArtistById(
+    artistId: string,
+  ): Promise<Result<ArtistModel, typeof errorMessages.artist.NotExistsById>> {
     const artistRecord = await database.artistModel.findByPk(artistId);
     if (!artistRecord) {
       return { success: false, reason: errorMessages.artist.NotExistsById };
     }
-    return artistRecord;
+    return { success: true, data: artistRecord };
   }
-  async getArtistInfo(artistInfo: { artistId: string; userId: string }) {
-    const artistRecord = this.getArtistById(artistInfo.artistId);
+  async getArtistInfo(artistInfo: { artistId: string; userId: string }): Promise<
+    Result<
+      {
+        followers_count: number;
+        listening_count: number;
+        is_following: boolean;
+        liked_songs_count: number;
+        description: string | null;
+        banner_id: string | null;
+      },
+      typeof errorMessages.artist.NotExistsById
+    >
+  > {
+    const artistRecord = await this.getArtistById(artistInfo.artistId);
     if (!artistRecord.success) {
       return artistRecord;
     }
-    const artistFollowersCount = database.userFollowersModel.count({
+    const artistFollowersCount = await database.userFollowersModel.count({
       where: { user_id: artistInfo.artistId },
     });
-    const artistListens = database.trackModel.count({
+    const artistListens = (await database.trackModel.findAll({
+      attributes: ['id', [sequelize.fn('sum', sequelize.col('play_count')), 'total_listens']],
+      group: ['track.id', 'users.id'],
       include: {
         model: database.userModel,
         required: true,
-        through: { where: { artist_id: artistInfo.artistId } },
+        through: { attributes: [], where: { artist_id: artistInfo.artistId } },
       },
-    });
-    const isFollowingArtist = database.userFollowingModel.findOne({
+    })) as TracksWithArtists[];
+    const isFollowingArtist = await database.userFollowingModel.findOne({
       where: { user_id: artistInfo.userId, following_id: artistInfo.artistId },
     });
-    const artistLikedCount = database.playlistTrackModel.count({
+
+    const artistLikedCount = await database.trackModel.count({
       distinct: true,
       include: [
         {
-          model: database.trackModel,
-          through: { where: { id: artistInfo.userId } },
-          include: [
-            {
-              model: database.userModel,
-              attributes: ['id'],
-              through: { attributes: [] },
-              where: { id: artistInfo.artistId },
-              required: true,
-            },
-          ],
+          model: database.userModel,
+          through: { where: { artist_id: artistInfo.artistId } },
+          required: true,
+        },
+        {
+          model: database.playlistModel,
+          where: { id: artistInfo.userId },
+          required: true,
         },
       ],
     });
-    const artistData = {
-      followers_count: artistFollowersCount,
-      listening_count: artistListens,
-      is_following: isFollowingArtist,
-      liked_songs_count: artistLikedCount,
+    return {
+      success: true,
+      data: {
+        banner_id: artistRecord.data.banner_id,
+        description: artistRecord.data.description,
+        followers_count: artistFollowersCount,
+        listening_count: Number(artistListens[0].dataValues.total_listens),
+        is_following: !!isFollowingArtist,
+        liked_songs_count: artistLikedCount,
+      },
     };
-    return { success: true, data: artistData };
   }
-  async;
 }
 export default ArtistManagement;
