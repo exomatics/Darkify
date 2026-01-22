@@ -297,6 +297,12 @@ const getArtistScheme = z.object({
   userId: uuidScheme,
   artistId: uuidScheme,
 });
+const getArtistLikedScheme = getArtistScheme.extend(
+  z.object({
+    limit: z.number().max(100).nonnegative(),
+    offset: z.number().nonnegative().optional(),
+  }).shape,
+);
 export {
   uuidScheme,
   loginScheme,
@@ -342,4 +348,5 @@ export {
   deleteAlbumScheme,
   createArtistScheme,
   getArtistScheme,
+  getArtistLikedScheme,
 };

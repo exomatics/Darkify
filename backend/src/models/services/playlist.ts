@@ -490,7 +490,7 @@ class PlaylistManager {
     const processedPlaylistRows = playlistTracks.rows.map(
       (row: PlaylistTrackInstanceWithRelations) => {
         const basePlaylistRow = {
-          deleted: row.track.deleted ?? false,
+          deleted: row.track.deleted,
           name: row.track.name,
           duration: row.track.duration,
           lyrics: row.track.lyrics,

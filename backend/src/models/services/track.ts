@@ -266,6 +266,7 @@ class TrackManager {
             admin_id: trackInfo.admin_id,
             name: trackInfo.name,
             play_count: 0,
+            deleted: false,
             album_id: trackInfo.album_id ?? null,
             lyrics: trackInfo.lyrics ?? null,
             duration: trackInfo.duration,

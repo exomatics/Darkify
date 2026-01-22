@@ -1,4 +1,4 @@
-import { STATIC_IMAGES_PATH } from '../config/config.ts';
+import { DEFAULT_OFFSET, STATIC_IMAGES_PATH } from '../config/config.ts';
 import database from '../config/database.ts';
 import { errorMessages } from '../errors/error-messages.ts';
 import InternalError from '../errors/internal-error.ts';
@@ -55,5 +55,16 @@ export default {
         ? `${STATIC_IMAGES_PATH}/${userRecord.data.avatar_url}.jpg`
         : null,
     };
+  },
+  async getLikedFromArtist(
+    artistInfo: { artistId: string; userId: string },
+    limit: number,
+    offset: number = DEFAULT_OFFSET,
+  ) {
+    const artistLikedTracks = await artist.getLikedFromArtist(artistInfo, limit, offset);
+    if (!artistLikedTracks.success) {
+      throw new NotFoundError(artistLikedTracks.reason);
+    }
+    return artistLikedTracks.data;
   },
 };
