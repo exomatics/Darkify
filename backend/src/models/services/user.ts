@@ -29,12 +29,7 @@ const playlist = new PlaylistManager();
 class UserManager {
   async getUserById(
     user_id: string,
-  ): Promise<
-    Result<
-      UserModel,
-      typeof errorMessages.user.NotExistsById | typeof errorMessages.user.NotFollowsAnyone
-    >
-  > {
+  ): Promise<Result<UserModel, typeof errorMessages.user.NotExistsById>> {
     const userRecord = await database.userModel.findByPk(user_id);
     if (!userRecord) {
       return { success: false, reason: errorMessages.user.NotExistsById };

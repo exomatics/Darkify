@@ -16,6 +16,7 @@ export const errorMessages = {
   artist: Object.freeze({
     NotExistsById: 'Artist with this id does not exist',
     AlreadyAnArtist: 'User is already an artist',
+    NotAnArtist: 'User is not an Artist',
     AlreadyExistsById: 'Artist with this id already exists',
     FailedToTurnToArtist: 'failed to turn user to artist',
   }),

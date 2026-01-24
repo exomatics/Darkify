@@ -303,6 +303,7 @@ const getArtistLikedScheme = getArtistScheme.extend(
     offset: z.number().nonnegative().optional(),
   }).shape,
 );
+const getArtistRecentAlbums = getArtistScheme;
 export {
   uuidScheme,
   loginScheme,
@@ -349,4 +350,5 @@ export {
   createArtistScheme,
   getArtistScheme,
   getArtistLikedScheme,
+  getArtistRecentAlbums,
 };

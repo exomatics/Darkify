@@ -15,6 +15,7 @@ import {
   type IReorder,
   Type,
 } from '../interfaces/playlist-interface.ts';
+import ArtistManagement from '../models/services/artist.ts';
 import { FileUploader } from '../models/services/file-management.ts';
 import PlaylistManager from '../models/services/playlist.ts';
 import TrackManager from '../models/services/track.ts';
@@ -27,6 +28,7 @@ import type { Transaction } from 'sequelize';
 const playlist = new PlaylistManager();
 const track = new TrackManager();
 const user = new UserManager();
+const artist = new ArtistManagement();
 const fileUploader = new FileUploader();
 
 export default {
@@ -100,6 +102,10 @@ export default {
     let coverId = null;
     if (albumInfo.file) {
       coverId = await fileUploader.uploadImage(albumInfo.file);
+    }
+    const isUserAnArtist = await artist.getArtistById(albumInfo.owner);
+    if (!isUserAnArtist.success) {
+      throw new NotFoundError(errorMessages.artist.NotAnArtist);
     }
     const playlistId = crypto.randomUUID();
 

@@ -7,7 +7,12 @@ import artistController from '../controllers/artist-controller.ts';
 import ValidationError from '../errors/validation-error.ts';
 import asyncHandler from '../middleware/async-handler.ts';
 import { FileUploader } from '../models/services/file-management.ts';
-import { createArtistScheme, getArtistLikedScheme, getArtistScheme } from '../validator.ts';
+import {
+  createArtistScheme,
+  getArtistLikedScheme,
+  getArtistRecentAlbums,
+  getArtistScheme,
+} from '../validator.ts';
 
 import { ROUTES } from './routes.ts';
 
@@ -89,5 +94,25 @@ router.get(
     },
   ),
 );
+router.get(
+  ROUTES.ARTISTS.GET_RECENT_ALBUMS,
+  passport.authenticate('access-token', { session: false }) as RequestHandler,
+  asyncHandler(
+    async (
+      request: Request<ParamsDictionary | { artistId: string }, unknown, null>,
+      response: Response,
+    ) => {
+      const validation = getArtistRecentAlbums.safeParse({
+        userId: request.jwtPayload.user_id,
+        artistId: request.params.artistId,
+      });
+      if (!validation.success) {
+        throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
+      }
 
+      const databaseResponse = await artistController.getRecentArtistAlbums(validation.data);
+      response.status(200).json(databaseResponse);
+    },
+  ),
+);
 export default router;

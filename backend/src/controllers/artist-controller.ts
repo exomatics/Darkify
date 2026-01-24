@@ -67,4 +67,20 @@ export default {
     }
     return artistLikedTracks.data;
   },
+  async getRecentArtistAlbums(artistInfo: { artistId: string; userId: string }) {
+    const isArtistExists = await artist.getArtistById(artistInfo.artistId);
+    if (!isArtistExists.success) {
+      throw new NotFoundError(isArtistExists.reason);
+    }
+    const isUserExists = await user.getUserById(artistInfo.userId);
+    if (!isUserExists.success) {
+      throw new NotFoundError(isUserExists.reason);
+    }
+    const artistAlbums = await artist.getRecentAlbums(
+      { artistId: artistInfo.artistId, userId: artistInfo.userId },
+      9,
+      0,
+    );
+    return artistAlbums.data;
+  },
 };
