@@ -751,7 +751,7 @@ class PlaylistManager {
     }>
   > {
     type PlaylistAlbumInstanceWithRelations = PlaylistModel & {
-      playlist_albums: PlaylistAlbumsModel;
+      playlist_album: PlaylistAlbumsModel;
     };
 
     const order = (
@@ -781,7 +781,7 @@ class PlaylistManager {
     })) as { rows: PlaylistAlbumInstanceWithRelations[]; count: number };
     const processedPlaylistRecords = playlistRecords.rows.map((albumRecord) => {
       let published = false;
-      if (albumRecord.playlist_albums.date_released === null) {
+      if (albumRecord.playlist_album.date_released === null) {
         published = true;
       }
       return {

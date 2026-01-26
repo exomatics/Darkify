@@ -209,17 +209,18 @@ class ArtistManagement {
     }>
   > {
     type PlaylistAlbumInstanceWithRelations = PlaylistModel & {
-      playlist_albums: PlaylistAlbumsModel;
-      playlist_followers?: PlaylistFollowersModel;
+      playlist_album: PlaylistAlbumsModel;
+      playlist_followers?: PlaylistFollowersModel[];
     };
 
     const playlistRecords = (await database.playlistModel.findAndCountAll({
       where: { owner: artistInfo.artistId },
-      raw: true,
-      nest: true,
+      subQuery: false,
+      // raw: true,
+      // nest: true,
       order: [
         [
-          { model: database.playlistAlbumsModel, as: 'playlist_albums' },
+          { model: database.playlistAlbumsModel, as: 'playlist_album' },
           AlbumsSortBy.Released,
           Order.Desc,
         ],
@@ -237,9 +238,11 @@ class ArtistManagement {
         },
         {
           model: database.playlistFollowersModel,
+          required: false,
           where: { user_id: artistInfo.userId },
         },
       ],
+      logging: true,
       offset,
       limit,
     })) as { rows: PlaylistAlbumInstanceWithRelations[]; count: number };
@@ -247,7 +250,7 @@ class ArtistManagement {
       return {
         id: albumRecord.id,
         name: albumRecord.name,
-        is_followed: Boolean(albumRecord.playlist_followers),
+        is_followed: Boolean(albumRecord.playlist_followers?.length),
         cover_url: albumRecord.cover_id
           ? `${STATIC_IMAGES_PATH}/${albumRecord.cover_id}.jpg`
           : null,

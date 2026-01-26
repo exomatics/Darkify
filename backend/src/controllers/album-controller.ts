@@ -42,7 +42,7 @@ export default {
       throw new NotFoundError(playlistResponse.reason);
     }
     let published = false;
-    if (playlistResponse.data.date_released === null) {
+    if (playlistResponse.data.date_released !== null) {
       published = true;
     }
     return {

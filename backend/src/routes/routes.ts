@@ -71,7 +71,7 @@ export const ROUTES = Object.freeze({
   ALBUMS: {
     GET_ALBUM: `${API_BASE}/albums/:albumId`,
     GET_ALBUM_COVER: `${API_BASE}/albums/:albumId/cover`,
-    GET_ME_ALBUMS: `${API_BASE}/albums/me`,
+    GET_ME_ALBUMS: `${API_BASE}/me/albums`,
     GET_ALBUM_TRACKS: `${API_BASE}/albums/:albumId/tracks`,
     POST_ALBUM: `${API_BASE}/albums`,
     POST_ADD_TRACK: `${API_BASE}/albums/add-track/:trackId`,
@@ -85,6 +85,6 @@ export const ROUTES = Object.freeze({
     POST_ARTIST: `${API_BASE}/artists`,
     GET_ARTIST: `${API_BASE}/artists/:artistId`,
     GET_ARTIST_LIKED: `${API_BASE}/artists/:artistId/liked`,
-    GET_RECENT_ALBUMS: `${API_BASE}/getRecentArtistAlbums`,
+    GET_RECENT_ALBUMS: `${API_BASE}/artists/recent/albums/:artistId`,
   },
 } as const);
