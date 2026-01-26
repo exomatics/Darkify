@@ -68,10 +68,6 @@ export default {
     return artistLikedTracks.data;
   },
   async getRecentArtistAlbums(artistInfo: { artistId: string; userId: string }) {
-    const isArtistExists = await artist.getArtistById(artistInfo.artistId);
-    if (!isArtistExists.success) {
-      throw new NotFoundError(isArtistExists.reason);
-    }
     const isUserExists = await user.getUserById(artistInfo.userId);
     if (!isUserExists.success) {
       throw new NotFoundError(isUserExists.reason);
@@ -81,6 +77,24 @@ export default {
       9,
       0,
     );
+    if (!artistAlbums.success) {
+      throw new NotFoundError(artistAlbums.reason);
+    }
     return artistAlbums.data;
+  },
+  async getRecentSingles(artistInfo: { artistId: string; userId: string }) {
+    const isUserExists = await user.getUserById(artistInfo.userId);
+    if (!isUserExists.success) {
+      throw new NotFoundError(isUserExists.reason);
+    }
+    const artistSingles = await artist.getRecentSingles(
+      { artistId: artistInfo.artistId, userId: artistInfo.userId },
+      9,
+      0,
+    );
+    if (!artistSingles.success) {
+      throw new NotFoundError(artistSingles.reason);
+    }
+    return artistSingles.data;
   },
 };

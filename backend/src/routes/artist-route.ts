@@ -11,6 +11,7 @@ import {
   createArtistScheme,
   getArtistLikedScheme,
   getArtistRecentAlbums,
+  getArtistRecentSingles,
   getArtistScheme,
 } from '../validator.ts';
 
@@ -111,6 +112,27 @@ router.get(
       }
 
       const databaseResponse = await artistController.getRecentArtistAlbums(validation.data);
+      response.status(200).json(databaseResponse);
+    },
+  ),
+);
+router.get(
+  ROUTES.ARTISTS.GET_RECENT_SINGLES,
+  passport.authenticate('access-token', { session: false }) as RequestHandler,
+  asyncHandler(
+    async (
+      request: Request<ParamsDictionary | { artistId: string }, unknown, null>,
+      response: Response,
+    ) => {
+      const validation = getArtistRecentSingles.safeParse({
+        userId: request.jwtPayload.user_id,
+        artistId: request.params.artistId,
+      });
+      if (!validation.success) {
+        throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
+      }
+
+      const databaseResponse = await artistController.getRecentSingles(validation.data);
       response.status(200).json(databaseResponse);
     },
   ),

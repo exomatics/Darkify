@@ -8,7 +8,7 @@ import { AlbumsSortBy } from '../../interfaces/album-interface.ts';
 import { Order } from '../../interfaces/playlist-interface.ts';
 
 import type { IArtist } from '../../interfaces/artist-interface.ts';
-import type { Result, SuccessfulResult } from '../../types/result-type.ts';
+import type { Result } from '../../types/result-type.ts';
 import type { ArtistModel } from '../artists.ts';
 import type { PlaylistAlbumsModel } from '../playlist-albums.ts';
 import type { PlaylistFollowersModel } from '../playlist-followers.ts';
@@ -198,16 +198,24 @@ class ArtistManagement {
     limit?: number,
     offset?: number,
   ): Promise<
-    SuccessfulResult<{
-      total: number;
-      items: {
-        id: string;
-        name: string;
-        is_followed: boolean;
-        cover_url: string | null;
-      }[];
-    }>
+    Result<
+      {
+        total: number;
+        items: {
+          id: string;
+          name: string;
+          is_followed: boolean;
+          cover_url: string | null;
+        }[];
+      },
+      typeof errorMessages.artist.NotExistsById
+    >
   > {
+    const artistRecord = await this.getArtistById(artistInfo.artistId);
+    if (!artistRecord.success) {
+      return artistRecord;
+    }
+
     type PlaylistAlbumInstanceWithRelations = PlaylistModel & {
       playlist_album: PlaylistAlbumsModel;
       playlist_followers?: PlaylistFollowersModel[];
@@ -259,6 +267,88 @@ class ArtistManagement {
     return {
       success: true,
       data: { total: playlistRecords.count, items: processedPlaylistRecords },
+    };
+  }
+  async getRecentSingles(
+    artistInfo: { artistId: string; userId: string },
+    limit?: number,
+    offset?: number,
+  ): Promise<
+    Result<
+      {
+        total: number;
+        items: {
+          id: string;
+          deleted: boolean;
+          name: string;
+          duration: number;
+          lyrics: string | null;
+          is_liked: boolean;
+          cover_url: string | null;
+          date_added: Date | undefined;
+          artists: UserModel[];
+        }[];
+      },
+      typeof errorMessages.artist.NotExistsById
+    >
+  > {
+    const artistRecord = await this.getArtistById(artistInfo.artistId);
+    if (!artistRecord.success) {
+      return artistRecord;
+    }
+    const artistSingles = (await database.trackModel.findAndCountAll({
+      distinct: true,
+      where: {
+        admin_id: artistInfo.artistId,
+        // id: {
+        //   [Op.in]: sequelize.literal(`(
+        //     SELECT track_artists.track_id
+        //     FROM track_artists
+        //     WHERE track_artists.artist_id = '${artistInfo.artistId}'
+        //   )`),
+        // },
+        //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!that's for appears on
+        album_id: { [Op.is]: null },
+      },
+      include: [
+        {
+          model: database.userModel,
+          attributes: ['id', 'visible_username'],
+          through: { attributes: [] },
+          required: false,
+        },
+        {
+          model: database.playlistModel,
+          where: { id: artistInfo.userId },
+          required: false,
+          through: { attributes: ['id', 'date_added'] },
+        },
+      ],
+      limit,
+      offset,
+    })) as {
+      count: number;
+      rows: (TrackModel & {
+        users: UserModel[];
+        playlists?: (PlaylistModel & { playlist_track: PlaylistTrackModel })[];
+      })[];
+    };
+    const proccessedArtistSingles = artistSingles.rows.map((row) => {
+      return {
+        id: row.id,
+        deleted: row.deleted,
+        name: row.name,
+        duration: row.duration,
+        lyrics: row.lyrics,
+        is_liked: Boolean(row.playlists?.length),
+        cover_url: row.cover_id ? `${STATIC_IMAGES_PATH}/${row.cover_id}.jpg` : null,
+        date_added: row.creation_date,
+        artists: row.users,
+      };
+    });
+    return {
+      success: true,
+      data: { total: artistSingles.count, items: proccessedArtistSingles },
     };
   }
 }

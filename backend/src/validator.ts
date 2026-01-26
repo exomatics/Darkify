@@ -304,6 +304,7 @@ const getArtistLikedScheme = getArtistScheme.extend(
   }).shape,
 );
 const getArtistRecentAlbums = getArtistScheme;
+const getArtistRecentSingles = getArtistScheme;
 export {
   uuidScheme,
   loginScheme,
@@ -351,4 +352,5 @@ export {
   getArtistScheme,
   getArtistLikedScheme,
   getArtistRecentAlbums,
+  getArtistRecentSingles,
 };
