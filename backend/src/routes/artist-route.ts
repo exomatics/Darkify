@@ -2,17 +2,17 @@ import { Router } from 'express';
 import passport from 'passport';
 import { z } from 'zod/v4';
 
-import { DEFAULT_OFFSET } from '../config/config.ts';
+import { DEFAULT_LIMIT, DEFAULT_OFFSET } from '../config/config.ts';
 import artistController from '../controllers/artist-controller.ts';
 import ValidationError from '../errors/validation-error.ts';
 import asyncHandler from '../middleware/async-handler.ts';
 import { FileUploader } from '../models/services/file-management.ts';
 import {
   createArtistScheme,
+  getArtistAlbumsScheme,
   getArtistLikedScheme,
-  getArtistRecentAlbums,
-  getArtistRecentSingles,
   getArtistScheme,
+  getArtistSinglesScheme,
 } from '../validator.ts';
 
 import { ROUTES } from './routes.ts';
@@ -79,7 +79,7 @@ router.get(
       const validation = getArtistLikedScheme.safeParse({
         userId: request.jwtPayload.user_id,
         artistId: request.params.artistId,
-        limit: 10,
+        limit: +(request.query.limit ?? DEFAULT_LIMIT),
         offset: +(request.query.offset ?? DEFAULT_OFFSET),
       });
       if (!validation.success) {
@@ -96,43 +96,70 @@ router.get(
   ),
 );
 router.get(
-  ROUTES.ARTISTS.GET_RECENT_ALBUMS,
+  ROUTES.ARTISTS.GET_ALBUMS,
   passport.authenticate('access-token', { session: false }) as RequestHandler,
   asyncHandler(
     async (
       request: Request<ParamsDictionary | { artistId: string }, unknown, null>,
       response: Response,
     ) => {
-      const validation = getArtistRecentAlbums.safeParse({
+      const validation = getArtistAlbumsScheme.safeParse({
         userId: request.jwtPayload.user_id,
         artistId: request.params.artistId,
+        limit: +(request.query.limit ?? DEFAULT_LIMIT),
+        offset: +(request.query.offset ?? DEFAULT_OFFSET),
       });
       if (!validation.success) {
         throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
       }
 
-      const databaseResponse = await artistController.getRecentArtistAlbums(validation.data);
+      const databaseResponse = await artistController.getAlbums(validation.data);
       response.status(200).json(databaseResponse);
     },
   ),
 );
 router.get(
-  ROUTES.ARTISTS.GET_RECENT_SINGLES,
+  ROUTES.ARTISTS.GET_SINGLES,
   passport.authenticate('access-token', { session: false }) as RequestHandler,
   asyncHandler(
     async (
       request: Request<ParamsDictionary | { artistId: string }, unknown, null>,
       response: Response,
     ) => {
-      const validation = getArtistRecentSingles.safeParse({
+      const validation = getArtistSinglesScheme.safeParse({
         userId: request.jwtPayload.user_id,
         artistId: request.params.artistId,
+        limit: +(request.query.limit ?? DEFAULT_LIMIT),
+        offset: +(request.query.offset ?? DEFAULT_OFFSET),
       });
       if (!validation.success) {
         throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
       }
 
-      const databaseResponse = await artistController.getRecentSingles(validation.data);
+      const databaseResponse = await artistController.getSingles(validation.data);
+      response.status(200).json(databaseResponse);
+    },
+  ),
+);
+router.get(
+  ROUTES.ARTISTS.GET_POPULAR,
+  passport.authenticate('access-token', { session: false }) as RequestHandler,
+  asyncHandler(
+    async (
+      request: Request<ParamsDictionary | { artistId: string }, unknown, null>,
+      response: Response,
+    ) => {
+      const validation = getArtistSinglesScheme.safeParse({
+        userId: request.jwtPayload.user_id,
+        artistId: request.params.artistId,
+        limit: +(request.query.limit ?? DEFAULT_LIMIT),
+        offset: +(request.query.offset ?? DEFAULT_OFFSET),
+      });
+      if (!validation.success) {
+        throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
+      }
+
+      const databaseResponse = await artistController.getArtistPopular(validation.data);
       response.status(200).json(databaseResponse);
     },
   ),

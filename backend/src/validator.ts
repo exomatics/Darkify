@@ -248,10 +248,10 @@ const createAlbumScheme = playlistScheme
 
 const updateAlbumInfoScheme = z
   .object({
-    name: z.string().max(100).optional(),
+    name: z.string().max(100).nullable().optional(),
     albumId: uuidScheme,
     userId: uuidScheme,
-    releaseDate: z.iso.datetime().optional(),
+    releaseDate: z.iso.datetime().nullable().optional(),
   })
   .refine(({ name, releaseDate }) => {
     return requireAtLeastOneCheck({ name, releaseDate });
@@ -303,14 +303,9 @@ const getArtistScheme = z.object({
   userId: uuidScheme,
   artistId: uuidScheme,
 });
-const getArtistLikedScheme = getArtistScheme.extend(
-  z.object({
-    limit: z.number().max(100).nonnegative(),
-    offset: z.number().nonnegative().optional(),
-  }).shape,
-);
-const getArtistRecentAlbums = getArtistScheme;
-const getArtistRecentSingles = getArtistScheme;
+const getArtistLikedScheme = getArtistScheme.extend(paginationScheme.shape);
+const getArtistAlbumsScheme = getArtistLikedScheme;
+const getArtistSinglesScheme = getArtistLikedScheme;
 export {
   uuidScheme,
   loginScheme,
@@ -357,6 +352,6 @@ export {
   createArtistScheme,
   getArtistScheme,
   getArtistLikedScheme,
-  getArtistRecentAlbums,
-  getArtistRecentSingles,
+  getArtistAlbumsScheme,
+  getArtistSinglesScheme,
 };

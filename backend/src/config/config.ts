@@ -52,5 +52,5 @@ export const playlistOrderOptions: Record<string, OrderItem[]> = {
 
 export const albumOrderOptions: Record<string, OrderItem[]> = {
   ...playlistOrderOptions,
-  playCount: [database.trackModel, sequelize.col('play_count')],
+  play_count: [database.trackModel, sequelize.col('play_count')],
 };

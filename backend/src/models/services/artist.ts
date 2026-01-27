@@ -1,13 +1,13 @@
-import { type Transaction } from 'sequelize';
 import sequelize, { Op } from 'sequelize';
 
-import { DEFAULT_OFFSET, STATIC_IMAGES_PATH } from '../../config/config.ts';
+import { DEFAULT_LIMIT, DEFAULT_OFFSET, STATIC_IMAGES_PATH } from '../../config/config.ts';
 import database from '../../config/database.ts';
 import { errorMessages } from '../../errors/error-messages.ts';
 import { AlbumsSortBy } from '../../interfaces/album-interface.ts';
-import { Order } from '../../interfaces/playlist-interface.ts';
+import { ArtistAlbumsSortBy } from '../../interfaces/artist-interface.ts';
+import { Order, Restrictions } from '../../interfaces/playlist-interface.ts';
 
-import type { IArtist } from '../../interfaces/artist-interface.ts';
+import type { IArtist, ArtistSinglesSortBy } from '../../interfaces/artist-interface.ts';
 import type { Result } from '../../types/result-type.ts';
 import type { ArtistModel } from '../artists.ts';
 import type { PlaylistAlbumsModel } from '../playlist-albums.ts';
@@ -16,6 +16,7 @@ import type { PlaylistTrackModel } from '../playlist-tracks.ts';
 import type { PlaylistModel } from '../playlist.ts';
 import type { TrackModel } from '../track.ts';
 import type { UserModel } from '../user.ts';
+import type { Transaction } from 'sequelize';
 
 interface TracksWithArtists extends TrackModel {
   dataValues: TrackModel['dataValues'] & { total_listens: number };
@@ -113,7 +114,7 @@ class ArtistManagement {
 
   async getLikedFromArtist(
     artistInfo: { artistId: string; userId: string },
-    limit: number,
+    limit: number = DEFAULT_LIMIT,
     offset: number = DEFAULT_OFFSET,
   ): Promise<
     Result<
@@ -193,8 +194,9 @@ class ArtistManagement {
     });
     return { success: true, data: { total: artistLiked.count, items: proccessedArtistLiked } };
   }
-  async getRecentAlbums(
+  async getArtistAlbums(
     artistInfo: { artistId: string; userId: string },
+    sort: { sortBy: ArtistAlbumsSortBy; order: Order },
     limit?: number,
     offset?: number,
   ): Promise<
@@ -219,11 +221,68 @@ class ArtistManagement {
     type PlaylistAlbumInstanceWithRelations = PlaylistModel & {
       playlist_album: PlaylistAlbumsModel;
       playlist_followers?: PlaylistFollowersModel[];
+      tracks?: TrackModel[];
     };
+    let attributes: sequelize.FindAttributeOptions = ['id', 'name', 'cover_id'];
 
-    const playlistRecords = (await database.playlistModel.findAndCountAll({
-      where: { owner: artistInfo.artistId },
+    let include: sequelize.Includeable[] = [
+      {
+        model: database.playlistAlbumsModel,
+        where: { date_released: { [Op.not]: null } },
+        attributes: ['date_released'],
+
+        required: true,
+        // required: true,
+        // right: true,
+        // through: { attributes: ['playlist_id'] },
+      },
+
+      {
+        model: database.playlistFollowersModel,
+        required: false,
+        where: { user_id: artistInfo.userId },
+      },
+    ];
+    let group: sequelize.GroupOption = [
+      'playlist.id',
+      'playlist_album.playlist_id',
+      'playlist_followers.playlist_id',
+      'playlist_followers.user_id',
+    ];
+    if (sort.sortBy === ArtistAlbumsSortBy.Popularity) {
+      include = [
+        ...include,
+        {
+          model: database.trackModel,
+          attributes: ['play_count'],
+        },
+      ];
+      attributes = [
+        'id',
+        'name',
+        'cover_id',
+        [sequelize.fn('sum', sequelize.col('tracks.play_count')), 'total_listens'],
+      ];
+      group = [
+        'playlist.id',
+        'playlist_album.playlist_id',
+        'playlist_followers.playlist_id',
+        'playlist_followers.user_id',
+        'tracks.id',
+        'tracks->playlist_track.id',
+        'tracks->playlist_track.playlist_id',
+        'tracks->playlist_track.track_id',
+        'tracks->playlist_track.order',
+      ];
+    }
+    const artistAlbumsCount = await database.playlistModel.count({
+      where: { owner: artistInfo.artistId, restrictions: Restrictions.Public },
+    });
+    const artistAlbumsRecords = (await database.playlistModel.findAll({
+      where: { owner: artistInfo.artistId, restrictions: Restrictions.Public },
       subQuery: false,
+      group,
+      attributes,
       // raw: true,
       // nest: true,
       order: [
@@ -233,28 +292,12 @@ class ArtistManagement {
           Order.Desc,
         ],
       ],
-      include: [
-        {
-          model: database.playlistAlbumsModel,
-          where: { date_released: { [Op.not]: null } },
-          attributes: ['date_released'],
-
-          required: true,
-          // required: true,
-          // right: true,
-          // through: { attributes: ['playlist_id'] },
-        },
-        {
-          model: database.playlistFollowersModel,
-          required: false,
-          where: { user_id: artistInfo.userId },
-        },
-      ],
+      include,
       logging: true,
       offset,
       limit,
-    })) as { rows: PlaylistAlbumInstanceWithRelations[]; count: number };
-    const processedPlaylistRecords = playlistRecords.rows.map((albumRecord) => {
+    })) as PlaylistAlbumInstanceWithRelations[];
+    const processedPlaylistRecords = artistAlbumsRecords.map((albumRecord) => {
       return {
         id: albumRecord.id,
         name: albumRecord.name,
@@ -266,11 +309,12 @@ class ArtistManagement {
     });
     return {
       success: true,
-      data: { total: playlistRecords.count, items: processedPlaylistRecords },
+      data: { total: artistAlbumsCount, items: processedPlaylistRecords },
     };
   }
-  async getRecentSingles(
+  async getArtistSingles(
     artistInfo: { artistId: string; userId: string },
+    sort: { sortBy: ArtistSinglesSortBy; order: Order },
     limit?: number,
     offset?: number,
   ): Promise<
@@ -310,6 +354,7 @@ class ArtistManagement {
         //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!that's for appears on
         album_id: { [Op.is]: null },
       },
+      order: [[sort.sortBy, sort.order]],
       include: [
         {
           model: database.userModel,

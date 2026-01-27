@@ -1,14 +1,18 @@
-import { DEFAULT_OFFSET, STATIC_IMAGES_PATH } from '../config/config.ts';
+import { DEFAULT_LIMIT, DEFAULT_OFFSET, STATIC_IMAGES_PATH } from '../config/config.ts';
 import database from '../config/database.ts';
 import { errorMessages } from '../errors/error-messages.ts';
 import InternalError from '../errors/internal-error.ts';
 import NotFoundError from '../errors/not-found-error.ts';
 import ValidationError from '../errors/validation-error.ts';
+import {
+  ArtistAlbumsSortBy,
+  ArtistSinglesSortBy,
+  type ICreateArtist,
+} from '../interfaces/artist-interface.ts';
+import { Order } from '../interfaces/playlist-interface.ts';
 import ArtistManagement from '../models/services/artist.ts';
 import { FileUploader } from '../models/services/file-management.ts';
 import UserManager from '../models/services/user.ts';
-
-import type { ICreateArtist } from '../interfaces/artist-interface.ts';
 
 const fileUploader = new FileUploader();
 const artist = new ArtistManagement();
@@ -58,7 +62,7 @@ export default {
   },
   async getLikedFromArtist(
     artistInfo: { artistId: string; userId: string },
-    limit: number,
+    limit: number = DEFAULT_LIMIT,
     offset: number = DEFAULT_OFFSET,
   ) {
     const artistLikedTracks = await artist.getLikedFromArtist(artistInfo, limit, offset);
@@ -67,34 +71,73 @@ export default {
     }
     return artistLikedTracks.data;
   },
-  async getRecentArtistAlbums(artistInfo: { artistId: string; userId: string }) {
+  async getAlbums(
+    artistInfo: { artistId: string; userId: string },
+    limit: number = DEFAULT_LIMIT,
+    offset: number = DEFAULT_OFFSET,
+  ) {
     const isUserExists = await user.getUserById(artistInfo.userId);
     if (!isUserExists.success) {
       throw new NotFoundError(isUserExists.reason);
     }
-    const artistAlbums = await artist.getRecentAlbums(
+    const artistAlbums = await artist.getArtistAlbums(
       { artistId: artistInfo.artistId, userId: artistInfo.userId },
-      9,
-      0,
+      { sortBy: ArtistAlbumsSortBy.ReleaseDate, order: Order.Desc },
+      limit,
+      offset,
     );
     if (!artistAlbums.success) {
       throw new NotFoundError(artistAlbums.reason);
     }
     return artistAlbums.data;
   },
-  async getRecentSingles(artistInfo: { artistId: string; userId: string }) {
+  async getSingles(
+    artistInfo: { artistId: string; userId: string },
+    limit: number = DEFAULT_LIMIT,
+    offset: number = DEFAULT_OFFSET,
+  ) {
     const isUserExists = await user.getUserById(artistInfo.userId);
     if (!isUserExists.success) {
       throw new NotFoundError(isUserExists.reason);
     }
-    const artistSingles = await artist.getRecentSingles(
+    const artistSingles = await artist.getArtistSingles(
       { artistId: artistInfo.artistId, userId: artistInfo.userId },
-      9,
-      0,
+      { sortBy: ArtistSinglesSortBy.CreationDate, order: Order.Desc },
+      limit,
+      offset,
     );
     if (!artistSingles.success) {
       throw new NotFoundError(artistSingles.reason);
     }
     return artistSingles.data;
+  },
+  async getArtistPopular(
+    artistInfo: { artistId: string; userId: string },
+    limit: number = DEFAULT_LIMIT,
+    offset: number = DEFAULT_OFFSET,
+  ) {
+    const isUserExists = await user.getUserById(artistInfo.userId);
+    if (!isUserExists.success) {
+      throw new NotFoundError(isUserExists.reason);
+    }
+    const artistAlbums = await artist.getArtistAlbums(
+      { artistId: artistInfo.artistId, userId: artistInfo.userId },
+      { sortBy: ArtistAlbumsSortBy.Popularity, order: Order.Desc },
+      limit,
+      offset,
+    );
+    if (!artistAlbums.success) {
+      throw new NotFoundError(artistAlbums.reason);
+    }
+    const artistSingles = await artist.getArtistSingles(
+      { artistId: artistInfo.artistId, userId: artistInfo.userId },
+      { sortBy: ArtistSinglesSortBy.Popularity, order: Order.Desc },
+      limit,
+      offset,
+    );
+    if (!artistSingles.success) {
+      throw new NotFoundError(artistSingles.reason);
+    }
+    return { albums: artistAlbums.data.items, singles: artistSingles.data.items };
   },
 };
