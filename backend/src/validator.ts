@@ -306,6 +306,7 @@ const getArtistScheme = z.object({
 const getArtistLikedScheme = getArtistScheme.extend(paginationScheme.shape);
 const getArtistAlbumsScheme = getArtistLikedScheme;
 const getArtistSinglesScheme = getArtistLikedScheme;
+const getArtistTopTracks = getArtistScheme;
 export {
   uuidScheme,
   loginScheme,
@@ -354,4 +355,5 @@ export {
   getArtistLikedScheme,
   getArtistAlbumsScheme,
   getArtistSinglesScheme,
+  getArtistTopTracks,
 };

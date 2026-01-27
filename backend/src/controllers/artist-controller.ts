@@ -140,4 +140,15 @@ export default {
     }
     return { albums: artistAlbums.data.items, singles: artistSingles.data.items };
   },
+  async getArtistTop(artistInfo: { artistId: string; userId: string }) {
+    const isUserExists = await user.getUserById(artistInfo.userId);
+    if (!isUserExists.success) {
+      throw new NotFoundError(isUserExists.reason);
+    }
+    const artistTopTracks = await artist.getArtistTop(artistInfo, 10, 0);
+    if (!artistTopTracks.success) {
+      throw new NotFoundError(artistTopTracks.reason);
+    }
+    return artistTopTracks.data;
+  },
 };

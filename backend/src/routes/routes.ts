@@ -88,5 +88,6 @@ export const ROUTES = Object.freeze({
     GET_ALBUMS: `${API_BASE}/artists/albums/:artistId`,
     GET_SINGLES: `${API_BASE}/artists/singles/:artistId`,
     GET_POPULAR: `${API_BASE}/artists/:artistId/popular`,
+    GET_TOP_TRACKS: `${API_BASE}/artists/:artistId/top-tracks`,
   },
 } as const);

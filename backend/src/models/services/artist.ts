@@ -293,7 +293,7 @@ class ArtistManagement {
         ],
       ],
       include,
-      logging: true,
+      // logging: true,
       offset,
       limit,
     })) as PlaylistAlbumInstanceWithRelations[];
@@ -395,6 +395,87 @@ class ArtistManagement {
       success: true,
       data: { total: artistSingles.count, items: proccessedArtistSingles },
     };
+  }
+  async getArtistTop(
+    artistInfo: { artistId: string; userId: string },
+    limit: number = DEFAULT_LIMIT,
+    offset: number = DEFAULT_OFFSET,
+  ): Promise<
+    Result<
+      {
+        total: number;
+        items: {
+          id: string;
+          deleted: boolean;
+          name: string;
+          duration: number;
+          lyrics: string | null;
+          is_liked: boolean;
+          cover_url: string | null;
+          date_added: Date | undefined;
+          album?: PlaylistModel[];
+          artists: UserModel[];
+        }[];
+      },
+      typeof errorMessages.artist.NotExistsById
+    >
+  > {
+    const artistRecord = await this.getArtistById(artistInfo.artistId);
+    if (!artistRecord.success) {
+      return artistRecord;
+    }
+    const artistTopTracks = (await database.trackModel.findAndCountAll({
+      distinct: true,
+      where: {
+        id: {
+          [Op.in]: sequelize.literal(`(
+            SELECT track_artists.track_id
+            FROM track_artists 
+            WHERE track_artists.artist_id = '${artistInfo.artistId}'
+          )`),
+        },
+      },
+      order: [['play_count', Order.Desc]],
+      include: [
+        {
+          model: database.userModel,
+          attributes: ['id', 'visible_username'],
+          through: { attributes: [] },
+          required: false,
+        },
+        {
+          model: database.playlistModel,
+          where: { id: artistInfo.userId },
+          through: { attributes: ['id', 'date_added'] },
+          required: false,
+        },
+        { association: 'album', required: false, attributes: ['id', 'name'] },
+      ],
+      limit,
+      offset,
+    })) as {
+      count: number;
+      rows: (TrackModel & {
+        users: UserModel[];
+        playlists?: (PlaylistModel & { playlist_track: PlaylistTrackModel })[];
+        album: PlaylistModel[];
+      })[];
+    };
+    const proccessedArtistLiked = artistTopTracks.rows.map((row) => {
+      return {
+        id: row.id,
+        deleted: row.deleted,
+        name: row.name,
+        duration: row.duration,
+        lyrics: row.lyrics,
+        is_liked: Boolean(row.playlists?.length),
+        cover_url: row.cover_id ? `${STATIC_IMAGES_PATH}/${row.cover_id}.jpg` : null,
+        date_added: row.creation_date,
+        album: row.album,
+        artists: row.users,
+      };
+    });
+    return { success: true, data: { total: artistTopTracks.count, items: proccessedArtistLiked } };
   }
 }
 export default ArtistManagement;
