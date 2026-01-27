@@ -253,7 +253,7 @@ class TrackManager {
     trackInfo: Pick<
       Itrack,
       'cover_id' | 'id' | 'admin_id' | 'artists' | 'album_id' | 'name' | 'lyrics' | 'duration'
-    > & { transaction?: Transaction },
+    >,
   ): Promise<Result<TrackResult, typeof errorMessages.track.NotExistsById>> {
     try {
       const trackArtists = trackInfo.artists.map((value) => {
@@ -296,7 +296,7 @@ class TrackManager {
     trackInfo: Pick<
       Itrack,
       'cover_id' | 'id' | 'admin_id' | 'artists' | 'album_id' | 'name' | 'lyrics'
-    > & { transaction?: Transaction },
+    >,
   ): Promise<
     Result<
       TrackResult,

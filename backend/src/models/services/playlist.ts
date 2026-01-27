@@ -2,6 +2,7 @@ import _ from 'lodash';
 import sequelize, { Op } from 'sequelize';
 
 import {
+  albumOrderOptions,
   DEFAULT_LIMIT,
   DEFAULT_OFFSET,
   ORDER_NUMBER,
@@ -15,6 +16,7 @@ import { AlbumsSortBy } from '../../interfaces/album-interface.ts';
 import { LibrarySortBy } from '../../interfaces/library-interface.ts';
 import { Type, Restrictions, PlaylistSortBy, Order } from '../../interfaces/playlist-interface.ts';
 
+import type { AlbumSpecificSortBy } from '../../interfaces/album-interface.ts';
 import type {
   ICreatePlaylist,
   IPlaylist,
@@ -359,6 +361,7 @@ class PlaylistManager {
               ),
             ],
           },
+          transaction: playlistTrackInfo.transaction ?? transaction,
         });
         await database.playlistTrackModel.create(
           {
@@ -441,7 +444,7 @@ class PlaylistManager {
     playlistInfo: {
       playlistId: string;
       userId: string;
-      sort: { sortBy: PlaylistSortBy; order: Order };
+      sort: { sortBy: PlaylistSortBy | AlbumSpecificSortBy; order: Order };
       type?: Type;
     },
     limit: number = DEFAULT_LIMIT,
@@ -460,13 +463,17 @@ class PlaylistManager {
       total: number;
     }>
   > {
+    const orderOptions =
+      playlistInfo.type === Type.Album ? albumOrderOptions : playlistOrderOptions;
+
     const playlistTracks = (await database.playlistTrackModel.findAndCountAll({
       where: { playlist_id: playlistInfo.playlistId },
       attributes: ['id', 'playlist_id', 'track_id', 'order', 'date_added'],
       order: [
-        [...playlistOrderOptions[playlistInfo.sort.sortBy], playlistInfo.sort.order],
+        [...orderOptions[playlistInfo.sort.sortBy], playlistInfo.sort.order],
       ] as sequelize.Order,
       distinct: true,
+      subQuery: false,
       include: [
         {
           model: database.trackModel,
@@ -478,7 +485,10 @@ class PlaylistManager {
               through: { attributes: [] },
               attributes: ['id', 'visible_username'],
             },
-            { association: 'album', attributes: ['id', 'name'] },
+            {
+              association: 'album',
+              attributes: ['id', 'name'],
+            },
           ],
         },
         { model: database.playlistModel, required: true },
@@ -756,21 +766,17 @@ class PlaylistManager {
 
     const order = (
       sort.sortBy === AlbumsSortBy.Released
-        ? [[{ model: database.playlistAlbumsModel }, sort.sortBy, sort.order]]
+        ? [[database.playlistAlbumsModel, sort.sortBy, sort.order]]
         : [[sort.sortBy, sort.order]]
     ) as sequelize.Order;
-    const playlistRecords = (await database.playlistModel.findAndCountAll({
+    const playlistRecords = (await database.playlistModel.scope('albumOnly').findAndCountAll({
       where: { owner: userId },
-      raw: true,
-      nest: true,
       order,
       include: [
         {
           model: database.playlistAlbumsModel,
-          // associationType:
           attributes: ['date_released'],
 
-          // required: true,
           // required: true,
           // right: true,
           // through: { attributes: ['playlist_id'] },
@@ -788,6 +794,7 @@ class PlaylistManager {
         id: albumRecord.id,
         name: albumRecord.name,
         published,
+        date_released: albumRecord.playlist_album.date_released,
         cover_url: albumRecord.cover_id
           ? `${STATIC_IMAGES_PATH}/${albumRecord.cover_id}.jpg`
           : null,
@@ -1008,7 +1015,7 @@ class PlaylistManager {
     return { success: true, data: responseData };
   }
 
-  async getAlbumInfo(playlistInfo: {
+  async getAlbumInfo(albumInfo: {
     playlistId: string;
     userId: string;
   }): Promise<
@@ -1019,14 +1026,11 @@ class PlaylistManager {
       | typeof errorMessages.album.playlistAlbumRecordNotExists
     >
   > {
-    const playlistRecord = await this.getAlbumRecordById(
-      playlistInfo.playlistId,
-      playlistInfo.userId,
-    );
+    const playlistRecord = await this.getAlbumRecordById(albumInfo.playlistId, albumInfo.userId);
     if (!playlistRecord.success) {
       return playlistRecord;
     }
-    const playlistAlbumRecord = await this.getPlaylistAlbumRecord(playlistInfo.playlistId);
+    const playlistAlbumRecord = await this.getPlaylistAlbumRecord(albumInfo.playlistId);
     if (!playlistAlbumRecord.success) {
       return playlistAlbumRecord;
     }
@@ -1034,7 +1038,7 @@ class PlaylistManager {
       attributes: [[sequelize.fn('SUM', sequelize.col('tracks.duration')), 'total_duration']],
       subQuery: false,
       group: [sequelize.col('playlist.id')],
-      where: { id: playlistInfo.playlistId },
+      where: { id: albumInfo.playlistId },
       include: [
         {
           model: database.trackModel,
@@ -1045,7 +1049,7 @@ class PlaylistManager {
     })) as PlaylistTotalCount[];
     const totalDuration = totalDurationRecord[0].dataValues.total_duration;
     const songsCount = await database.playlistTrackModel.count({
-      where: { playlist_id: playlistInfo.playlistId },
+      where: { playlist_id: albumInfo.playlistId },
     });
 
     const responseData = {
@@ -1058,7 +1062,7 @@ class PlaylistManager {
       restrictions: playlistRecord.data.restrictions,
       type: playlistRecord.data.type,
       songsCount,
-      isOwner: playlistRecord.data.owner === playlistInfo.userId,
+      isOwner: playlistRecord.data.owner === albumInfo.userId,
     };
     return { success: true, data: responseData };
   }

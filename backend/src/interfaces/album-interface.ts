@@ -4,6 +4,9 @@ export enum AlbumsSortBy {
   Alphabetic = 'name',
   Custom = 'order',
 }
+export enum AlbumSpecificSortBy {
+  Plays = 'playCount',
+}
 
 export interface IUpdateAlbum {
   playlistId: string;

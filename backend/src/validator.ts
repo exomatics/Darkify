@@ -1,7 +1,7 @@
 import { z } from 'zod/v4';
 
 import { errorMessages } from './errors/error-messages.ts';
-import { AlbumsSortBy } from './interfaces/album-interface.ts';
+import { AlbumSpecificSortBy, AlbumsSortBy } from './interfaces/album-interface.ts';
 import { LibrarySortBy } from './interfaces/library-interface.ts';
 import { Restrictions, Type, Order, PlaylistSortBy } from './interfaces/playlist-interface.ts';
 import { LibrarySections } from './interfaces/user-interface.ts';
@@ -262,8 +262,14 @@ const getAlbumInfoScheme = getPlaylistInfoScheme
   .extend({ albumId: uuidScheme });
 
 const getAllFromAlbumScheme = getAllFromPlaylistScheme
-  .omit({ playlistId: true })
-  .extend({ albumId: uuidScheme });
+  .omit({ playlistId: true, sort: true })
+  .extend({
+    albumId: uuidScheme,
+    sort: z.object({
+      sortBy: z.enum({ ...PlaylistSortBy, ...AlbumSpecificSortBy }),
+      order: z.enum(Order),
+    }),
+  });
 
 const addToAlbumScheme = addToPlaylist.omit({ playlistId: true }).extend({ albumId: uuidScheme });
 

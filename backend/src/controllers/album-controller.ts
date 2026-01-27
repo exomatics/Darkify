@@ -21,7 +21,11 @@ import PlaylistManager from '../models/services/playlist.ts';
 import TrackManager from '../models/services/track.ts';
 import UserManager from '../models/services/user.ts';
 
-import type { AlbumsSortBy, IUpdateAlbum } from '../interfaces/album-interface.ts';
+import type {
+  AlbumSpecificSortBy,
+  AlbumsSortBy,
+  IUpdateAlbum,
+} from '../interfaces/album-interface.ts';
 import type { SuccessfulResult } from '../types/result-type.ts';
 import type { Transaction } from 'sequelize';
 
@@ -54,36 +58,33 @@ export default {
       owner: _.pick(userResponse.data, ['id', 'visible_username']),
     };
   },
-  async getAlbumCover(playlistInfo: { playlistId: string; userId: string }) {
-    const playlistResponse = await this.getAlbumInfo(playlistInfo);
+  async getAlbumCover(albumInfo: { playlistId: string; userId: string }) {
+    const playlistResponse = await this.getAlbumInfo(albumInfo);
 
     return { cover_url: playlistResponse.cover_url };
   },
-  async deleteAlbum(playlistInfo: { playlistId: string; userId: string; keepTracks?: boolean }) {
-    const modelResponse = await playlist.deleteAlbum(playlistInfo);
+  async deleteAlbum(albumInfo: { playlistId: string; userId: string; keepTracks?: boolean }) {
+    const modelResponse = await playlist.deleteAlbum(albumInfo);
     if (!modelResponse.success) {
       throw new NotFoundError(modelResponse.reason);
     }
     return modelResponse.data;
   },
   async getAlbumTracks(
-    playlistInfo: {
+    albumInfo: {
       playlistId: string;
       userId: string;
-      sort: { sortBy: PlaylistSortBy; order: Order };
+      sort: { sortBy: PlaylistSortBy | AlbumSpecificSortBy; order: Order };
     },
     limit: number = DEFAULT_LIMIT,
     offset: number = DEFAULT_OFFSET,
   ) {
-    const albumRecord = await playlist.getAlbumRecordById(
-      playlistInfo.playlistId,
-      playlistInfo.userId,
-    );
+    const albumRecord = await playlist.getAlbumRecordById(albumInfo.playlistId, albumInfo.userId);
     if (!albumRecord.success) {
       throw new NotFoundError(albumRecord.reason);
     }
     const albumTracks = await playlist.getAllTracksFromPlaylist(
-      { ...playlistInfo, type: Type.Album },
+      { ...albumInfo, type: Type.Album },
       limit,
       offset,
     );
@@ -123,15 +124,15 @@ export default {
     const playlistData = await this.getAlbumInfo(playlistResponse.data);
     return { id: playlistResponse.data.playlistId, name: playlistData.name };
   },
-  async addTrackToAlbum(playlistInfo: {
+  async addTrackToAlbum(albumInfo: {
     playlistId: string;
     trackId: string;
     userId: string;
     transaction?: Transaction;
   }) {
     const playlistAlbumResponse = await playlist.getUserAlbumRecordById(
-      playlistInfo.playlistId,
-      playlistInfo.userId,
+      albumInfo.playlistId,
+      albumInfo.userId,
     );
     if (!playlistAlbumResponse.success) {
       throw new ValidationError(playlistAlbumResponse.reason);
@@ -143,10 +144,10 @@ export default {
     try {
       await database.sequelize.transaction(async (transaction) => {
         const trackResponse = await track.updateTrackAlbum({
-          trackId: playlistInfo.trackId,
-          albumId: playlistInfo.playlistId,
-          adminId: playlistInfo.userId,
-          transaction: playlistInfo.transaction ?? transaction,
+          trackId: albumInfo.trackId,
+          albumId: albumInfo.playlistId,
+          adminId: albumInfo.userId,
+          transaction: albumInfo.transaction ?? transaction,
         });
         if (!trackResponse.success) {
           result = new ValidationError(trackResponse.reason);
@@ -156,7 +157,7 @@ export default {
         const playlistTrackId = crypto.randomUUID();
 
         const playlistResponse = await playlist.addTrackToPlaylist({
-          ...playlistInfo,
+          ...albumInfo,
           playlistTrackId,
           transaction,
         });
@@ -175,20 +176,20 @@ export default {
     }
     return { track_album_id: result.data.playlistTrackId };
   },
-  async removeTrackfromAlbum(playlistInfo: {
+  async removeTrackfromAlbum(albumInfo: {
     playlistId: string;
     playlistTrackId: string;
     userId: string;
   }) {
     const playlistAlbumResponse = await playlist.getUserAlbumRecordById(
-      playlistInfo.playlistId,
-      playlistInfo.userId,
+      albumInfo.playlistId,
+      albumInfo.userId,
     );
     if (!playlistAlbumResponse.success) {
       throw new NotFoundError(playlistAlbumResponse.reason);
     }
     const playlistTrackRecord = await playlist.getPlaylistTrackRecordById(
-      playlistInfo.playlistTrackId,
+      albumInfo.playlistTrackId,
     );
     if (!playlistTrackRecord.success) {
       throw new NotFoundError(playlistTrackRecord.reason);
@@ -198,7 +199,7 @@ export default {
         const trackResponse = await track.updateTrackAlbum({
           trackId: playlistTrackRecord.data.track_id,
           albumId: null,
-          adminId: playlistInfo.userId,
+          adminId: albumInfo.userId,
           transaction,
         });
         if (!trackResponse.success) {
@@ -206,7 +207,7 @@ export default {
         }
 
         const playlistResponse = await playlist.removeTrackfromPlaylist({
-          ...playlistInfo,
+          ...albumInfo,
           transaction,
         });
 
@@ -219,8 +220,8 @@ export default {
     }
     return null;
   },
-  async reorderAlbumTrack(playlistInfo: IReorder) {
-    const modelResponse = await playlist.reorderPlaylistTrack(playlistInfo);
+  async reorderAlbumTrack(albumInfo: IReorder) {
+    const modelResponse = await playlist.reorderPlaylistTrack(albumInfo);
 
     if (!modelResponse.success) {
       throw new ValidationError(modelResponse.reason);
@@ -228,32 +229,32 @@ export default {
 
     return modelResponse.data;
   },
-  async updateAlbumInfo(playlistInfo: IUpdateAlbum & { userId: string }) {
-    const playlistResponse = await playlist.updatePlaylistInfo(playlistInfo);
+  async updateAlbumInfo(albumInfo: IUpdateAlbum & { userId: string }) {
+    const playlistResponse = await playlist.updatePlaylistInfo(albumInfo);
     if (!playlistResponse.success) {
       throw new ValidationError(playlistResponse.reason);
     }
     await playlist.updateAlbumReleaseDate({
-      albumId: playlistInfo.playlistId,
-      userId: playlistInfo.userId,
-      releaseDate: playlistInfo.releaseDate,
+      albumId: albumInfo.playlistId,
+      userId: albumInfo.userId,
+      releaseDate: albumInfo.releaseDate,
     });
     const userResponse = await user.getUserById(playlistResponse.data.owner);
     if (!userResponse.success) {
       throw new NotFoundError(userResponse.reason);
     }
     const playlistData = await this.getAlbumInfo({
-      playlistId: playlistInfo.playlistId,
-      userId: playlistInfo.userId,
+      playlistId: albumInfo.playlistId,
+      userId: albumInfo.userId,
     });
     return playlistData;
   },
   async updateCoverById(
-    playlistInfo: Pick<IPlaylist, 'playlistId'> & { file: Express.Multer.File; userId: string },
+    albumInfo: Pick<IPlaylist, 'playlistId'> & { file: Express.Multer.File; userId: string },
   ) {
-    const coverId = await fileUploader.uploadImage(playlistInfo.file);
+    const coverId = await fileUploader.uploadImage(albumInfo.file);
 
-    const playlistResponse = await playlist.updateCoverById({ ...playlistInfo, coverId });
+    const playlistResponse = await playlist.updateCoverById({ ...albumInfo, coverId });
     if (!playlistResponse.success) {
       throw new NotFoundError(playlistResponse.reason);
     }
@@ -264,10 +265,10 @@ export default {
     }
 
     const playlistData = await this.getAlbumInfo({
-      playlistId: playlistInfo.playlistId,
-      userId: playlistInfo.userId,
+      playlistId: albumInfo.playlistId,
+      userId: albumInfo.userId,
     });
-    return playlistData;
+    return { cover_url: playlistData.cover_url };
   },
   async getUserAlbums(
     userId: string,
