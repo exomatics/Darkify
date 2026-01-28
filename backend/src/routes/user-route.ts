@@ -2,6 +2,7 @@ import { Router } from 'express';
 import passport from 'passport';
 import { z } from 'zod/v4';
 
+import artistController from '../controllers/artist-controller.ts';
 import userController from '../controllers/user-controller.ts';
 import ValidationError from '../errors/validation-error.ts';
 import asyncHandler from '../middleware/async-handler.ts';
@@ -14,6 +15,8 @@ import {
   userAvatarScheme,
   updateUserSettingsScheme,
   updateLibraryPlayDate,
+  createArtistScheme,
+  userBannerScheme,
 } from '../validator.ts';
 
 import { ROUTES } from './routes.ts';
@@ -92,7 +95,11 @@ router.put(
   passport.authenticate('access-token', { session: false }) as RequestHandler,
   asyncHandler(
     async (
-      request: Request<ParamsDictionary, unknown, Pick<IUser, 'visible_username'>>,
+      request: Request<
+        ParamsDictionary,
+        unknown,
+        Pick<IUser, 'visible_username'> & { description?: string }
+      >,
       response: Response,
     ) => {
       const validation = updateUserScheme.safeParse({
@@ -105,11 +112,13 @@ router.put(
 
       const databaseResponse = await userController.updateUserInfo(validation.data.user_id, {
         visible_username: validation.data.visible_username,
+        description: validation.data.description,
       });
       response.status(200).json(databaseResponse);
     },
   ),
 );
+
 router.put(
   ROUTES.USERS.PUT_ME_SETTINGS,
   passport.authenticate('access-token', { session: false }) as RequestHandler,
@@ -129,6 +138,30 @@ router.put(
       const databaseResponse = await userController.updateUserSettings(validation.data.userId, {
         bitrate: validation.data.bitrate,
       });
+      response.status(200).json(databaseResponse);
+    },
+  ),
+);
+router.post(
+  ROUTES.USERS.POST_TURN_TO_ARTIST,
+  passport.authenticate('access-token', { session: false }) as RequestHandler,
+  fileUploader.uploadImageMiddleware.single('banner'),
+  asyncHandler(
+    async (
+      request: Request<ParamsDictionary, unknown, { description?: string } | null>,
+      response: Response,
+    ) => {
+      const validation = createArtistScheme.safeParse({
+        userId: request.jwtPayload.user_id,
+        description: request.body?.description,
+        file: request.file ?? null,
+      });
+
+      if (!validation.success) {
+        throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
+      }
+      const databaseResponse = await artistController.turnToArtist(validation.data);
+
       response.status(200).json(databaseResponse);
     },
   ),
@@ -285,7 +318,27 @@ router.put(
     }
 
     const databaseResponse = await userController.updateUserAvatar(
-      request.jwtPayload.user_id,
+      validation.data.user_id,
+      validation.data.file,
+    );
+    response.status(200).json(databaseResponse);
+  }),
+);
+router.put(
+  ROUTES.USERS.PUT_ME_BANNER,
+  fileUploader.uploadImageMiddleware.single('banner'),
+  passport.authenticate('access-token', { session: false }) as RequestHandler,
+  asyncHandler(async (request: Request, response: Response) => {
+    const validation = userBannerScheme.safeParse({
+      user_id: request.jwtPayload.user_id,
+      file: request.file,
+    });
+    if (!validation.success) {
+      throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
+    }
+
+    const databaseResponse = await userController.updateUserBanner(
+      validation.data.user_id,
       validation.data.file,
     );
     response.status(200).json(databaseResponse);

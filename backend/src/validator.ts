@@ -74,12 +74,17 @@ const userAvatarScheme = z.object({
   user_id: uuidScheme,
   file: fileScheme,
 });
-const visibleUsernameScheme = z.string().max(25);
+const userBannerScheme = userAvatarScheme;
 
-const updateUserScheme = z.object({
-  user_id: uuidScheme,
-  visible_username: visibleUsernameScheme,
-});
+const updateUserScheme = z
+  .object({
+    user_id: uuidScheme,
+    visible_username: z.string().max(25).optional(),
+    description: z.string().max(1500).optional(),
+  })
+  .refine(({ visible_username, description }) => {
+    return requireAtLeastOneCheck({ visible_username, description });
+  }, errorMessages.validation.SpecifyWhatToUpdate);
 
 const updateUserSettingsScheme = z.object({
   userId: uuidScheme,
@@ -317,6 +322,7 @@ export {
   userFollowScheme,
   playlistFollowScheme,
   userAvatarScheme,
+  userBannerScheme,
   getTracksScheme,
   createTrackScheme,
   updateTrackScheme,

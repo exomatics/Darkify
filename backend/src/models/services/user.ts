@@ -14,7 +14,7 @@ import { FileUploader } from './file-management.ts';
 import PlaylistManager from './playlist.ts';
 
 import type { IUser } from '../../interfaces/user-interface.ts';
-import type { Result } from '../../types/result-type.ts';
+import type { Result, SuccessfulResult } from '../../types/result-type.ts';
 import type { UserFollowingModel } from '../user-following.ts';
 import type { UserModel } from '../user.ts';
 import type { InferAttributes, InferCreationAttributes, Model, Transaction } from 'sequelize';
@@ -142,6 +142,16 @@ class UserManager {
           : null,
       },
     };
+  }
+  async updateArtistInfo(user_info: {
+    user_id: string;
+    description?: string;
+  }): Promise<SuccessfulResult<null>> {
+    await database.artistModel.update(
+      { description: user_info.description ?? undefined },
+      { where: { user_id: user_info.user_id } },
+    );
+    return { success: true, data: null };
   }
   async turnUserToArtist(
     user_id: string,
@@ -450,6 +460,26 @@ class UserManager {
       data: userRecord.data.avatar_url
         ? `${STATIC_IMAGES_PATH}/${userRecord.data.avatar_url}.jpg`
         : null,
+    };
+  }
+  async updateArtistBanner(
+    user_id: string,
+    fileBuffer: Express.Multer.File,
+  ): Promise<
+    Result<null, typeof errorMessages.user.NotExistsById | typeof errorMessages.artist.NotAnArtist>
+  > {
+    const userRecord = await this.getUserById(user_id);
+    if (!userRecord.success) {
+      return { success: false, reason: errorMessages.user.NotExistsById };
+    }
+    if (!userRecord.data.is_artist) {
+      return { success: false, reason: errorMessages.artist.NotAnArtist };
+    }
+    const fileUploadData = await new FileUploader().uploadImage(fileBuffer);
+    await database.artistModel.update({ banner_id: fileUploadData }, { where: { user_id } });
+    return {
+      success: true,
+      data: null,
     };
   }
 }

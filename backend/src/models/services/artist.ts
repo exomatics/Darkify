@@ -22,7 +22,8 @@ interface TracksWithArtists extends TrackModel {
   dataValues: TrackModel['dataValues'] & { total_listens: number };
   users: UserModel[];
 }
-class ArtistManagement {
+
+class ArtistManager {
   async turnToArtist(
     artistInfo: IArtist & {
       transaction: Transaction;
@@ -293,11 +294,10 @@ class ArtistManagement {
         ],
       ],
       include,
-      // logging: true,
-      offset,
-      limit,
+      limit: limit ?? undefined,
+      offset: offset ?? undefined,
     })) as PlaylistAlbumInstanceWithRelations[];
-    const processedPlaylistRecords = artistAlbumsRecords.map((albumRecord) => {
+    const processedAlbumsRecords = artistAlbumsRecords.map((albumRecord) => {
       return {
         id: albumRecord.id,
         name: albumRecord.name,
@@ -309,7 +309,7 @@ class ArtistManagement {
     });
     return {
       success: true,
-      data: { total: artistAlbumsCount, items: processedPlaylistRecords },
+      data: { total: artistAlbumsCount, items: processedAlbumsRecords },
     };
   }
   async getArtistSingles(
@@ -329,7 +329,7 @@ class ArtistManagement {
           lyrics: string | null;
           is_liked: boolean;
           cover_url: string | null;
-          date_added: Date | undefined;
+          date_released: Date | undefined;
           artists: UserModel[];
         }[];
       },
@@ -369,8 +369,8 @@ class ArtistManagement {
           through: { attributes: ['id', 'date_added'] },
         },
       ],
-      limit,
-      offset,
+      limit: limit ?? undefined,
+      offset: offset ?? undefined,
     })) as {
       count: number;
       rows: (TrackModel & {
@@ -387,7 +387,7 @@ class ArtistManagement {
         lyrics: row.lyrics,
         is_liked: Boolean(row.playlists?.length),
         cover_url: row.cover_id ? `${STATIC_IMAGES_PATH}/${row.cover_id}.jpg` : null,
-        date_added: row.creation_date,
+        date_released: row.creation_date,
         artists: row.users,
       };
     });
@@ -412,7 +412,7 @@ class ArtistManagement {
           lyrics: string | null;
           is_liked: boolean;
           cover_url: string | null;
-          date_added: Date | undefined;
+          date_released: Date | undefined;
           album?: PlaylistModel[];
           artists: UserModel[];
         }[];
@@ -470,7 +470,7 @@ class ArtistManagement {
         lyrics: row.lyrics,
         is_liked: Boolean(row.playlists?.length),
         cover_url: row.cover_id ? `${STATIC_IMAGES_PATH}/${row.cover_id}.jpg` : null,
-        date_added: row.creation_date,
+        date_released: row.creation_date,
         album: row.album,
         artists: row.users,
       };
@@ -478,4 +478,4 @@ class ArtistManagement {
     return { success: true, data: { total: artistTopTracks.count, items: proccessedArtistLiked } };
   }
 }
-export default ArtistManagement;
+export default ArtistManager;

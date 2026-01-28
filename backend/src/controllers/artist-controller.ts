@@ -10,12 +10,12 @@ import {
   type ICreateArtist,
 } from '../interfaces/artist-interface.ts';
 import { Order } from '../interfaces/playlist-interface.ts';
-import ArtistManagement from '../models/services/artist.ts';
+import ArtistManager from '../models/services/artist.ts';
 import { FileUploader } from '../models/services/file-management.ts';
 import UserManager from '../models/services/user.ts';
 
 const fileUploader = new FileUploader();
-const artist = new ArtistManagement();
+const artist = new ArtistManager();
 const user = new UserManager();
 export default {
   async turnToArtist(artistInfo: ICreateArtist) {
@@ -150,5 +150,26 @@ export default {
       throw new NotFoundError(artistTopTracks.reason);
     }
     return artistTopTracks.data;
+  },
+  async getArtistDiscography(artistInfo: { artistId: string; userId: string }) {
+    const isUserExists = await user.getUserById(artistInfo.userId);
+    if (!isUserExists.success) {
+      throw new NotFoundError(isUserExists.reason);
+    }
+    const artistAlbums = await artist.getArtistAlbums(
+      { artistId: artistInfo.artistId, userId: artistInfo.userId },
+      { sortBy: ArtistAlbumsSortBy.ReleaseDate, order: Order.Desc },
+    );
+    if (!artistAlbums.success) {
+      throw new NotFoundError(artistAlbums.reason);
+    }
+    const artistSingles = await artist.getArtistSingles(
+      { artistId: artistInfo.artistId, userId: artistInfo.userId },
+      { sortBy: ArtistSinglesSortBy.CreationDate, order: Order.Desc },
+    );
+    if (!artistSingles.success) {
+      throw new NotFoundError(artistSingles.reason);
+    }
+    return { albums: artistAlbums.data.items, singles: artistSingles.data.items };
   },
 };
