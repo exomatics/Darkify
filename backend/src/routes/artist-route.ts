@@ -186,4 +186,25 @@ router.get(
     },
   ),
 );
+router.get(
+  ROUTES.ARTISTS.GET_DISCOGRAPHY,
+  passport.authenticate('access-token', { session: false }) as RequestHandler,
+  asyncHandler(
+    async (
+      request: Request<ParamsDictionary | { artistId: string }, unknown, null>,
+      response: Response,
+    ) => {
+      const validation = getArtistTopTracks.safeParse({
+        userId: request.jwtPayload.user_id,
+        artistId: request.params.artistId,
+      });
+      if (!validation.success) {
+        throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
+      }
+      const databaseResponse = await artistController.getArtistDiscography(validation.data);
+
+      response.status(200).json(databaseResponse);
+    },
+  ),
+);
 export default router;

@@ -5,7 +5,9 @@ import database from '../../config/database.ts';
 import { errorMessages } from '../../errors/error-messages.ts';
 import { AlbumsSortBy } from '../../interfaces/album-interface.ts';
 import { ArtistAlbumsSortBy } from '../../interfaces/artist-interface.ts';
-import { Order, Restrictions } from '../../interfaces/playlist-interface.ts';
+import { Order, PlaylistSortBy, Restrictions } from '../../interfaces/playlist-interface.ts';
+
+import PlaylistManager from './playlist.ts';
 
 import type { IArtist, ArtistSinglesSortBy } from '../../interfaces/artist-interface.ts';
 import type { Result } from '../../types/result-type.ts';
@@ -22,6 +24,9 @@ interface TracksWithArtists extends TrackModel {
   dataValues: TrackModel['dataValues'] & { total_listens: number };
   users: UserModel[];
 }
+
+const playlist = new PlaylistManager();
+
 class ArtistManagement {
   async turnToArtist(
     artistInfo: IArtist & {
@@ -206,6 +211,7 @@ class ArtistManagement {
         items: {
           id: string;
           name: string;
+          placeholder_url_covers: string[] | null;
           is_followed: boolean;
           cover_url: string | null;
         }[];
@@ -293,23 +299,49 @@ class ArtistManagement {
         ],
       ],
       include,
-      // logging: true,
-      offset,
-      limit,
+      limit: limit ?? undefined,
+      offset: offset ?? undefined,
     })) as PlaylistAlbumInstanceWithRelations[];
-    const processedPlaylistRecords = artistAlbumsRecords.map((albumRecord) => {
-      return {
-        id: albumRecord.id,
-        name: albumRecord.name,
-        is_followed: Boolean(albumRecord.playlist_followers?.length),
-        cover_url: albumRecord.cover_id
-          ? `${STATIC_IMAGES_PATH}/${albumRecord.cover_id}.jpg`
-          : null,
-      };
-    });
+    const processedAlbumsRecords = await Promise.all(
+      artistAlbumsRecords.map(async (albumRecord) => {
+        let placeholderUrlCovers: string[] = [];
+        const albumTracks = await playlist.getAllTracksFromPlaylist(
+          {
+            playlistId: albumRecord.id,
+            userId: artistInfo.userId,
+            sort: { sortBy: PlaylistSortBy.Date, order: Order.Asc },
+          },
+          4,
+          0,
+        );
+        albumTracks.data.items.forEach((albumTrack) => {
+          if (albumTrack.cover_url === null) {
+            return;
+          }
+
+          if (placeholderUrlCovers.includes(albumTrack.cover_url)) {
+            placeholderUrlCovers = [placeholderUrlCovers[0]];
+            return;
+          }
+          placeholderUrlCovers.push(albumTrack.cover_url);
+        });
+        if (placeholderUrlCovers.length !== 4 && placeholderUrlCovers.length > 0) {
+          placeholderUrlCovers = [placeholderUrlCovers[0]];
+        }
+        return {
+          id: albumRecord.id,
+          name: albumRecord.name,
+          is_followed: Boolean(albumRecord.playlist_followers?.length),
+          placeholder_url_covers: placeholderUrlCovers,
+          cover_url: albumRecord.cover_id
+            ? `${STATIC_IMAGES_PATH}/${albumRecord.cover_id}.jpg`
+            : null,
+        };
+      }),
+    );
     return {
       success: true,
-      data: { total: artistAlbumsCount, items: processedPlaylistRecords },
+      data: { total: artistAlbumsCount, items: processedAlbumsRecords },
     };
   }
   async getArtistSingles(
@@ -329,7 +361,7 @@ class ArtistManagement {
           lyrics: string | null;
           is_liked: boolean;
           cover_url: string | null;
-          date_added: Date | undefined;
+          date_released: Date | undefined;
           artists: UserModel[];
         }[];
       },
@@ -369,8 +401,8 @@ class ArtistManagement {
           through: { attributes: ['id', 'date_added'] },
         },
       ],
-      limit,
-      offset,
+      limit: limit ?? undefined,
+      offset: offset ?? undefined,
     })) as {
       count: number;
       rows: (TrackModel & {
@@ -387,7 +419,7 @@ class ArtistManagement {
         lyrics: row.lyrics,
         is_liked: Boolean(row.playlists?.length),
         cover_url: row.cover_id ? `${STATIC_IMAGES_PATH}/${row.cover_id}.jpg` : null,
-        date_added: row.creation_date,
+        date_released: row.creation_date,
         artists: row.users,
       };
     });
@@ -412,7 +444,7 @@ class ArtistManagement {
           lyrics: string | null;
           is_liked: boolean;
           cover_url: string | null;
-          date_added: Date | undefined;
+          date_released: Date | undefined;
           album?: PlaylistModel[];
           artists: UserModel[];
         }[];
@@ -470,7 +502,7 @@ class ArtistManagement {
         lyrics: row.lyrics,
         is_liked: Boolean(row.playlists?.length),
         cover_url: row.cover_id ? `${STATIC_IMAGES_PATH}/${row.cover_id}.jpg` : null,
-        date_added: row.creation_date,
+        date_released: row.creation_date,
         album: row.album,
         artists: row.users,
       };

@@ -151,4 +151,25 @@ export default {
     }
     return artistTopTracks.data;
   },
+  async getArtistDiscography(artistInfo: { artistId: string; userId: string }) {
+    const isUserExists = await user.getUserById(artistInfo.userId);
+    if (!isUserExists.success) {
+      throw new NotFoundError(isUserExists.reason);
+    }
+    const artistAlbums = await artist.getArtistAlbums(
+      { artistId: artistInfo.artistId, userId: artistInfo.userId },
+      { sortBy: ArtistAlbumsSortBy.ReleaseDate, order: Order.Desc },
+    );
+    if (!artistAlbums.success) {
+      throw new NotFoundError(artistAlbums.reason);
+    }
+    const artistSingles = await artist.getArtistSingles(
+      { artistId: artistInfo.artistId, userId: artistInfo.userId },
+      { sortBy: ArtistSinglesSortBy.CreationDate, order: Order.Desc },
+    );
+    if (!artistSingles.success) {
+      throw new NotFoundError(artistSingles.reason);
+    }
+    return { albums: artistAlbums.data.items, singles: artistSingles.data.items };
+  },
 };
