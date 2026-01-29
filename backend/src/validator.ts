@@ -90,6 +90,10 @@ const updateUserSettingsScheme = z.object({
   userId: uuidScheme,
   bitrate: z.enum(Bitrate),
 });
+const getTrackScheme = z.object({
+  userId: uuidScheme,
+  trackId: uuidScheme,
+});
 const trackNameScheme = z.string().max(100).nonempty();
 const trackScheme = z.object({
   id: uuidScheme,
@@ -115,12 +119,14 @@ const createTrackScheme = trackScheme
 
 const getTracksScheme = z.object({
   name: trackNameScheme,
+  userId: uuidScheme,
   ...paginationScheme.shape,
 });
 
 const updateTrackScheme = trackScheme
   .extend({
     name: trackNameScheme.optional(),
+    userId: uuidScheme,
     artists: z.array(uuidScheme).optional(),
     file: fileScheme.nullable(),
   })
@@ -323,6 +329,7 @@ export {
   playlistFollowScheme,
   userAvatarScheme,
   userBannerScheme,
+  getTrackScheme,
   getTracksScheme,
   createTrackScheme,
   updateTrackScheme,

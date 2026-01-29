@@ -1,3 +1,5 @@
+import _ from 'lodash';
+
 import { DEFAULT_LIMIT, DEFAULT_OFFSET, STATIC_IMAGES_PATH } from '../config/config.ts';
 import database from '../config/database.ts';
 import { errorMessages } from '../errors/error-messages.ts';
@@ -49,16 +51,19 @@ export default {
     if (!artistData.success) {
       throw new NotFoundError(artistData.reason);
     }
-    return {
-      ...artistData.data,
-      name: userRecord.data.visible_username,
-      banner_url: artistData.data.banner_id
-        ? `${STATIC_IMAGES_PATH}/${artistData.data.banner_id}.jpg`
-        : null,
-      avatar_url: userRecord.data.avatar_url
-        ? `${STATIC_IMAGES_PATH}/${userRecord.data.avatar_url}.jpg`
-        : null,
-    };
+    return _.omit(
+      {
+        ...artistData.data,
+        name: userRecord.data.visible_username,
+        banner_url: artistData.data.banner_id
+          ? `${STATIC_IMAGES_PATH}/${artistData.data.banner_id}.jpg`
+          : null,
+        avatar_url: userRecord.data.avatar_url
+          ? `${STATIC_IMAGES_PATH}/${userRecord.data.avatar_url}.jpg`
+          : null,
+      },
+      ['banner_id'],
+    );
   },
   async getLikedFromArtist(
     artistInfo: { artistId: string; userId: string },

@@ -413,7 +413,7 @@ class ArtistManager {
           is_liked: boolean;
           cover_url: string | null;
           date_released: Date | undefined;
-          album?: PlaylistModel[];
+          album?: PlaylistModel[] | { id: string; name: string };
           artists: UserModel[];
         }[];
       },
@@ -458,7 +458,7 @@ class ArtistManager {
       rows: (TrackModel & {
         users: UserModel[];
         playlists?: (PlaylistModel & { playlist_track: PlaylistTrackModel })[];
-        album: PlaylistModel[];
+        album?: PlaylistModel[];
       })[];
     };
     const proccessedArtistLiked = artistTopTracks.rows.map((row) => {
@@ -471,7 +471,7 @@ class ArtistManager {
         is_liked: Boolean(row.playlists?.length),
         cover_url: row.cover_id ? `${STATIC_IMAGES_PATH}/${row.cover_id}.jpg` : null,
         date_released: row.creation_date,
-        album: row.album,
+        album: row.album ?? { id: row.id, name: row.name },
         artists: row.users,
       };
     });

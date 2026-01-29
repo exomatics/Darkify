@@ -12,6 +12,7 @@ interface Itrack {
 }
 interface UpdateTrack {
   id: string;
+  userId: string;
   name?: string;
   artists?: string[];
   lyrics?: string | null;
@@ -21,6 +22,7 @@ interface UpdateTrack {
 
 type TrackResult = Omit<Itrack, 'artists' | 'cover_id' | 'admin_id'> & {
   artists: { id: string; visible_username: string }[];
+  is_liked: boolean;
   cover_url: string | null;
 };
 

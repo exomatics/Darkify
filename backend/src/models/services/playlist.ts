@@ -50,6 +50,7 @@ type PlaylistTrackInstanceWithRelations = PlaylistTrackModel & {
   track: TrackModel & {
     users: UserModel[];
     album: PlaylistModel | null;
+    playlists?: PlaylistModel[];
   };
 };
 
@@ -465,7 +466,6 @@ class PlaylistManager {
   > {
     const orderOptions =
       playlistInfo.type === Type.Album ? albumOrderOptions : playlistOrderOptions;
-
     const playlistTracks = (await database.playlistTrackModel.findAndCountAll({
       where: { playlist_id: playlistInfo.playlistId },
       attributes: ['id', 'playlist_id', 'track_id', 'order', 'date_added'],
@@ -486,7 +486,14 @@ class PlaylistManager {
               attributes: ['id', 'visible_username'],
             },
             {
+              model: database.playlistModel,
+              where: { id: playlistInfo.userId },
+              through: { attributes: ['id', 'date_added'] },
+              required: false,
+            },
+            {
               association: 'album',
+              required: false,
               attributes: ['id', 'name'],
             },
           ],
@@ -495,6 +502,7 @@ class PlaylistManager {
       ],
       offset,
       limit,
+      // logging: true,
     })) as { rows: PlaylistTrackInstanceWithRelations[]; count: number };
 
     const processedPlaylistRows = playlistTracks.rows.map(
@@ -507,13 +515,13 @@ class PlaylistManager {
           cover_url: row.track.cover_id ? `${STATIC_IMAGES_PATH}/${row.track.cover_id}.jpg` : null,
           album: row.track.album ?? { id: row.track.id, name: row.track.name },
           id: row.track_id,
+          is_liked: Boolean(row.track.playlists?.length),
           date_added: row.date_added ?? null,
           artists: row.track.users,
         };
         if (playlistInfo.type === Type.Liked) {
           return {
             ...basePlaylistRow,
-            is_liked: true,
             playlist_track_id: row.id,
           };
         }
@@ -555,7 +563,7 @@ class PlaylistManager {
         date_added: Date | null;
         cover_url: string | null;
         artists: { id: string; visible_username: string }[];
-        is_liked?: true;
+        is_liked?: boolean;
       })[];
       total: number;
     }>
@@ -601,7 +609,13 @@ class PlaylistManager {
               // where: { visible_username: { [Op.iLike]: `%${searchInfo.search}%` } },
               // required: false,
             },
-            { association: 'album' },
+            {
+              model: database.playlistModel,
+              where: { id: searchInfo.userId },
+              through: { attributes: ['id', 'date_added'] },
+              required: false,
+            },
+            { association: 'album', required: false },
           ],
         },
       ],
@@ -643,6 +657,7 @@ class PlaylistManager {
             play_count: row.track.play_count,
             deleted: row.track.deleted,
             duration: row.track.duration,
+            is_liked: Boolean(row.track.playlists?.length),
             creation_date: row.track.creation_date ?? null,
             cover_url: row.track.cover_id
               ? `${STATIC_IMAGES_PATH}/${row.track.cover_id}.jpg`

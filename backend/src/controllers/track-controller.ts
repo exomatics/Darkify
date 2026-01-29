@@ -27,19 +27,19 @@ const playlist = new PlaylistManager();
 const fileUploader = new FileUploader();
 
 export default {
-  async getTrackInfo(trackId: string) {
-    const modelResponse = await track.getTrackById(trackId);
+  async getTrackInfo(trackInfo: { trackId: string; userId: string }) {
+    const modelResponse = await track.getTrackById(trackInfo);
     if (!modelResponse.success) {
       throw new NotFoundError(modelResponse.reason);
     }
     return modelResponse.data;
   },
   async getTracksByName(
-    trackName: string,
+    searchInfo: { userId: string; trackName: string },
     limit: number = DEFAULT_LIMIT,
     offset: number = DEFAULT_OFFSET,
   ) {
-    const modelResponse = await track.getTracksByName(trackName, limit, offset);
+    const modelResponse = await track.getTracksByName(searchInfo, limit, offset);
     if (!modelResponse.success) {
       return [];
     }
@@ -52,7 +52,7 @@ export default {
     };
   },
   async streamTrack(streamInfo: { trackId: string; userId: string }) {
-    const modelResponse = await track.getTrackById(streamInfo.trackId);
+    const modelResponse = await track.getTrackById(streamInfo);
     if (!modelResponse.success) {
       throw new NotFoundError(modelResponse.reason);
     }

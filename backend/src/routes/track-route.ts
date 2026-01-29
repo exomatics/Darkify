@@ -9,6 +9,7 @@ import { rateLimiters } from '../middleware/rate-limiter.ts';
 import { FileUploader } from '../models/services/file-management.ts';
 import {
   createTrackScheme,
+  getTrackScheme,
   getTracksScheme,
   streamTrackScheme,
   updateTrackScheme,
@@ -28,7 +29,10 @@ router.get(
   ROUTES.TRACKS.GET_TRACK_INFO,
   passport.authenticate('access-token', { session: false }) as RequestHandler,
   asyncHandler(async (request: Request, response: Response) => {
-    const validation = uuidScheme.safeParse(request.params.trackId);
+    const validation = getTrackScheme.safeParse({
+      trackId: request.params.trackId,
+      userId: request.jwtPayload.user_id,
+    });
     if (!validation.success) {
       throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }
@@ -50,6 +54,7 @@ router.get(
     ) => {
       const validation = getTracksScheme.safeParse({
         name: request.params.trackName,
+        userId: request.jwtPayload.user_id,
         limit: +(request.query.limit ?? 5),
         offset: +(request.query.offset ?? 0),
       });
@@ -57,7 +62,7 @@ router.get(
         throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
       }
       const databaseResponse = await trackController.getTracksByName(
-        validation.data.name,
+        { trackName: validation.data.name, userId: validation.data.userId },
         +(validation.data.limit ?? 5),
         +(validation.data.offset ?? 0),
       );
@@ -124,6 +129,7 @@ router.put(
   asyncHandler(async (request: Request, response: Response) => {
     const validation = updateTrackScheme.safeParse({
       id: request.params.trackId,
+      userId: request.jwtPayload.user_id,
       file: request.file ?? null,
       ...request.body,
     });
