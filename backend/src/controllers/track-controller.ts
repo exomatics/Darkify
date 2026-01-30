@@ -94,7 +94,6 @@ export default {
       file: Express.Multer.File[] | null;
     },
   ) {
-<<<<<<< HEAD
     if (trackInfo.album_id) {
       const albumRecord = await playlist.getUserAlbumRecordById(
         trackInfo.album_id,
@@ -105,18 +104,9 @@ export default {
       }
     }
     let coverId = null;
-||||||| 99db3cd
-    // if(!trackInfo.file){
-    //   // throw new
-    // }
-    let coverId;
-=======
-    let coverId = null;
->>>>>>> 4670fc195f349823e2d55c46e5663d1c8bb4bbee
     if (trackInfo.file) {
       coverId = await fileUploader.uploadImage(trackInfo.file[0]);
     }
-<<<<<<< HEAD
     let result: SuccessfulResult<unknown> = { success: true, data: {} };
     await database.sequelize.transaction(async (transaction) => {
       const trackResponse = await track.createTrack({
@@ -139,21 +129,6 @@ export default {
       }
     });
     return result.data;
-||||||| 99db3cd
-    const modelResponse = await track.createTrack({ ...trackInfo, cover_id: coverId ?? null });
-    if (!modelResponse.success) {
-      throw new InternalError(modelResponse.reason);
-    }
-
-    return modelResponse.data;
-=======
-    const modelResponse = await track.createTrack({ ...trackInfo, cover_id: coverId });
-    if (!modelResponse.success) {
-      throw new InternalError(modelResponse.reason);
-    }
-
-    return modelResponse.data;
->>>>>>> 4670fc195f349823e2d55c46e5663d1c8bb4bbee
   },
   async updateTrack(trackInfo: UpdateTrack) {
     let coverId;
