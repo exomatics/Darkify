@@ -23,6 +23,13 @@ interface TracksWithArtists extends TrackModel {
   users: UserModel[];
 }
 
+interface TrackCountAlbum extends PlaylistModel {
+  dataValues: PlaylistModel['dataValues'] & { track_count: number };
+  playlist_album: Omit<PlaylistAlbumsModel, 'date_released'> & { date_released: Date };
+  playlist_followers?: PlaylistFollowersModel[];
+  tracks?: TrackModel[];
+}
+
 class ArtistManager {
   async turnToArtist(
     artistInfo: IArtist & {
@@ -208,6 +215,8 @@ class ArtistManager {
           id: string;
           name: string;
           is_followed: boolean;
+          count: number;
+          date_released: Date;
           cover_url: string | null;
         }[];
       },
@@ -218,15 +227,14 @@ class ArtistManager {
     if (!artistRecord.success) {
       return artistRecord;
     }
+    let attributes: sequelize.FindAttributeOptions = [
+      'id',
+      'name',
+      'cover_id',
+      [sequelize.fn('count', sequelize.col('tracks.id')), 'track_count'],
+    ];
 
-    type PlaylistAlbumInstanceWithRelations = PlaylistModel & {
-      playlist_album: PlaylistAlbumsModel;
-      playlist_followers?: PlaylistFollowersModel[];
-      tracks?: TrackModel[];
-    };
-    let attributes: sequelize.FindAttributeOptions = ['id', 'name', 'cover_id'];
-
-    let include: sequelize.Includeable[] = [
+    const include: sequelize.Includeable[] = [
       {
         model: database.playlistAlbumsModel,
         where: { date_released: { [Op.not]: null } },
@@ -243,26 +251,41 @@ class ArtistManager {
         required: false,
         where: { user_id: artistInfo.userId },
       },
+      {
+        model: database.trackModel,
+        attributes: ['play_count', 'id'],
+      },
+    ];
+    let order: sequelize.Order = [
+      [
+        { model: database.playlistAlbumsModel, as: 'playlist_album' },
+        AlbumsSortBy.Released,
+        Order.Desc,
+      ],
     ];
     let group: sequelize.GroupOption = [
       'playlist.id',
       'playlist_album.playlist_id',
       'playlist_followers.playlist_id',
       'playlist_followers.user_id',
+      'tracks.id',
+      'tracks.play_count',
+      'tracks->playlist_track.id',
+      'tracks->playlist_track.playlist_id',
+      'tracks->playlist_track.track_id',
+      'tracks->playlist_track.order',
     ];
     if (sort.sortBy === ArtistAlbumsSortBy.Popularity) {
-      include = [
-        ...include,
-        {
-          model: database.trackModel,
-          attributes: ['play_count'],
-        },
-      ];
       attributes = [
-        'id',
-        'name',
-        'cover_id',
-        [sequelize.fn('sum', sequelize.col('tracks.play_count')), 'total_listens'],
+        ...attributes,
+        [
+          sequelize.fn(
+            'div',
+            sequelize.fn('sum', sequelize.col('tracks.play_count')),
+            sequelize.fn('nullif', sequelize.fn('count', sequelize.col('tracks.id')), 0),
+          ),
+          'popularity',
+        ],
       ];
       group = [
         'playlist.id',
@@ -270,11 +293,13 @@ class ArtistManager {
         'playlist_followers.playlist_id',
         'playlist_followers.user_id',
         'tracks.id',
+        'tracks.play_count',
         'tracks->playlist_track.id',
         'tracks->playlist_track.playlist_id',
         'tracks->playlist_track.track_id',
         'tracks->playlist_track.order',
       ];
+      order = [['popularity', 'DESC']];
     }
     const artistAlbumsCount = await database.playlistModel.count({
       where: { owner: artistInfo.artistId, restrictions: Restrictions.Public },
@@ -286,22 +311,19 @@ class ArtistManager {
       attributes,
       // raw: true,
       // nest: true,
-      order: [
-        [
-          { model: database.playlistAlbumsModel, as: 'playlist_album' },
-          AlbumsSortBy.Released,
-          Order.Desc,
-        ],
-      ],
+      order,
       include,
       limit: limit ?? undefined,
       offset: offset ?? undefined,
-    })) as PlaylistAlbumInstanceWithRelations[];
+    })) as TrackCountAlbum[];
+
     const processedAlbumsRecords = artistAlbumsRecords.map((albumRecord) => {
       return {
         id: albumRecord.id,
         name: albumRecord.name,
         is_followed: Boolean(albumRecord.playlist_followers?.length),
+        count: albumRecord.dataValues.track_count,
+        date_released: albumRecord.playlist_album.date_released,
         cover_url: albumRecord.cover_id
           ? `${STATIC_IMAGES_PATH}/${albumRecord.cover_id}.jpg`
           : null,

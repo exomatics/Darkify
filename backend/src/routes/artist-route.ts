@@ -11,6 +11,7 @@ import {
   getArtistLikedScheme,
   getArtistScheme,
   getArtistSinglesScheme,
+  getArtistTop,
   getArtistTopTracks,
 } from '../validator.ts';
 
@@ -123,11 +124,9 @@ router.get(
       request: Request<ParamsDictionary | { artistId: string }, unknown, null>,
       response: Response,
     ) => {
-      const validation = getArtistSinglesScheme.safeParse({
+      const validation = getArtistTop.safeParse({
         userId: request.jwtPayload.user_id,
         artistId: request.params.artistId,
-        limit: +(request.query.limit ?? DEFAULT_LIMIT),
-        offset: +(request.query.offset ?? DEFAULT_OFFSET),
       });
       if (!validation.success) {
         throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));

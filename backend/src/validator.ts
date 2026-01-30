@@ -318,6 +318,8 @@ const getArtistLikedScheme = getArtistScheme.extend(paginationScheme.shape);
 const getArtistAlbumsScheme = getArtistLikedScheme;
 const getArtistSinglesScheme = getArtistLikedScheme;
 const getArtistTopTracks = getArtistScheme;
+const getArtistTop = getArtistScheme;
+
 export {
   uuidScheme,
   loginScheme,
@@ -369,4 +371,5 @@ export {
   getArtistAlbumsScheme,
   getArtistSinglesScheme,
   getArtistTopTracks,
+  getArtistTop,
 };

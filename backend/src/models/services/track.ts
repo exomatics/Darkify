@@ -60,7 +60,7 @@ class TrackManager {
       return { success: false, reason: errorMessages.track.NotExistsById };
     }
     const trackWithArtists = {
-      ..._.omit(trackRecord.dataValues, 'cover_id', 'users', 'admin_id'),
+      ..._.omit(trackRecord.dataValues, 'cover_id', 'users', 'admin_id', 'playlists'),
       artists: trackRecord.dataValues.users.map((trackArtists) => {
         return { id: trackArtists.id, visible_username: trackArtists.visible_username };
       }),
@@ -116,7 +116,7 @@ class TrackManager {
     }
     const tracksWithArtists = trackRecords.map((trackRecord) => {
       return {
-        ..._.omit(trackRecord.dataValues, 'cover_id', 'users', 'admin_id'),
+        ..._.omit(trackRecord.dataValues, 'cover_id', 'users', 'admin_id', 'playlists'),
         artists: trackRecord.dataValues.users.map((trackArtists) => {
           return { id: trackArtists.id, visible_username: trackArtists.visible_username };
         }),

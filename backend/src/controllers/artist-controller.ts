@@ -116,11 +116,7 @@ export default {
     }
     return artistSingles.data;
   },
-  async getArtistPopular(
-    artistInfo: { artistId: string; userId: string },
-    limit: number = DEFAULT_LIMIT,
-    offset: number = DEFAULT_OFFSET,
-  ) {
+  async getArtistPopular(artistInfo: { artistId: string; userId: string }) {
     const isUserExists = await user.getUserById(artistInfo.userId);
     if (!isUserExists.success) {
       throw new NotFoundError(isUserExists.reason);
@@ -128,8 +124,8 @@ export default {
     const artistAlbums = await artist.getArtistAlbums(
       { artistId: artistInfo.artistId, userId: artistInfo.userId },
       { sortBy: ArtistAlbumsSortBy.Popularity, order: Order.Desc },
-      limit,
-      offset,
+      9,
+      0,
     );
     if (!artistAlbums.success) {
       throw new NotFoundError(artistAlbums.reason);
@@ -137,8 +133,8 @@ export default {
     const artistSingles = await artist.getArtistSingles(
       { artistId: artistInfo.artistId, userId: artistInfo.userId },
       { sortBy: ArtistSinglesSortBy.Popularity, order: Order.Desc },
-      limit,
-      offset,
+      9,
+      0,
     );
     if (!artistSingles.success) {
       throw new NotFoundError(artistSingles.reason);
