@@ -1214,7 +1214,189 @@ paths:
           $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/Unauthorized'
+  /artists/{artistId}:
+    get:
+      tags: [Artist]
+      parameters:
+        - $ref: '#/components/parameters/ArtistIdParameter'
+      responses:
+        '200':
+          description: Artist info
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  banner_url:
+                    type: [string, 'null']
+                    format: uri-reference
+                  avatar_url:
+                    type: [string, 'null']
+                    format: uri-reference
+                  followers_count:
+                    type: number
+                  listening_count:
+                    type: number
+                  is_following:
+                    type: boolean
+                  liked_songs_count:
+                    type: number
+                  name:
+                    type: string
+                    maximum: 100
+                  description:
+                    type: string
+                    maximum: 1500
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /artists/{artistId}/liked:
+    get:
+      tags: [Artist]
+      parameters:
+        - $ref: '#/components/parameters/ArtistIdParameter'
+        - $ref: '#/components/parameters/PaginationLimitParameter'
+        - $ref: '#/components/parameters/PaginationOffsetParameter'
+      responses:
+        '200':
+          description: User's liked songs from Artist
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: number
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PlaylistTrackInfo'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /artists/{artistId}/albums:
+    get:
+      tags: [Artist]
+      parameters:
+        - $ref: '#/components/parameters/ArtistIdParameter'
+        - $ref: '#/components/parameters/PaginationLimitParameter'
+        - $ref: '#/components/parameters/PaginationOffsetParameter'
+      responses:
+        '200':
+          description: Albums of the artist
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: number
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ArtistAlbumInfo'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /artists/{artistId}/singles:
+    get:
+      tags: [Artist]
+      parameters:
+        - $ref: '#/components/parameters/ArtistIdParameter'
+        - $ref: '#/components/parameters/PaginationLimitParameter'
+        - $ref: '#/components/parameters/PaginationOffsetParameter'
+      responses:
+        '200':
+          description: Singles of the artist
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: number
+                  items:
+                    $ref: '#/components/schemas/ArtistSingleInfo'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /artists/{artistId}/top-tracks:
+    get:
+      tags: [Artist]
+      parameters:
+        - $ref: '#/components/parameters/ArtistIdParameter'
+      responses:
+        '200':
+          description: Artist top tracks
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: number
+                  items:
+                    $ref: '#/components/schemas/TrackInfo'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /artists/{artistId}/popular:
+    get:
+      tags: [Artist]
+      parameters:
+        - $ref: '#/components/parameters/ArtistIdParameter'
+      responses:
+        '200':
+          description: most popular albums and singles of the Artist.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  albums:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ArtistAlbumInfo'
+                  singles:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ArtistSingleInfo'
 
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /artists/{artistId}/discography:
+    get:
+      tags: [Artist]
+      parameters:
+        - $ref: '#/components/parameters/ArtistIdParameter'
+      responses:
+        '200':
+          description: Albums and singles of the artist, sorted by date_released
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  albums:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ArtistAlbumInfo'
+                  singles:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ArtistSingleInfo'
+
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 components:
   securitySchemes:
     bearerAuth:
@@ -1328,6 +1510,18 @@ components:
         album_id:
           type: string
           format: uuid
+        album:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+              name:
+                type: string
+        is_liked:
+          type: boolean
         creation_date:
           type: string
           format: date
@@ -1397,16 +1591,6 @@ components:
           items:
             type: string
             format: uuid
-        album:
-          type: array
-          items:
-            type: object
-            properties:
-              id:
-                type: string
-                format: uuid
-              name:
-                type: string
         cover_url:
           type: ['string', 'null']
           format: uri-reference
@@ -1440,6 +1624,16 @@ components:
               duration:
                 type: number
                 description: 'Duration of a song in seconds'
+              album:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      format: uuid
+                    name:
+                      type: string
               cover_url:
                 type: ['string', 'null']
                 format: uri-reference
@@ -1454,6 +1648,8 @@ components:
               dateAdded:
                 type: string
                 format: date
+              is_liked:
+                type: boolean
               artists:
                 type: array
                 items:
@@ -1491,6 +1687,8 @@ components:
               trackId:
                 type: string
                 format: uuid
+              is_liked:
+                type: boolean
               album_track_id:
                 type: string
                 format: uuid
@@ -1563,7 +1761,64 @@ components:
           type: array
         artists:
           type: array
-
+    ArtistAlbumInfo:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maximum: 100
+        count:
+          type: number
+        date_released:
+          type: string
+          format: date
+        is_followed:
+          type: boolean
+        cover_url:
+          type: ['string', 'null']
+          format: uri-reference
+    ArtistSingleInfo:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 100
+        artists:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+              visible_username:
+                type: string
+        cover_url:
+          type: string
+          format: uri-reference
+        lyrics:
+          type: [string, 'null']
+        play_count:
+          type: number
+        album_id:
+          type: string
+          format: uuid
+        is_liked:
+          type: boolean
+        date_released:
+          type: string
+          format: date
+        deleted:
+          type: boolean
+        duration:
+          type: number
+          description: 'Duration of a song in seconds'
     AlbumInfo:
       type: object
       properties:
@@ -1590,6 +1845,7 @@ components:
         date_released:
           type: string
           format: date
+
     ReorderRequestBody:
       type: object
       properties:
@@ -1643,6 +1899,13 @@ components:
     TrackIdParameter:
       in: path
       name: trackId
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ArtistIdParameter:
+      in: path
+      name: artistId
       required: true
       schema:
         type: string
