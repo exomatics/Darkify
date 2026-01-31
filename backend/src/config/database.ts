@@ -1,6 +1,7 @@
 import { Sequelize } from 'sequelize';
 
 import { libraryPlaylists } from '../models/library-playlists.ts';
+import { playlistAlbumsModel } from '../models/playlist-albums.ts';
 import { playlistFollowersModel } from '../models/playlist-followers.ts';
 import { playlistTrackModel } from '../models/playlist-tracks.ts';
 import { playlistModel } from '../models/playlist.ts';
@@ -41,6 +42,7 @@ const database: Idb = {
   userFollowersModel: userFollowersModel(sequelize),
   userFollowingModel: userFollowingModel(sequelize),
   libraryPlaylists: libraryPlaylists(sequelize),
+  playlistAlbumsModel: playlistAlbumsModel(sequelize),
 };
 
 database.playlistModel.belongsToMany(database.trackModel, {
@@ -56,6 +58,17 @@ database.trackModel.belongsToMany(database.playlistModel, {
 
 database.playlistTrackModel.belongsTo(database.trackModel, { foreignKey: 'track_id' });
 database.trackModel.hasMany(database.playlistTrackModel, { foreignKey: 'track_id' });
+
+database.playlistModel.addScope('albumOnly', {
+  where: { type: 'album' },
+});
+database.trackModel.belongsTo(database.playlistModel.scope('albumOnly'), {
+  as: 'album',
+  foreignKey: 'album_id',
+  targetKey: 'id',
+  onDelete: 'SET NULL',
+  onUpdate: 'CASCADE',
+});
 
 database.playlistTrackModel.belongsTo(database.playlistModel, { foreignKey: 'playlist_id' });
 database.playlistModel.hasMany(database.playlistTrackModel, { foreignKey: 'playlist_id' });
@@ -93,6 +106,9 @@ database.libraryPlaylists.hasMany(database.playlistModel, { foreignKey: 'id' });
 database.playlistModel.belongsTo(database.libraryPlaylists, { foreignKey: 'id' });
 database.libraryPlaylists.belongsTo(database.userModel, { foreignKey: 'user_id' });
 database.userModel.hasMany(database.libraryPlaylists, { foreignKey: 'user_id' });
+
+database.playlistModel.hasOne(database.playlistAlbumsModel, { foreignKey: 'playlist_id' });
+database.playlistAlbumsModel.belongsTo(database.playlistModel, { foreignKey: 'playlist_id' });
 
 const sequelizeSync = async (sequelizeConfig: Sequelize) => {
   await sequelizeConfig.sync();

@@ -208,6 +208,45 @@ router.post(
     response.status(200).json(databaseResponse);
   }),
 );
+
+router.post(
+  ROUTES.USERS.POST_FOLLOW_ALBUM,
+  passport.authenticate('access-token', { session: false }) as RequestHandler,
+  asyncHandler(async (request: Request, response: Response) => {
+    const validation = playlistFollowScheme.safeParse({
+      user_id: request.jwtPayload.user_id,
+      playlist_id: request.params.album_id,
+    });
+    if (!validation.success) {
+      throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
+    }
+
+    const databaseResponse = await userController.followPlaylist(
+      validation.data.user_id,
+      validation.data.playlist_id,
+    );
+    response.status(200).json(databaseResponse);
+  }),
+);
+router.post(
+  ROUTES.USERS.POST_UNFOLLOW_ALBUM,
+  passport.authenticate('access-token', { session: false }) as RequestHandler,
+  asyncHandler(async (request: Request, response: Response) => {
+    const validation = playlistFollowScheme.safeParse({
+      user_id: request.jwtPayload.user_id,
+      playlist_id: request.params.album_id,
+    });
+    if (!validation.success) {
+      throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
+    }
+    const databaseResponse = await userController.unfollowPlaylist(
+      validation.data.user_id,
+      validation.data.playlist_id,
+    );
+    response.status(200).json(databaseResponse);
+  }),
+);
+
 router.post(
   ROUTES.USERS.PUT_EVENTS_PLAYED,
   passport.authenticate('access-token', { session: false }) as RequestHandler,

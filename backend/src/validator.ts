@@ -1,6 +1,7 @@
 import { z } from 'zod/v4';
 
 import { errorMessages } from './errors/error-messages.ts';
+import { AlbumSpecificSortBy, AlbumsSortBy } from './interfaces/album-interface.ts';
 import { LibrarySortBy } from './interfaces/library-interface.ts';
 import { Restrictions, Type, Order, PlaylistSortBy } from './interfaces/playlist-interface.ts';
 import { LibrarySections } from './interfaces/user-interface.ts';
@@ -99,6 +100,7 @@ const createTrackScheme = trackScheme
   .extend({
     name: trackNameScheme,
     admin_id: uuidScheme,
+    albumId: uuidScheme.nullable(),
     artists: z.array(uuidScheme).refine((items) => new Set(items).size === items.length, {
       message: errorMessages.validation.UniqueArrayOfUuid,
     }),
@@ -229,8 +231,63 @@ const getLikedScheme = z.object({
   ...paginationScheme.shape,
 });
 const reorderLikedScheme = reorderPlaylistScheme.omit({ playlistId: true });
+
 const addToLikedScheme = addToPlaylist.omit({ playlistId: true });
+
 const removeFromLikedScheme = removeFromPlaylist.omit({ playlistId: true });
+
+const getMyAlbumsScheme = z.object({
+  userId: uuidScheme,
+  sort: z.object({ sortBy: z.enum(AlbumsSortBy), order: z.enum(Order) }),
+  ...paginationScheme.shape,
+});
+
+const createAlbumScheme = playlistScheme
+  .omit({ playlistId: true, description: true, type: true, coverId: true })
+  .extend({ file: fileScheme.nullable() });
+
+const updateAlbumInfoScheme = z
+  .object({
+    name: z.string().max(100).optional(),
+    albumId: uuidScheme,
+    userId: uuidScheme,
+    releaseDate: z.iso.datetime().optional(),
+  })
+  .refine(({ name, releaseDate }) => {
+    return requireAtLeastOneCheck({ name, releaseDate });
+  }, errorMessages.validation.SpecifyWhatToUpdate);
+
+const getAlbumInfoScheme = getPlaylistInfoScheme
+  .omit({ playlistId: true })
+  .extend({ albumId: uuidScheme });
+
+const getAllFromAlbumScheme = getAllFromPlaylistScheme
+  .omit({ playlistId: true, sort: true })
+  .extend({
+    albumId: uuidScheme,
+    sort: z.object({
+      sortBy: z.enum({ ...PlaylistSortBy, ...AlbumSpecificSortBy }),
+      order: z.enum(Order),
+    }),
+  });
+
+const addToAlbumScheme = addToPlaylist.omit({ playlistId: true }).extend({ albumId: uuidScheme });
+
+const removeFromAlbumScheme = removeFromPlaylist
+  .omit({ playlistId: true, playlistTrackId: true })
+  .extend({ albumId: uuidScheme, albumTrackId: uuidScheme });
+
+const reorderAlbumScheme = reorderPlaylistScheme
+  .omit({ playlistId: true })
+  .extend({ albumId: uuidScheme });
+
+const updateAlbumCoverScheme = updatePlaylistCoverScheme
+  .omit({ playlistId: true })
+  .extend({ albumId: uuidScheme });
+
+const deleteAlbumScheme = deletePlaylistScheme
+  .omit({ playlistId: true })
+  .extend({ albumId: uuidScheme, keepTracks: z.boolean().optional() });
 export {
   uuidScheme,
   loginScheme,
@@ -264,4 +321,14 @@ export {
   reorderLikedScheme,
   addToLikedScheme,
   removeFromLikedScheme,
+  getMyAlbumsScheme,
+  createAlbumScheme,
+  updateAlbumInfoScheme,
+  getAlbumInfoScheme,
+  getAllFromAlbumScheme,
+  addToAlbumScheme,
+  removeFromAlbumScheme,
+  reorderAlbumScheme,
+  updateAlbumCoverScheme,
+  deleteAlbumScheme,
 };

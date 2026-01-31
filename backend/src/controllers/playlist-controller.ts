@@ -82,16 +82,20 @@ export default {
     limit: number = DEFAULT_LIMIT,
     offset: number = DEFAULT_OFFSET,
   ) {
-    const modelResponse = await playlist.getAllTracksFromPlaylist(playlistInfo, limit, offset);
-
-    if (!modelResponse.success) {
-      throw new NotFoundError(modelResponse.reason);
+    const playlistRecord = await playlist.getPlaylistRecordById(
+      playlistInfo.playlistId,
+      playlistInfo.userId,
+    );
+    if (!playlistRecord.success) {
+      throw new NotFoundError(playlistRecord.reason);
     }
-    const { items, total } = modelResponse.data;
+    const playlistTracks = await playlist.getAllTracksFromPlaylist(playlistInfo, limit, offset);
+
+    const { items, total } = playlistTracks.data;
     return {
       next: offset + items.length + 1 <= total ? offset + items.length : null,
       offset,
-      ...modelResponse.data,
+      ...playlistTracks.data,
     };
   },
   async getPlaylistsByName(
@@ -225,10 +229,15 @@ export default {
     limit: number = DEFAULT_LIMIT,
     offset: number = DEFAULT_OFFSET,
   ) {
-    const modelResponse = await playlist.searchForPlaylistTrack(searchInfo, limit, offset);
-    if (!modelResponse.success) {
-      throw new NotFoundError(modelResponse.reason);
+    const playlistRecord = await playlist.getPlaylistRecordById(
+      searchInfo.playlistId,
+      searchInfo.userId,
+    );
+    if (!playlistRecord.success) {
+      throw new NotFoundError(playlistRecord.reason);
     }
-    return modelResponse;
+    const searchResponse = await playlist.searchForPlaylistTrack(searchInfo, limit, offset);
+
+    return searchResponse;
   },
 };
