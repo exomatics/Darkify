@@ -61,7 +61,8 @@ type DeleteAlbumErrors =
 
 class PlaylistManager {
   async createPlaylist(
-    playlistInfo: ICreatePlaylist & Pick<IPlaylist, 'restrictions'> & { coverId?: string | null },
+    playlistInfo: ICreatePlaylist &
+      Pick<IPlaylist, 'restrictions'> & { coverId?: string | null } & { transaction?: Transaction },
   ): Promise<SuccessfulResult<{ playlistId: string; userId: string }>> {
     let playlistRecord: Partial<PlaylistModel> = {};
     try {
@@ -84,12 +85,12 @@ class PlaylistManager {
             restrictions: playlistInfo.restrictions,
             type: playlistInfo.type ?? Type.General,
           },
-          { transaction },
+          { transaction: playlistInfo.transaction ?? transaction },
         );
         await this.createLibraryRecord(
           localPlaylistRecord.owner,
           localPlaylistRecord.id,
-          transaction,
+          playlistInfo.transaction ?? transaction,
         );
         playlistRecord = localPlaylistRecord;
       });
@@ -104,15 +105,19 @@ class PlaylistManager {
   async createPlaylistAlbum(albumInfo: {
     playlistId: string;
     userId: string;
+    transaction?: Transaction;
   }): Promise<Result<null, typeof errorMessages.album.NotExistsById>> {
     const albumRecord = await this.getUserAlbumRecordById(albumInfo.playlistId, albumInfo.userId);
     if (!albumRecord.success) {
       return albumRecord;
     }
-    await database.playlistAlbumsModel.create({
-      playlist_id: albumInfo.playlistId,
-      date_released: null,
-    });
+    await database.playlistAlbumsModel.create(
+      {
+        playlist_id: albumInfo.playlistId,
+        date_released: null,
+      },
+      { transaction: albumInfo.transaction },
+    );
     return { success: true, data: null };
   }
   async deletePlaylist(playlistInfo: {

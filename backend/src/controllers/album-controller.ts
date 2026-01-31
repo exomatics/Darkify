@@ -43,16 +43,12 @@ export default {
     if (!playlistResponse.success) {
       throw new NotFoundError(playlistResponse.reason);
     }
-    let published = false;
-    if (playlistResponse.data.date_released === null) {
-      published = true;
-    }
     return {
       ..._.omit(playlistResponse.data, ['coverId']),
       cover_url: playlistResponse.data.coverId
         ? `${STATIC_IMAGES_PATH}/${playlistResponse.data.coverId}.jpg`
         : null,
-      published,
+      published: !!playlistResponse.data.date_released,
       owner: _.pick(userResponse.data, ['id', 'visible_username']),
     };
   },
@@ -95,28 +91,34 @@ export default {
     };
   },
   async createAlbum(
-    albumInfo: Omit<ICreatePlaylist, 'restrictions' | 'playlistId' | 'description'> &
-      Pick<IPlaylist, 'restrictions'>,
+    albumInfo: Omit<ICreatePlaylist, 'restrictions' | 'playlistId' | 'description' | 'name'> &
+      Pick<IPlaylist, 'restrictions' | 'name'>,
   ) {
     let coverId = null;
     if (albumInfo.file) {
       coverId = await fileUploader.uploadImage(albumInfo.file);
     }
-    const playlistId = crypto.randomUUID();
+    let playlistResponse: SuccessfulResult<{ playlistId: string; userId: string }> | undefined;
+    try {
+      const playlistId = crypto.randomUUID();
+      await database.sequelize.transaction(async (transaction) => {
+        playlistResponse = await playlist.createPlaylist({
+          ...albumInfo,
+          playlistId,
+          coverId,
+          type: Type.Album,
+          transaction,
+        });
 
-    const playlistResponse = await playlist.createPlaylist({
-      ...albumInfo,
-      playlistId,
-      coverId,
-      type: Type.Album,
-    });
-
-    await playlist.createPlaylistAlbum({
-      playlistId,
-      userId: albumInfo.owner,
-    });
-    const playlistData = await this.getAlbumInfo(playlistResponse.data);
-    return { id: playlistResponse.data.playlistId, name: playlistData.name };
+        await playlist.createPlaylistAlbum({
+          playlistId,
+          userId: albumInfo.owner,
+        });
+      });
+    } catch {
+      throw new InternalError(errorMessages.album.failedToCreateAlbum);
+    }
+    return { id: playlistResponse?.data.playlistId, name: albumInfo.name };
   },
   async addTrackToAlbum(albumInfo: {
     playlistId: string;
