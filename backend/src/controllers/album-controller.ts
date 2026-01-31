@@ -118,7 +118,7 @@ export default {
     } catch {
       throw new InternalError(errorMessages.album.failedToCreateAlbum);
     }
-    return { id: playlistResponse?.data.playlistId, name: albumInfo.name };
+    return { id: playlistResponse?.data.playlistId };
   },
   async addTrackToAlbum(albumInfo: {
     playlistId: string;
