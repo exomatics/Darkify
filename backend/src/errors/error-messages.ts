@@ -32,6 +32,7 @@ export const errorMessages = {
   }),
   album: Object.freeze({
     NotExistsById: 'Album with this id does not exist',
+    failedToCreateAlbum: 'failed to create album',
     failedToAddTrack: 'failed to add track to album',
     playlistAlbumRecordNotExists: 'playlistAlbumRecord with this albumId doesn not exist',
     AlbumIsNotAnAlbum: 'Playlist is not an Album',

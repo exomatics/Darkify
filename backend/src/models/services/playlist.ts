@@ -502,7 +502,6 @@ class PlaylistManager {
       ],
       offset,
       limit,
-      // logging: true,
     })) as { rows: PlaylistTrackInstanceWithRelations[]; count: number };
 
     const processedPlaylistRows = playlistTracks.rows.map(

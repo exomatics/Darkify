@@ -1591,6 +1591,16 @@ components:
           items:
             type: string
             format: uuid
+        album:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+              name:
+                type: string
         cover_url:
           type: ['string', 'null']
           format: uri-reference
@@ -1708,6 +1718,7 @@ components:
                     visible_username:
                       type: string
                       maxLength: 25
+
     PlaylistLibraryInfo:
       type: array
       items:

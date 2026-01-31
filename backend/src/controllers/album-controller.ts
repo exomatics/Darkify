@@ -15,7 +15,6 @@ import {
   type IReorder,
   Type,
 } from '../interfaces/playlist-interface.ts';
-import ArtistManagement from '../models/services/artist.ts';
 import { FileUploader } from '../models/services/file-management.ts';
 import PlaylistManager from '../models/services/playlist.ts';
 import TrackManager from '../models/services/track.ts';
@@ -32,7 +31,6 @@ import type { Transaction } from 'sequelize';
 const playlist = new PlaylistManager();
 const track = new TrackManager();
 const user = new UserManager();
-const artist = new ArtistManagement();
 const fileUploader = new FileUploader();
 
 export default {
@@ -45,16 +43,12 @@ export default {
     if (!playlistResponse.success) {
       throw new NotFoundError(playlistResponse.reason);
     }
-    let published = false;
-    if (playlistResponse.data.date_released !== null) {
-      published = true;
-    }
     return {
       ..._.omit(playlistResponse.data, ['coverId']),
       cover_url: playlistResponse.data.coverId
         ? `${STATIC_IMAGES_PATH}/${playlistResponse.data.coverId}.jpg`
         : null,
-      published,
+      published: !!playlistResponse.data.date_released,
       owner: _.pick(userResponse.data, ['id', 'visible_username']),
     };
   },
@@ -97,32 +91,34 @@ export default {
     };
   },
   async createAlbum(
-    albumInfo: Omit<ICreatePlaylist, 'restrictions' | 'playlistId' | 'description'> &
-      Pick<IPlaylist, 'restrictions'>,
+    albumInfo: Omit<ICreatePlaylist, 'restrictions' | 'playlistId' | 'description' | 'name'> &
+      Pick<IPlaylist, 'restrictions' | 'name'>,
   ) {
     let coverId = null;
     if (albumInfo.file) {
       coverId = await fileUploader.uploadImage(albumInfo.file);
     }
-    const isUserAnArtist = await artist.getArtistById(albumInfo.owner);
-    if (!isUserAnArtist.success) {
-      throw new NotFoundError(errorMessages.artist.NotAnArtist);
+    let playlistResponse: SuccessfulResult<{ playlistId: string; userId: string }> | undefined;
+    try {
+      const playlistId = crypto.randomUUID();
+      await database.sequelize.transaction(async (transaction) => {
+        playlistResponse = await playlist.createPlaylist({
+          ...albumInfo,
+          playlistId,
+          coverId,
+          type: Type.Album,
+          transaction,
+        });
+
+        await playlist.createPlaylistAlbum({
+          playlistId,
+          userId: albumInfo.owner,
+        });
+      });
+    } catch {
+      throw new InternalError(errorMessages.album.failedToCreateAlbum);
     }
-    const playlistId = crypto.randomUUID();
-
-    const playlistResponse = await playlist.createPlaylist({
-      ...albumInfo,
-      playlistId,
-      coverId,
-      type: Type.Album,
-    });
-
-    await playlist.createPlaylistAlbum({
-      playlistId,
-      userId: albumInfo.owner,
-    });
-    const playlistData = await this.getAlbumInfo(playlistResponse.data);
-    return { id: playlistResponse.data.playlistId, name: playlistData.name };
+    return { id: playlistResponse?.data.playlistId };
   },
   async addTrackToAlbum(albumInfo: {
     playlistId: string;
