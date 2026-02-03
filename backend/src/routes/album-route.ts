@@ -202,7 +202,7 @@ router.post(
       if (!validation.success) {
         throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
       }
-      const databaseResponse = await albumController.removeTrackfromAlbum({
+      const databaseResponse = await albumController.removeTrackFromAlbum({
         playlistTrackId: validation.data.albumTrackId,
         playlistId: validation.data.albumId,
         userId: validation.data.userId,
@@ -216,7 +216,10 @@ router.put(
   ROUTES.ALBUMS.PUT_ALBUM_REORDER,
   passport.authenticate('access-token', { session: false }) as RequestHandler,
   asyncHandler(
-    async (request: Request<ParamsDictionary, unknown, IReorder>, response: Response) => {
+    async (
+      request: Request<ParamsDictionary, unknown, Pick<IReorder, 'fromIndex' | 'toIndex'>>,
+      response: Response,
+    ) => {
       const validation = reorderAlbumScheme.safeParse({
         albumId: request.params.albumId,
         userId: request.jwtPayload.user_id,
@@ -244,8 +247,8 @@ router.put(
       const validation = updateAlbumInfoScheme.safeParse({
         albumId: request.params.albumId,
         userId: request.jwtPayload.user_id,
-        name: request.body.name,
-        releaseDate: request.body.releaseDate,
+        name: request.body.name ?? null,
+        releaseDate: request.body.releaseDate ?? null,
       });
 
       if (!validation.success) {

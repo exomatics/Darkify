@@ -2,6 +2,7 @@ import { DEFAULT_LIMIT, DEFAULT_OFFSET, STATIC_IMAGES_PATH } from '../config/con
 import NotFoundError from '../errors/not-found-error.ts';
 import ValidationError from '../errors/validation-error.ts';
 import { LibrarySections } from '../interfaces/user-interface.ts';
+import ArtistManager from '../models/services/artist.ts';
 import PlaylistManager from '../models/services/playlist.ts';
 import UserManager from '../models/services/user.ts';
 
@@ -9,6 +10,7 @@ import type { IUser, UpdateLibraryPlayDate } from '../interfaces/user-interface.
 
 const user = new UserManager();
 const playlist = new PlaylistManager();
+const artist = new ArtistManager();
 
 export default {
   async getUserInfo(user_id: string) {
@@ -29,6 +31,19 @@ export default {
       is_artist: userRecord.data.is_artist,
       followers: followersCount.data,
     };
+    const artistData = await artist.getArtistById(user_id);
+    if (!artistData.success) {
+      throw new NotFoundError(artistData.reason);
+    }
+    if (userRecord.data.is_artist) {
+      return {
+        ...requiredUserInfo,
+        banner_url: artistData.data.banner_id
+          ? `${STATIC_IMAGES_PATH}/${artistData.data.banner_id}.jpg`
+          : null,
+        description: artistData.data.description,
+      };
+    }
     return requiredUserInfo;
   },
   async getUserSettings(userId: string) {
@@ -56,12 +71,30 @@ export default {
       items: rows,
     };
   },
-  async updateUserInfo(user_id: string, userInfo: Pick<IUser, 'visible_username'>) {
-    const modelResponse = await user.updateUserInfo(user_id, userInfo);
-    if (!modelResponse.success) {
-      throw new NotFoundError(modelResponse.reason);
+  async updateUserInfo(
+    user_id: string,
+    user_info: Pick<IUser, 'visible_username'> & { description?: string },
+  ) {
+    const userData = await this.getUserInfo(user_id);
+
+    if (!userData.is_artist && user_info.description) {
+      throw new ValidationError('Cant update description. User is not an artist');
     }
-    return modelResponse.data;
+    const updateUserInfo = await user.updateUserInfo(user_id, {
+      visible_username: user_info.visible_username,
+    });
+    if (!updateUserInfo.success) {
+      throw new NotFoundError(updateUserInfo.reason);
+    }
+    if (userData.is_artist) {
+      await user.updateArtistInfo({ user_id, description: user_info.description });
+      const artistData = await artist.getArtistById(user_id);
+      if (!artistData.success) {
+        return artistData;
+      }
+      return { ...updateUserInfo.data, description: artistData.data.description };
+    }
+    return updateUserInfo.data;
   },
   async updateUserSettings(userId: string, userSettings: Pick<IUser, 'bitrate'>) {
     const modelResponse = await user.updateUserSettings(userId, userSettings);
@@ -120,6 +153,21 @@ export default {
       throw new NotFoundError(modelResponse.reason);
     }
     return modelResponse.data;
+  },
+  async updateUserBanner(user_id: string, fileBuffer: Express.Multer.File) {
+    const modelResponse = await user.updateArtistBanner(user_id, fileBuffer);
+    if (!modelResponse.success) {
+      throw new NotFoundError(modelResponse.reason);
+    }
+    const artistData = await artist.getArtistById(user_id);
+    if (!artistData.success) {
+      throw new NotFoundError(artistData.reason);
+    }
+    return {
+      banner_url: artistData.data.banner_id
+        ? `${STATIC_IMAGES_PATH}/${artistData.data.banner_id}.jpg`
+        : null,
+    };
   },
   async getUserAvatar(user_id: string) {
     const modelResponse = await user.getUserAvatar(user_id);

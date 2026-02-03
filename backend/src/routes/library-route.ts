@@ -35,7 +35,6 @@ router.get(
       limit: +(request.query.limit ?? DEFAULT_LIMIT),
       offset: +(request.query.offset ?? DEFAULT_OFFSET),
     });
-    // console.log(request.jwtPayload.user_id, validation.data);
     if (!validation.success) {
       throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }
@@ -59,7 +58,6 @@ router.get(
         order: request.query.order ?? Order.Asc,
       },
     });
-    // console.log(request.jwtPayload.user_id, validation.data);
     if (!validation.success) {
       throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }
@@ -81,7 +79,6 @@ router.put(
         fromIndex: request.body.fromIndex,
         toIndex: request.body.toIndex,
       });
-      // console.log(request.jwtPayload.user_id, validation.data);
       if (!validation.success) {
         throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
       }

@@ -1,3 +1,4 @@
+import type { ArtistModel } from '../models/artists.ts';
 import type { LibraryPlaylistsModel } from '../models/library-playlists.ts';
 import type { PlaylistAlbumsModel } from '../models/playlist-albums.ts';
 import type { PlaylistFollowersModel } from '../models/playlist-followers.ts';
@@ -6,8 +7,9 @@ import type { PlaylistModel } from '../models/playlist.ts';
 import type { TrackArtistsModel } from '../models/track-artists.ts';
 import type { TrackModel } from '../models/track.ts';
 import type { UserFollowersModel } from '../models/user-followers.ts';
+import type { UserFollowingModel } from '../models/user-following.ts';
 import type { UserModel } from '../models/user.ts';
-import type { Model, ModelStatic, Sequelize } from 'sequelize';
+import type { ModelStatic, Sequelize } from 'sequelize';
 
 export interface Idb {
   sequelize: Sequelize;
@@ -18,7 +20,8 @@ export interface Idb {
   trackArtistsModel: ModelStatic<TrackArtistsModel>;
   userModel: ModelStatic<UserModel>;
   userFollowersModel: ModelStatic<UserFollowersModel>;
-  userFollowingModel: ModelStatic<Model>;
+  userFollowingModel: ModelStatic<UserFollowingModel>;
   libraryPlaylists: ModelStatic<LibraryPlaylistsModel>;
   playlistAlbumsModel: ModelStatic<PlaylistAlbumsModel>;
+  artistModel: ModelStatic<ArtistModel>;
 }

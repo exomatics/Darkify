@@ -1,4 +1,4 @@
-interface Itrack {
+interface ITrack {
   id: string;
   admin_id: string;
   name: string;
@@ -12,6 +12,7 @@ interface Itrack {
 }
 interface UpdateTrack {
   id: string;
+  userId: string;
   name?: string;
   artists?: string[];
   lyrics?: string | null;
@@ -19,9 +20,10 @@ interface UpdateTrack {
   file: Express.Multer.File | null;
 }
 
-type TrackResult = Omit<Itrack, 'artists' | 'cover_id' | 'admin_id'> & {
+type TrackResult = Omit<ITrack, 'artists' | 'cover_id' | 'admin_id'> & {
   artists: { id: string; visible_username: string }[];
+  is_liked: boolean;
   cover_url: string | null;
 };
 
-export { Itrack, UpdateTrack, TrackResult };
+export { ITrack, UpdateTrack, TrackResult };

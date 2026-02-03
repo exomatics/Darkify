@@ -74,16 +74,25 @@ const userAvatarScheme = z.object({
   user_id: uuidScheme,
   file: fileScheme,
 });
-const visibleUsernameScheme = z.string().max(25);
+const userBannerScheme = userAvatarScheme;
 
-const updateUserScheme = z.object({
-  user_id: uuidScheme,
-  visible_username: visibleUsernameScheme,
-});
+const updateUserScheme = z
+  .object({
+    user_id: uuidScheme,
+    visible_username: z.string().max(25).optional(),
+    description: z.string().max(1500).optional(),
+  })
+  .refine(({ visible_username, description }) => {
+    return requireAtLeastOneCheck({ visible_username, description });
+  }, errorMessages.validation.SpecifyWhatToUpdate);
 
 const updateUserSettingsScheme = z.object({
   userId: uuidScheme,
   bitrate: z.enum(Bitrate),
+});
+const getTrackScheme = z.object({
+  userId: uuidScheme,
+  trackId: uuidScheme,
 });
 const trackNameScheme = z.string().max(100).nonempty();
 const trackScheme = z.object({
@@ -110,12 +119,14 @@ const createTrackScheme = trackScheme
 
 const getTracksScheme = z.object({
   name: trackNameScheme,
+  userId: uuidScheme,
   ...paginationScheme.shape,
 });
 
 const updateTrackScheme = trackScheme
   .extend({
     name: trackNameScheme.optional(),
+    userId: uuidScheme,
     artists: z.array(uuidScheme).optional(),
     file: fileScheme.nullable(),
   })
@@ -248,10 +259,10 @@ const createAlbumScheme = playlistScheme
 
 const updateAlbumInfoScheme = z
   .object({
-    name: z.string().max(100).optional(),
+    name: z.string().max(100).nullable().optional(),
     albumId: uuidScheme,
     userId: uuidScheme,
-    releaseDate: z.iso.datetime().optional(),
+    releaseDate: z.iso.datetime().nullable().optional(),
   })
   .refine(({ name, releaseDate }) => {
     return requireAtLeastOneCheck({ name, releaseDate });
@@ -288,6 +299,27 @@ const updateAlbumCoverScheme = updatePlaylistCoverScheme
 const deleteAlbumScheme = deletePlaylistScheme
   .omit({ playlistId: true })
   .extend({ albumId: uuidScheme, keepTracks: z.boolean().optional() });
+
+const artistScheme = z.object({
+  userId: uuidScheme,
+  description: z.string().max(1500).nonempty().optional(),
+  bannerId: uuidScheme.optional(),
+});
+
+const createArtistScheme = artistScheme
+  .omit({ bannerId: true })
+  .extend({ file: fileScheme.nullable() });
+
+const getArtistScheme = z.object({
+  userId: uuidScheme,
+  artistId: uuidScheme,
+});
+const getArtistLikedScheme = getArtistScheme.extend(paginationScheme.shape);
+const getArtistAlbumsScheme = getArtistLikedScheme;
+const getArtistSinglesScheme = getArtistLikedScheme;
+const getArtistTopTracks = getArtistScheme;
+const getArtistTop = getArtistScheme;
+
 export {
   uuidScheme,
   loginScheme,
@@ -298,6 +330,8 @@ export {
   userFollowScheme,
   playlistFollowScheme,
   userAvatarScheme,
+  userBannerScheme,
+  getTrackScheme,
   getTracksScheme,
   createTrackScheme,
   updateTrackScheme,
@@ -331,4 +365,11 @@ export {
   reorderAlbumScheme,
   updateAlbumCoverScheme,
   deleteAlbumScheme,
+  createArtistScheme,
+  getArtistScheme,
+  getArtistLikedScheme,
+  getArtistAlbumsScheme,
+  getArtistSinglesScheme,
+  getArtistTopTracks,
+  getArtistTop,
 };

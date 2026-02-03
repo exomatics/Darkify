@@ -14,10 +14,10 @@ import { FileUploader } from './file-management.ts';
 import PlaylistManager from './playlist.ts';
 
 import type { IUser } from '../../interfaces/user-interface.ts';
-import type { Result } from '../../types/result-type.ts';
+import type { Result, SuccessfulResult } from '../../types/result-type.ts';
 import type { UserFollowingModel } from '../user-following.ts';
 import type { UserModel } from '../user.ts';
-import type { InferAttributes, InferCreationAttributes, Model } from 'sequelize';
+import type { InferAttributes, InferCreationAttributes, Model, Transaction } from 'sequelize';
 interface ResultUserData {
   user_id: string;
   visible_username: string;
@@ -29,12 +29,7 @@ const playlist = new PlaylistManager();
 class UserManager {
   async getUserById(
     user_id: string,
-  ): Promise<
-    Result<
-      UserModel,
-      typeof errorMessages.user.NotExistsById | typeof errorMessages.user.NotFollowsAnyone
-    >
-  > {
+  ): Promise<Result<UserModel, typeof errorMessages.user.NotExistsById>> {
     const userRecord = await database.userModel.findByPk(user_id);
     if (!userRecord) {
       return { success: false, reason: errorMessages.user.NotExistsById };
@@ -147,6 +142,27 @@ class UserManager {
           : null,
       },
     };
+  }
+  async updateArtistInfo(user_info: {
+    user_id: string;
+    description?: string;
+  }): Promise<SuccessfulResult<null>> {
+    await database.artistModel.update(
+      { description: user_info.description ?? undefined },
+      { where: { user_id: user_info.user_id } },
+    );
+    return { success: true, data: null };
+  }
+  async turnUserToArtist(
+    user_id: string,
+    transaction: Transaction,
+  ): Promise<Result<null, typeof errorMessages.user.NotExistsById>> {
+    const userRecord = await this.getUserById(user_id);
+    if (!userRecord.success) {
+      return { success: false, reason: errorMessages.user.NotExistsById };
+    }
+    await userRecord.data.update({ is_artist: true }, { transaction });
+    return { success: true, data: null };
   }
   async updateUserSettings(
     userId: string,
@@ -312,7 +328,12 @@ class UserManager {
 
     return { success: true, data: null };
   }
-  async registerUser(userInfo: { password: string; email: string; user_id: string }): Promise<
+  async registerUser(userInfo: {
+    password: string;
+    email: string;
+    user_id: string;
+    transaction?: Transaction;
+  }): Promise<
     Result<
       {
         accessToken: { token: string; expires: string };
@@ -326,23 +347,31 @@ class UserManager {
     if (await this.isEmailExist(userInfo.email)) {
       return { success: false, reason: errorMessages.user.EmailAlreadyExists };
     }
-
-    const newUser = await database.userModel.create({
-      id: userInfo.user_id,
-      is_artist: false,
-      hash,
-      salt,
-      visible_username: crypto.randomBytes(4).toString('hex'),
-      username: crypto.randomBytes(4).toString('hex'),
-      email: userInfo.email,
-      avatar_url: null,
-    });
-
+    let newUser: undefined | { id: string; hash: string };
+    try {
+      await database.sequelize.transaction(async (transaction) => {
+        newUser = await database.userModel.create(
+          {
+            id: userInfo.user_id,
+            is_artist: false,
+            hash,
+            salt,
+            visible_username: crypto.randomBytes(4).toString('hex'),
+            username: crypto.randomBytes(4).toString('hex'),
+            email: userInfo.email,
+            avatar_url: null,
+          },
+          { transaction: userInfo.transaction ?? transaction },
+        );
+      });
+    } catch {
+      throw new InternalError(errorMessages.user.FailedToCreate);
+    }
     return {
       success: true,
       data: issueBothTokens({
-        user_id: newUser.id,
-        hash: newUser.hash,
+        user_id: newUser?.id ?? '',
+        hash: newUser?.hash ?? '',
       }),
     };
   }
@@ -431,6 +460,26 @@ class UserManager {
       data: userRecord.data.avatar_url
         ? `${STATIC_IMAGES_PATH}/${userRecord.data.avatar_url}.jpg`
         : null,
+    };
+  }
+  async updateArtistBanner(
+    user_id: string,
+    fileBuffer: Express.Multer.File,
+  ): Promise<
+    Result<null, typeof errorMessages.user.NotExistsById | typeof errorMessages.artist.NotAnArtist>
+  > {
+    const userRecord = await this.getUserById(user_id);
+    if (!userRecord.success) {
+      return { success: false, reason: errorMessages.user.NotExistsById };
+    }
+    if (!userRecord.data.is_artist) {
+      return { success: false, reason: errorMessages.artist.NotAnArtist };
+    }
+    const fileUploadData = await new FileUploader().uploadImage(fileBuffer);
+    await database.artistModel.update({ banner_id: fileUploadData }, { where: { user_id } });
+    return {
+      success: true,
+      data: null,
     };
   }
 }
