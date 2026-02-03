@@ -39,12 +39,6 @@ export default {
     if (!userResponse?.success) {
       throw new ValidationError(userResponse?.reason);
     }
-    await playlist.createPlaylist({
-      restrictions: Restrictions.Private,
-      playlistId: user_id,
-      owner: user_id,
-      type: Type.Liked,
-    });
     return {
       ...userResponse.data,
     };

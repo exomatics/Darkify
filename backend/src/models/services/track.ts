@@ -17,7 +17,7 @@ import database from '../../config/database.ts';
 import { errorMessages } from '../../errors/error-messages.ts';
 import InternalError from '../../errors/internal-error.ts';
 
-import type { Itrack, TrackResult, UpdateTrack } from '../../interfaces/track-interface.ts';
+import type { ITrack, TrackResult, UpdateTrack } from '../../interfaces/track-interface.ts';
 import type { Result } from '../../types/result-type.ts';
 import type { PlaylistModel } from '../playlist.ts';
 import type { TrackModel } from '../track.ts';
@@ -53,7 +53,6 @@ class TrackManager {
         },
         { association: 'album', required: false, attributes: ['id', 'name'] },
       ],
-      logging: true,
     })) as TrackModelWithUsers | null;
 
     if (!trackRecord) {
@@ -237,7 +236,7 @@ class TrackManager {
     this.createMasterPlaylist(trackFilename, pathToHls);
     await command;
 
-    function postProccessPlaylist(pathToPlaylist: string, bitrate: string) {
+    function postProcessPlaylist(pathToPlaylist: string, bitrate: string) {
       fs.writeFileSync(
         pathToPlaylist,
         fs
@@ -245,10 +244,10 @@ class TrackManager {
           .replaceAll('data', `${STATIC_AUDIO_PATH}/${trackFilename}/${bitrate}/data`),
       );
     }
-    postProccessPlaylist(path.join(pathTo320Hls, '320kbps.m3u8'), '320kbps');
-    postProccessPlaylist(path.join(pathTo160Hls, '160kbps.m3u8'), '160kbps');
-    postProccessPlaylist(path.join(pathTo96Hls, '96kbps.m3u8'), '96kbps');
-    postProccessPlaylist(path.join(pathTo24Hls, '24kbps.m3u8'), '24kbps');
+    postProcessPlaylist(path.join(pathTo320Hls, '320kbps.m3u8'), '320kbps');
+    postProcessPlaylist(path.join(pathTo160Hls, '160kbps.m3u8'), '160kbps');
+    postProcessPlaylist(path.join(pathTo96Hls, '96kbps.m3u8'), '96kbps');
+    postProcessPlaylist(path.join(pathTo24Hls, '24kbps.m3u8'), '24kbps');
 
     return { success: true, data: trackDurationInSeconds };
   }
@@ -269,7 +268,7 @@ class TrackManager {
   }
   async createTrackRecord(
     trackInfo: Pick<
-      Itrack,
+      ITrack,
       'cover_id' | 'id' | 'admin_id' | 'artists' | 'album_id' | 'name' | 'lyrics' | 'duration'
     >,
   ): Promise<Result<TrackResult, typeof errorMessages.track.NotExistsById>> {
@@ -315,7 +314,7 @@ class TrackManager {
   }
   async createTrack(
     trackInfo: Pick<
-      Itrack,
+      ITrack,
       'cover_id' | 'id' | 'admin_id' | 'artists' | 'album_id' | 'name' | 'lyrics'
     >,
   ): Promise<

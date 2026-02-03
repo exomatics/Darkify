@@ -53,11 +53,11 @@ class ArtistManager {
   async getArtistById(
     artistId: string,
   ): Promise<Result<ArtistModel, typeof errorMessages.artist.NotExistsById>> {
-    const artistrow = await database.artistModel.findByPk(artistId);
-    if (!artistrow) {
+    const artistRow = await database.artistModel.findByPk(artistId);
+    if (!artistRow) {
       return { success: false, reason: errorMessages.artist.NotExistsById };
     }
-    return { success: true, data: artistrow };
+    return { success: true, data: artistRow };
   }
   async getArtistInfo(artistInfo: { artistId: string; userId: string }): Promise<
     Result<
@@ -72,9 +72,9 @@ class ArtistManager {
       typeof errorMessages.artist.NotExistsById
     >
   > {
-    const artistrow = await this.getArtistById(artistInfo.artistId);
-    if (!artistrow.success) {
-      return artistrow;
+    const artistRow = await this.getArtistById(artistInfo.artistId);
+    if (!artistRow.success) {
+      return artistRow;
     }
     const artistFollowersCount = await database.userFollowersModel.count({
       where: { user_id: artistInfo.artistId },
@@ -110,8 +110,8 @@ class ArtistManager {
     return {
       success: true,
       data: {
-        banner_id: artistrow.data.banner_id,
-        description: artistrow.data.description,
+        banner_id: artistRow.data.banner_id,
+        description: artistRow.data.description,
         followers_count: artistFollowersCount,
         listening_count: Number(artistListens[0].dataValues.total_listens),
         is_following: !!isFollowingArtist,
@@ -185,7 +185,7 @@ class ArtistManager {
         album: PlaylistModel[];
       })[];
     };
-    const proccessedArtistLiked = artistLiked.rows.map((row) => {
+    const processedArtistLiked = artistLiked.rows.map((row) => {
       return {
         id: row.id,
         deleted: row.deleted,
@@ -200,7 +200,7 @@ class ArtistManager {
         artists: row.users,
       };
     });
-    return { success: true, data: { total: artistLiked.count, items: proccessedArtistLiked } };
+    return { success: true, data: { total: artistLiked.count, items: processedArtistLiked } };
   }
   async getArtistAlbums(
     artistInfo: { artistId: string; userId: string },
@@ -400,7 +400,7 @@ class ArtistManager {
         playlists?: (PlaylistModel & { playlist_track: PlaylistTrackModel })[];
       })[];
     };
-    const proccessedArtistSingles = artistSingles.rows.map((row) => {
+    const processedArtistSingles = artistSingles.rows.map((row) => {
       return {
         id: row.id,
         deleted: row.deleted,
@@ -415,7 +415,7 @@ class ArtistManager {
     });
     return {
       success: true,
-      data: { total: artistSingles.count, items: proccessedArtistSingles },
+      data: { total: artistSingles.count, items: processedArtistSingles },
     };
   }
   async getArtistTop(
@@ -483,7 +483,7 @@ class ArtistManager {
         album?: PlaylistModel[];
       })[];
     };
-    const proccessedArtistLiked = artistTopTracks.rows.map((row) => {
+    const processedArtistLiked = artistTopTracks.rows.map((row) => {
       return {
         id: row.id,
         deleted: row.deleted,
@@ -497,7 +497,7 @@ class ArtistManager {
         artists: row.users,
       };
     });
-    return { success: true, data: { total: artistTopTracks.count, items: proccessedArtistLiked } };
+    return { success: true, data: { total: artistTopTracks.count, items: processedArtistLiked } };
   }
 }
 export default ArtistManager;

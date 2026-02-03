@@ -18,7 +18,7 @@ import {
 
 import { ROUTES } from './routes.ts';
 
-import type { Itrack } from '../interfaces/track-interface.ts';
+import type { ITrack } from '../interfaces/track-interface.ts';
 import type { Request, Response } from 'express';
 import type { ParamsDictionary, RequestHandler } from 'express-serve-static-core';
 
@@ -48,7 +48,7 @@ router.get(
       request: Request<
         ParamsDictionary,
         unknown,
-        { name: Pick<Itrack, 'name'>; offset?: number; limit: number }
+        { name: Pick<ITrack, 'name'>; offset?: number; limit: number }
       >,
       response: Response,
     ) => {
@@ -91,7 +91,7 @@ router.get(
 export type PostTrackRequest = Request<
   ParamsDictionary,
   unknown,
-  Pick<Itrack, 'lyrics' | 'name'> & { artists?: string; albumId?: string }
+  Pick<ITrack, 'lyrics' | 'name'> & { artists?: string; albumId?: string }
 > & { trackId?: string; files?: { track?: Express.Multer.File; cover?: Express.Multer.File } };
 router.post(
   ROUTES.TRACKS.POST_TRACK,
@@ -101,10 +101,10 @@ router.post(
     { name: 'track', maxCount: 1 },
   ]),
   asyncHandler(async (request: PostTrackRequest, response: Response) => {
-    const proccesedArtists = JSON.parse(request.body.artists ?? '[]') as string[];
+    const processedArtists = JSON.parse(request.body.artists ?? '[]') as string[];
     const validation = createTrackScheme.safeParse({
       ...request.body,
-      artists: [...proccesedArtists, request.jwtPayload.user_id],
+      artists: [...processedArtists, request.jwtPayload.user_id],
       albumId: request.body.albumId ?? null,
       admin_id: request.jwtPayload.user_id,
       file: request.files?.cover ?? null,
@@ -116,7 +116,7 @@ router.post(
       ...validation.data,
       album_id: validation.data.albumId,
       id: request.trackId ?? '',
-      artists: proccesedArtists,
+      artists: processedArtists,
     });
 
     response.status(200).json(databaseResponse);

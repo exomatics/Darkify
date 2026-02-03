@@ -23,7 +23,7 @@ import type {
   IReorder,
   IUpdatePlaylist,
 } from '../../interfaces/playlist-interface.ts';
-import type { Itrack } from '../../interfaces/track-interface.ts';
+import type { ITrack } from '../../interfaces/track-interface.ts';
 import type { Result, SuccessfulResult } from '../../types/result-type.ts';
 import type { LibraryPlaylistsModel } from '../library-playlists.ts';
 import type { PlaylistAlbumsModel } from '../playlist-albums.ts';
@@ -452,7 +452,7 @@ class PlaylistManager {
     offset: number = DEFAULT_OFFSET,
   ): Promise<
     SuccessfulResult<{
-      items: (Pick<Itrack, 'deleted' | 'name' | 'duration'> & {
+      items: (Pick<ITrack, 'deleted' | 'name' | 'duration'> & {
         id: string;
         playlist_track_id?: string;
         album_track_id?: string;
@@ -556,7 +556,7 @@ class PlaylistManager {
     offset: number = DEFAULT_OFFSET,
   ): Promise<
     SuccessfulResult<{
-      items: (Pick<Itrack, 'deleted' | 'name' | 'duration'> & {
+      items: (Pick<ITrack, 'deleted' | 'name' | 'duration'> & {
         id: string;
         playlist_track_id: string;
         date_added: Date | null;
@@ -710,7 +710,7 @@ class PlaylistManager {
       rows: IGetPlaylistsByName[];
       count: number;
     };
-    const proccessedPlaylistRecords = await Promise.all(
+    const processedPlaylistRecords = await Promise.all(
       playlistsRecords.rows.map(async (playlistRecord) => {
         // let isPlaceholderCovers = false;
         // if (!playlistRecord.cover_id && Number(playlistRecord.dataValues.tracks_count) > 3) {
@@ -756,7 +756,7 @@ class PlaylistManager {
 
     return {
       success: true,
-      data: { total: playlistsRecords.count, items: proccessedPlaylistRecords },
+      data: { total: playlistsRecords.count, items: processedPlaylistRecords },
     };
   }
   async getAlbumsByOwner(
@@ -1082,13 +1082,13 @@ class PlaylistManager {
   }
 
   async getLibraryPlaylistRecord(playlistId: string, userId: string) {
-    const playlisLibrarytRecord = await database.libraryPlaylists.findOne({
+    const playlistLibraryRecord = await database.libraryPlaylists.findOne({
       where: { playlist_id: playlistId, user_id: userId },
     });
-    if (!playlisLibrarytRecord) {
+    if (!playlistLibraryRecord) {
       return { success: false, reason: errorMessages.playlist.LibraryNotExistsById };
     }
-    return { success: true, data: playlisLibrarytRecord };
+    return { success: true, data: playlistLibraryRecord };
   }
   async getLibrary(
     userId: string,
@@ -1488,13 +1488,5 @@ class PlaylistManager {
     }
   }
 }
-// -getAllTracksFromPlaylist-, -getPlaylistsByName-, -removeTrackFromPlaylist-, -updateRestrictions-, updatecover, -updatePlaylistInfo-, -reorderPlaylistTrack, getMeLibrary(getMeplaylists and followed playlists. sort by smth)-,
-//-getPlaylistInfo(sum duration, IsOwner(to see if able to follow playlist or not))-
-// createLikedSongs, likeTrack, getAllLikedSongs(pagination, sort), reorder, removeFromLikedSongs
-// depend getPlaylistRecordById from auth(restrictions unlisted), getPlaylistsByName only public or owner of which is user,
-// updatePlaylistInfo and updateRestrictions only if user is an owner, removeTrackFromPlaylist and addTrackToPlaylist only if user is an owner
-// getnextTrack(playlist,search,likedSongs,Likedsongs from artist. )
-//playlist type. Liked; general
-export default PlaylistManager;
 
-// artist profiles. top songs, all
+export default PlaylistManager;

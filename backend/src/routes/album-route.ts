@@ -202,7 +202,7 @@ router.post(
       if (!validation.success) {
         throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
       }
-      const databaseResponse = await albumController.removeTrackfromAlbum({
+      const databaseResponse = await albumController.removeTrackFromAlbum({
         playlistTrackId: validation.data.albumTrackId,
         playlistId: validation.data.albumId,
         userId: validation.data.userId,

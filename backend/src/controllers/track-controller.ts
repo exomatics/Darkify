@@ -18,7 +18,7 @@ import TrackManager from '../models/services/track.ts';
 import UserManager from '../models/services/user.ts';
 import { Bitrate } from '../types/bitrate-type.ts';
 
-import type { Itrack, UpdateTrack } from '../interfaces/track-interface.ts';
+import type { ITrack, UpdateTrack } from '../interfaces/track-interface.ts';
 import type { SuccessfulResult } from '../types/result-type.ts';
 const track = new TrackManager();
 const user = new UserManager();
@@ -90,7 +90,7 @@ export default {
     return pathToFile;
   },
   async createTrack(
-    trackInfo: Omit<Itrack, 'cover_id' | 'duration' | 'play_count'> & {
+    trackInfo: Omit<ITrack, 'cover_id' | 'duration' | 'play_count'> & {
       file: Express.Multer.File[] | null;
     },
   ) {

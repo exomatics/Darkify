@@ -876,7 +876,7 @@ paths:
       tags: [Liked]
       parameters:
         - in: path
-          name: playlisTrackId
+          name: playlistTrackId
           required: true
           schema:
             type: string

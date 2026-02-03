@@ -4,7 +4,7 @@ export const errorMessages = {
     NotExistsByUsernameOrEmail: 'User with this username or email does not exist',
     NotFollowsAnyone: 'User does not follow anyone',
     AlreadyFollowsUser: 'User already follows this user',
-    NotFollowsUser: 'User not followes this user',
+    NotFollowsUser: 'User not follows this user',
     CanNotFollowYourself: 'User can not follow themself',
     FailedToCreate: 'failed to create user',
     AlreadyFollowsPlaylist: 'User already follows this playlist',
@@ -34,7 +34,7 @@ export const errorMessages = {
     NotExistsById: 'Album with this id does not exist',
     failedToCreateAlbum: 'failed to create album',
     failedToAddTrack: 'failed to add track to album',
-    playlistAlbumRecordNotExists: 'playlistAlbumRecord with this albumId doesn not exist',
+    playlistAlbumRecordNotExists: 'playlistAlbumRecord with this albumId doesnt not exist',
     AlbumIsNotAnAlbum: 'Playlist is not an Album',
   }),
   liked: Object.freeze({
