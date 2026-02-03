@@ -16,7 +16,7 @@ try {
   PUB_KEY = fs.readFileSync(path.join(PATH_TO_KEYS, 'id_rsa_pub.pem'), 'utf8');
 } catch {
   throw new Error(
-    'Error occured while reading public key. Make sure you generated key pair with npm run generateKeys',
+    'Error occurred while reading public key. Make sure you generated key pair with npm run generateKeys',
   );
 }
 

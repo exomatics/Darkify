@@ -17,7 +17,7 @@ import database from '../../config/database.ts';
 import { errorMessages } from '../../errors/error-messages.ts';
 import InternalError from '../../errors/internal-error.ts';
 
-import type { Itrack, TrackResult, UpdateTrack } from '../../interfaces/track-interface.ts';
+import type { ITrack, TrackResult, UpdateTrack } from '../../interfaces/track-interface.ts';
 import type { Result } from '../../types/result-type.ts';
 import type { PlaylistModel } from '../playlist.ts';
 import type { TrackModel } from '../track.ts';
@@ -25,37 +25,49 @@ import type { UserModel } from '../user.ts';
 import type { Transaction } from 'sequelize';
 
 interface TrackModelWithUsers extends TrackModel {
-  dataValues: TrackModel['dataValues'] & { users: UserModel[]; album?: PlaylistModel };
+  dataValues: TrackModel['dataValues'] & {
+    users: UserModel[];
+    album?: PlaylistModel;
+    playlists?: PlaylistModel[];
+  };
 }
 
 class TrackManager {
-  async getTrackById(
-    trackId: string,
-  ): Promise<Result<TrackResult, typeof errorMessages.track.NotExistsById>> {
+  async getTrackById(trackInfo: {
+    trackId: string;
+    userId: string;
+  }): Promise<Result<TrackResult, typeof errorMessages.track.NotExistsById>> {
     const trackRecord = (await database.trackModel.findOne({
-      where: { id: trackId, deleted: false },
+      where: { id: trackInfo.trackId, deleted: false },
       include: [
         {
           model: database.userModel,
           through: { attributes: [] },
           attributes: ['id', 'visible_username'],
         },
-        { association: 'album', attributes: ['id', 'name'], required: false },
+        {
+          model: database.playlistModel,
+          where: { id: trackInfo.userId },
+          through: { attributes: ['id', 'date_added'] },
+          required: false,
+        },
+        { association: 'album', required: false, attributes: ['id', 'name'] },
       ],
     })) as TrackModelWithUsers | null;
+
     if (!trackRecord) {
       return { success: false, reason: errorMessages.track.NotExistsById };
     }
     const trackWithArtists = {
-      ..._.omit(trackRecord.dataValues, 'cover_id', 'users', 'admin_id'),
+      ..._.omit(trackRecord.dataValues, 'cover_id', 'users', 'admin_id', 'playlists'),
       artists: trackRecord.dataValues.users.map((trackArtists) => {
         return { id: trackArtists.id, visible_username: trackArtists.visible_username };
       }),
+      is_liked: Boolean(trackRecord.dataValues.playlists?.length),
       album: trackRecord.dataValues.album ?? {
         id: trackRecord.dataValues.id,
         name: trackRecord.dataValues.name,
       },
-
       cover_url: trackRecord.dataValues.cover_id
         ? `${STATIC_IMAGES_PATH}/${trackRecord.dataValues.cover_id}.jpg`
         : null,
@@ -70,14 +82,14 @@ class TrackManager {
     await trackRecord.data.update({ play_count: ++trackRecord.data.play_count });
   }
   async getTracksByName(
-    trackName: string,
+    searchInfo: { userId: string; trackName: string },
     limit: number = DEFAULT_LIMIT,
     offset: number = DEFAULT_OFFSET,
   ): Promise<
     Result<{ rows: TrackResult[]; count: number }, typeof errorMessages.track.NotExistsByName>
   > {
     const trackRecords = (await database.trackModel.findAll({
-      where: { name: { [Op.iLike]: `%${trackName}%` }, deleted: false },
+      where: { name: { [Op.iLike]: `%${searchInfo.trackName}%` }, deleted: false },
       include: [
         {
           model: database.userModel,
@@ -85,22 +97,29 @@ class TrackManager {
           attributes: ['id', 'visible_username'],
         },
         { association: 'album', attributes: ['id', 'name'] },
+        {
+          model: database.playlistModel,
+          where: { id: searchInfo.userId },
+          through: { attributes: ['id', 'date_added'] },
+          required: false,
+        },
       ],
       offset,
       limit,
     })) as TrackModelWithUsers[] | [];
     const totalRecordsNumber = await database.trackModel.count({
-      where: { name: { [Op.iLike]: `%${trackName}%` }, deleted: false },
+      where: { name: { [Op.iLike]: `%${searchInfo.trackName}%` }, deleted: false },
     });
     if (trackRecords.length === 0) {
       return { success: false, reason: errorMessages.track.NotExistsByName };
     }
     const tracksWithArtists = trackRecords.map((trackRecord) => {
       return {
-        ..._.omit(trackRecord.dataValues, 'cover_id', 'users', 'admin_id'),
+        ..._.omit(trackRecord.dataValues, 'cover_id', 'users', 'admin_id', 'playlists'),
         artists: trackRecord.dataValues.users.map((trackArtists) => {
           return { id: trackArtists.id, visible_username: trackArtists.visible_username };
         }),
+        is_liked: Boolean(trackRecord.dataValues.playlists?.length),
         album: trackRecord.dataValues.album ?? {
           id: trackRecord.dataValues.id,
           name: trackRecord.dataValues.name,
@@ -217,7 +236,7 @@ class TrackManager {
     this.createMasterPlaylist(trackFilename, pathToHls);
     await command;
 
-    function postProccessPlaylist(pathToPlaylist: string, bitrate: string) {
+    function postProcessPlaylist(pathToPlaylist: string, bitrate: string) {
       fs.writeFileSync(
         pathToPlaylist,
         fs
@@ -225,10 +244,10 @@ class TrackManager {
           .replaceAll('data', `${STATIC_AUDIO_PATH}/${trackFilename}/${bitrate}/data`),
       );
     }
-    postProccessPlaylist(path.join(pathTo320Hls, '320kbps.m3u8'), '320kbps');
-    postProccessPlaylist(path.join(pathTo160Hls, '160kbps.m3u8'), '160kbps');
-    postProccessPlaylist(path.join(pathTo96Hls, '96kbps.m3u8'), '96kbps');
-    postProccessPlaylist(path.join(pathTo24Hls, '24kbps.m3u8'), '24kbps');
+    postProcessPlaylist(path.join(pathTo320Hls, '320kbps.m3u8'), '320kbps');
+    postProcessPlaylist(path.join(pathTo160Hls, '160kbps.m3u8'), '160kbps');
+    postProcessPlaylist(path.join(pathTo96Hls, '96kbps.m3u8'), '96kbps');
+    postProcessPlaylist(path.join(pathTo24Hls, '24kbps.m3u8'), '24kbps');
 
     return { success: true, data: trackDurationInSeconds };
   }
@@ -249,7 +268,7 @@ class TrackManager {
   }
   async createTrackRecord(
     trackInfo: Pick<
-      Itrack,
+      ITrack,
       'cover_id' | 'id' | 'admin_id' | 'artists' | 'album_id' | 'name' | 'lyrics' | 'duration'
     >,
   ): Promise<Result<TrackResult, typeof errorMessages.track.NotExistsById>> {
@@ -264,6 +283,7 @@ class TrackManager {
             admin_id: trackInfo.admin_id,
             name: trackInfo.name,
             play_count: 0,
+            deleted: false,
             album_id: trackInfo.album_id ?? null,
             lyrics: trackInfo.lyrics ?? null,
             duration: trackInfo.duration,
@@ -283,7 +303,10 @@ class TrackManager {
     } catch {
       throw new InternalError(errorMessages.track.FailedToCreate);
     }
-    const trackArtistsRecord = await this.getTrackById(trackInfo.id);
+    const trackArtistsRecord = await this.getTrackById({
+      userId: trackInfo.admin_id,
+      trackId: trackInfo.id,
+    });
     if (!trackArtistsRecord.success) {
       return trackArtistsRecord;
     }
@@ -291,7 +314,7 @@ class TrackManager {
   }
   async createTrack(
     trackInfo: Pick<
-      Itrack,
+      ITrack,
       'cover_id' | 'id' | 'admin_id' | 'artists' | 'album_id' | 'name' | 'lyrics'
     >,
   ): Promise<
@@ -381,7 +404,10 @@ class TrackManager {
     } catch {
       throw new InternalError('failed to update track');
     }
-    const trackWithArtists = await this.getTrackById(trackInfo.id);
+    const trackWithArtists = await this.getTrackById({
+      userId: trackInfo.userId,
+      trackId: trackInfo.id,
+    });
     if (!trackWithArtists.success) {
       return trackWithArtists;
     }

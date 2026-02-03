@@ -5,7 +5,7 @@ export enum AlbumsSortBy {
   Custom = 'order',
 }
 export enum AlbumSpecificSortBy {
-  Plays = 'playCount',
+  Plays = 'play_count',
 }
 
 export interface IUpdateAlbum {

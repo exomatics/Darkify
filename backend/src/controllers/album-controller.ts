@@ -172,7 +172,7 @@ export default {
     }
     return { track_album_id: result.data.playlistTrackId };
   },
-  async removeTrackfromAlbum(albumInfo: {
+  async removeTrackFromAlbum(albumInfo: {
     playlistId: string;
     playlistTrackId: string;
     userId: string;
