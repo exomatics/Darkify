@@ -11,7 +11,7 @@ import {
   ArtistSinglesSortBy,
   type ICreateArtist,
 } from '../interfaces/artist-interface.ts';
-import { Order } from '../interfaces/playlist-interface.ts';
+import { OrderBy } from '../interfaces/playlist-interface.ts';
 import ArtistManager from '../models/services/artist.ts';
 import { FileUploader } from '../models/services/file-management.ts';
 import UserManager from '../models/services/user.ts';
@@ -87,7 +87,7 @@ export default {
     }
     const artistAlbums = await artist.getArtistAlbums(
       { artistId: artistInfo.artistId, userId: artistInfo.userId },
-      { sortBy: ArtistAlbumsSortBy.ReleaseDate, order: Order.Desc },
+      { sortBy: ArtistAlbumsSortBy.ReleaseDate, order: OrderBy.Desc },
       limit,
       offset,
     );
@@ -107,7 +107,7 @@ export default {
     }
     const artistSingles = await artist.getArtistSingles(
       { artistId: artistInfo.artistId, userId: artistInfo.userId },
-      { sortBy: ArtistSinglesSortBy.CreationDate, order: Order.Desc },
+      { sortBy: ArtistSinglesSortBy.CreationDate, order: OrderBy.Desc },
       limit,
       offset,
     );
@@ -123,7 +123,7 @@ export default {
     }
     const artistAlbums = await artist.getArtistAlbums(
       { artistId: artistInfo.artistId, userId: artistInfo.userId },
-      { sortBy: ArtistAlbumsSortBy.Popularity, order: Order.Desc },
+      { sortBy: ArtistAlbumsSortBy.Popularity, order: OrderBy.Desc },
       9,
       0,
     );
@@ -132,7 +132,7 @@ export default {
     }
     const artistSingles = await artist.getArtistSingles(
       { artistId: artistInfo.artistId, userId: artistInfo.userId },
-      { sortBy: ArtistSinglesSortBy.Popularity, order: Order.Desc },
+      { sortBy: ArtistSinglesSortBy.Popularity, order: OrderBy.Desc },
       9,
       0,
     );
@@ -159,14 +159,14 @@ export default {
     }
     const artistAlbums = await artist.getArtistAlbums(
       { artistId: artistInfo.artistId, userId: artistInfo.userId },
-      { sortBy: ArtistAlbumsSortBy.ReleaseDate, order: Order.Desc },
+      { sortBy: ArtistAlbumsSortBy.ReleaseDate, order: OrderBy.Desc },
     );
     if (!artistAlbums.success) {
       throw new NotFoundError(artistAlbums.reason);
     }
     const artistSingles = await artist.getArtistSingles(
       { artistId: artistInfo.artistId, userId: artistInfo.userId },
-      { sortBy: ArtistSinglesSortBy.CreationDate, order: Order.Desc },
+      { sortBy: ArtistSinglesSortBy.CreationDate, order: OrderBy.Desc },
     );
     if (!artistSingles.success) {
       throw new NotFoundError(artistSingles.reason);

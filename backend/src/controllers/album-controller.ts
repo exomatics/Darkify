@@ -9,7 +9,7 @@ import OperationalError from '../errors/operational-error.ts';
 import ValidationError from '../errors/validation-error.ts';
 import {
   type PlaylistSortBy,
-  type Order,
+  type OrderBy,
   type ICreatePlaylist,
   type IPlaylist,
   type IReorder,
@@ -68,7 +68,7 @@ export default {
     albumInfo: {
       playlistId: string;
       userId: string;
-      sort: { sortBy: PlaylistSortBy | AlbumSpecificSortBy; order: Order };
+      sort: { sortBy: PlaylistSortBy | AlbumSpecificSortBy; order: OrderBy };
     },
     limit: number = DEFAULT_LIMIT,
     offset: number = DEFAULT_OFFSET,
@@ -268,7 +268,7 @@ export default {
   },
   async getUserAlbums(
     userId: string,
-    sort: { sortBy: AlbumsSortBy; order: Order },
+    sort: { sortBy: AlbumsSortBy; order: OrderBy },
     limit?: number,
     offset?: number,
   ) {

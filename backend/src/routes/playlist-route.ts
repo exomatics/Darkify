@@ -4,7 +4,7 @@ import { z } from 'zod/v4';
 
 import playlistController from '../controllers/playlist-controller.ts';
 import ValidationError from '../errors/validation-error.ts';
-import { Order, Restrictions, PlaylistSortBy } from '../interfaces/playlist-interface.ts';
+import { OrderBy, Restrictions, PlaylistSortBy } from '../interfaces/playlist-interface.ts';
 import asyncHandler from '../middleware/async-handler.ts';
 import { FileUploader } from '../models/services/file-management.ts';
 import {
@@ -86,7 +86,7 @@ router.get(
       userId: request.jwtPayload.user_id,
       sort: {
         sortBy: request.query.sort ?? PlaylistSortBy.Custom,
-        order: request.query.order ?? Order.Desc,
+        order: request.query.order ?? OrderBy.Desc,
       },
       //final test of sorting and ordering
       limit: +(request.query.limit ?? 5),
@@ -141,7 +141,7 @@ router.get(
       search: request.query.search,
       sort: {
         sortBy: request.query.sort ?? PlaylistSortBy.Custom,
-        order: request.query.order ?? Order.Desc,
+        order: request.query.order ?? OrderBy.Desc,
       },
       limit: +(request.query.limit ?? 5),
       offset: +(request.query.offset ?? 0),

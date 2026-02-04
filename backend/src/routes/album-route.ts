@@ -5,7 +5,7 @@ import { z } from 'zod/v4';
 import albumController from '../controllers/album-controller.ts';
 import ValidationError from '../errors/validation-error.ts';
 import { AlbumsSortBy } from '../interfaces/album-interface.ts';
-import { Order, Restrictions, PlaylistSortBy } from '../interfaces/playlist-interface.ts';
+import { OrderBy, Restrictions, PlaylistSortBy } from '../interfaces/playlist-interface.ts';
 import asyncHandler from '../middleware/async-handler.ts';
 import { FileUploader } from '../models/services/file-management.ts';
 import {
@@ -81,7 +81,7 @@ router.get(
       userId: request.jwtPayload.user_id,
       sort: {
         sortBy: request.query.sort ?? PlaylistSortBy.Custom,
-        order: request.query.order ?? Order.Desc,
+        order: request.query.order ?? OrderBy.Desc,
       },
       limit: +(request.query.limit ?? 5),
       offset: +(request.query.offset ?? 0),
@@ -114,7 +114,7 @@ router.get(
         userId: request.jwtPayload.user_id,
         sort: {
           sortBy: request.query.sort ?? AlbumsSortBy.Custom,
-          order: request.query.order ?? Order.Desc,
+          order: request.query.order ?? OrderBy.Desc,
         },
         limit: +(request.query.limit ?? 5),
         offset: +(request.query.offset ?? 0),

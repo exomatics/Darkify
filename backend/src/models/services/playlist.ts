@@ -14,7 +14,12 @@ import { errorMessages } from '../../errors/error-messages.ts';
 import InternalError from '../../errors/internal-error.ts';
 import { AlbumsSortBy } from '../../interfaces/album-interface.ts';
 import { LibrarySortBy } from '../../interfaces/library-interface.ts';
-import { Type, Restrictions, PlaylistSortBy, Order } from '../../interfaces/playlist-interface.ts';
+import {
+  Type,
+  Restrictions,
+  PlaylistSortBy,
+  OrderBy,
+} from '../../interfaces/playlist-interface.ts';
 
 import type { AlbumSpecificSortBy } from '../../interfaces/album-interface.ts';
 import type {
@@ -445,7 +450,7 @@ class PlaylistManager {
     playlistInfo: {
       playlistId: string;
       userId: string;
-      sort: { sortBy: PlaylistSortBy | AlbumSpecificSortBy; order: Order };
+      sort: { sortBy: PlaylistSortBy | AlbumSpecificSortBy; order: OrderBy };
       type?: Type;
     },
     limit: number = DEFAULT_LIMIT,
@@ -549,7 +554,7 @@ class PlaylistManager {
       search: string;
       playlistId: string;
       userId: string;
-      sort: { sortBy: PlaylistSortBy; order: Order };
+      sort: { sortBy: PlaylistSortBy; order: OrderBy };
       isLiked?: boolean;
     },
     limit: number = DEFAULT_LIMIT,
@@ -721,7 +726,7 @@ class PlaylistManager {
           {
             playlistId: playlistRecord.id,
             userId: playlistInfo.userId,
-            sort: { sortBy: PlaylistSortBy.Date, order: Order.Asc },
+            sort: { sortBy: PlaylistSortBy.Date, order: OrderBy.Asc },
           },
           4,
           0,
@@ -761,7 +766,7 @@ class PlaylistManager {
   }
   async getAlbumsByOwner(
     userId: string,
-    sort: { sortBy: AlbumsSortBy; order: Order },
+    sort: { sortBy: AlbumsSortBy; order: OrderBy },
     limit?: number,
     offset?: number,
   ): Promise<
@@ -1091,8 +1096,11 @@ class PlaylistManager {
     return { success: true, data: playlistLibraryRecord };
   }
   async getLibrary(
-    userId: string,
-    sort: { sortBy: LibrarySortBy; order: Order },
+    libraryInfo: {
+      userId: string;
+      type: Type;
+      sort: { sortBy: LibrarySortBy; order: OrderBy };
+    },
     limit?: number,
     offset?: number,
   ): Promise<
@@ -1101,6 +1109,7 @@ class PlaylistManager {
       items: {
         date_added: string;
         date_played: string | null;
+        library_type?: string;
         playlists: Omit<IPlaylist, 'playlistId' | 'owner' | 'coverId'> & {
           placeholder_url_covers: string[] | null;
           id: string;
@@ -1114,12 +1123,12 @@ class PlaylistManager {
     }>
   > {
     const order = (
-      sort.sortBy === LibrarySortBy.Alphabetic
-        ? [[{ model: database.playlistModel }, sort.sortBy, sort.order]]
-        : [[sort.sortBy, sort.order]]
+      libraryInfo.sort.sortBy === LibrarySortBy.Alphabetic
+        ? [[{ model: database.playlistModel }, libraryInfo.sort.sortBy, libraryInfo.sort.order]]
+        : [[libraryInfo.sort.sortBy, libraryInfo.sort.order]]
     ) as sequelize.Order;
     const playlistRecords = (await database.libraryPlaylists.findAndCountAll({
-      where: { user_id: userId },
+      where: { user_id: libraryInfo.userId },
       raw: true,
       nest: true,
       order,
@@ -1128,7 +1137,7 @@ class PlaylistManager {
           model: database.playlistModel,
           // associationType:
           attributes: ['id', 'cover_id', 'name', 'owner', 'description', 'type'],
-
+          where: { type: Type.General },
           // required: true,
           // required: true,
           // right: true,
@@ -1165,7 +1174,7 @@ class PlaylistManager {
           {
             playlistId: playlistLibraryRecord.playlist_id,
             userId: playlistLibraryRecord.user_id,
-            sort: { sortBy: PlaylistSortBy.Date, order: Order.Asc },
+            sort: { sortBy: PlaylistSortBy.Date, order: OrderBy.Asc },
           },
           4,
           0,
@@ -1184,8 +1193,7 @@ class PlaylistManager {
         if (placeholderUrlCovers.length !== 4 && placeholderUrlCovers.length > 0) {
           placeholderUrlCovers = [placeholderUrlCovers[0]];
         }
-
-        return {
+        const processedRecord = {
           ..._.omit(playlistLibraryRecord, ['user', 'playlist_id', 'user_id', 'order']),
           date_played: playlistLibraryRecord.date_played,
           date_added: playlistLibraryRecord.date_added,
@@ -1201,6 +1209,10 @@ class PlaylistManager {
               : null,
           },
         };
+        if (libraryInfo.type === Type.Album) {
+          return { ...processedRecord, library_type: 'album' };
+        }
+        return processedRecord;
       }),
     );
     return {
