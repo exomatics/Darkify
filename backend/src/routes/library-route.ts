@@ -6,7 +6,7 @@ import { DEFAULT_LIMIT, DEFAULT_OFFSET } from '../config/config.ts';
 import libraryController from '../controllers/library-controller.ts';
 import ValidationError from '../errors/validation-error.ts';
 import { LibrarySortBy } from '../interfaces/library-interface.ts';
-import { Order } from '../interfaces/playlist-interface.ts';
+import { OrderBy } from '../interfaces/playlist-interface.ts';
 import asyncHandler from '../middleware/async-handler.ts';
 import {
   getLibraryPlaylistsScheme,
@@ -30,7 +30,7 @@ router.get(
       userId: request.jwtPayload.user_id,
       sort: {
         sortBy: request.query.sort ?? LibrarySortBy.Custom,
-        order: request.query.order ?? Order.Asc,
+        order: request.query.order ?? OrderBy.Asc,
       },
       limit: +(request.query.limit ?? DEFAULT_LIMIT),
       offset: +(request.query.offset ?? DEFAULT_OFFSET),
@@ -39,8 +39,10 @@ router.get(
       throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }
     const databaseResponse = await libraryController.getLibraryPlaylists(
-      validation.data.userId,
-      validation.data.sort,
+      {
+        userId: validation.data.userId,
+        sort: validation.data.sort,
+      },
       validation.data.limit,
       validation.data.offset,
     );
@@ -53,18 +55,11 @@ router.get(
   asyncHandler(async (request: Request, response: Response) => {
     const validation = getLibraryScheme.safeParse({
       userId: request.jwtPayload.user_id,
-      sort: {
-        sortBy: request.query.sort ?? LibrarySortBy.Custom,
-        order: request.query.order ?? Order.Asc,
-      },
     });
     if (!validation.success) {
       throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }
-    const databaseResponse = await libraryController.getLibrary(
-      validation.data.userId,
-      validation.data.sort,
-    );
+    const databaseResponse = await libraryController.getLibrary(validation.data.userId);
     response.status(200).json(databaseResponse);
   }),
 );

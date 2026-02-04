@@ -16,13 +16,17 @@ import {
 import database from '../../config/database.ts';
 import { errorMessages } from '../../errors/error-messages.ts';
 import InternalError from '../../errors/internal-error.ts';
+import { LibrarySortBy } from '../../interfaces/library-interface.ts';
 
+import type { OrderBy } from '../../interfaces/playlist-interface.ts';
 import type { ITrack, TrackResult, UpdateTrack } from '../../interfaces/track-interface.ts';
-import type { Result } from '../../types/result-type.ts';
+import type { Result, SuccessfulResult } from '../../types/result-type.ts';
+import type { LibrarySinglesModel } from '../library-singles.ts';
 import type { PlaylistModel } from '../playlist.ts';
 import type { TrackModel } from '../track.ts';
 import type { UserModel } from '../user.ts';
 import type { Transaction } from 'sequelize';
+import type sequelize from 'sequelize';
 
 interface TrackModelWithUsers extends TrackModel {
   dataValues: TrackModel['dataValues'] & {
@@ -30,6 +34,9 @@ interface TrackModelWithUsers extends TrackModel {
     album?: PlaylistModel;
     playlists?: PlaylistModel[];
   };
+}
+interface LibrarySinglesWithRelations extends LibrarySinglesModel {
+  tracks: TrackModel & { users: UserModel[] };
 }
 
 class TrackManager {
@@ -130,6 +137,74 @@ class TrackManager {
       };
     });
     return { success: true, data: { rows: tracksWithArtists, count: totalRecordsNumber } };
+  }
+  async getLibrary(libraryInfo: {
+    userId: string;
+    sort: { sortBy: LibrarySortBy; order: OrderBy };
+  }): Promise<
+    SuccessfulResult<{
+      total: number;
+      items: {
+        date_added: string;
+        date_played: string | null;
+        library_type?: string;
+        singles: {
+          id: string;
+          name: string;
+          owner: {
+            id: string;
+            visible_username: string;
+          };
+          cover_url: string | null;
+        };
+      }[];
+    }>
+  > {
+    const order = (
+      libraryInfo.sort.sortBy === LibrarySortBy.Alphabetic
+        ? [[{ model: database.trackModel }, libraryInfo.sort.sortBy, libraryInfo.sort.order]]
+        : [[libraryInfo.sort.sortBy, libraryInfo.sort.order]]
+    ) as sequelize.Order;
+    const singles = (await database.librarySinglesModel.findAndCountAll({
+      where: { user_id: libraryInfo.userId },
+      attributes: ['date_played', 'date_added'],
+      //check on existing in album when adding to library
+      order,
+      include: {
+        model: database.trackModel,
+        attributes: ['id', 'cover_id', 'name'],
+        include: [
+          {
+            model: database.userModel,
+            // required: true,
+            // right: true,
+            attributes: ['id', 'visible_username'],
+          },
+        ],
+      },
+    })) as {
+      count: number;
+      rows: LibrarySinglesWithRelations[];
+    };
+    const processedSingles = singles.rows.map((row) => {
+      return {
+        date_played: row.date_played,
+        date_added: row.date_added,
+        library_type: 'single',
+        singles: {
+          id: row.tracks.id,
+          name: row.tracks.name,
+          cover_url: row.tracks.cover_id
+            ? `${STATIC_IMAGES_PATH}/${row.tracks.cover_id}.jpg`
+            : null,
+          owner: {
+            id: row.tracks.users[0].id,
+            visible_username: row.tracks.users[0].visible_username,
+          },
+        },
+      };
+    });
+    return { success: true, data: { total: singles.count, items: processedSingles } };
   }
   async getTrackRecordById(
     trackId: string,
