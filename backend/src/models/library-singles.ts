@@ -8,7 +8,7 @@ class LibrarySinglesModel extends Model<
 > {
   declare track_id: string;
   declare user_id: string;
-  declare date_added: string;
+  declare date_added?: string;
   declare date_played: string | null;
   declare order: number;
 }

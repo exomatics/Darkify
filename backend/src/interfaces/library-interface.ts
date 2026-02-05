@@ -4,3 +4,7 @@ export enum LibrarySortBy {
   Alphabetic = 'name',
   Custom = 'order',
 }
+export enum LibraryType {
+  Albums = 'albums',
+  Singles = 'singles',
+}

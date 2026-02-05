@@ -70,6 +70,10 @@ const playlistFollowScheme = z.object({
   user_id: uuidScheme,
   playlist_id: uuidScheme,
 });
+const singleFollowScheme = z.object({
+  user_id: uuidScheme,
+  single_id: uuidScheme,
+});
 const userAvatarScheme = z.object({
   user_id: uuidScheme,
   file: fileScheme,
@@ -383,4 +387,5 @@ export {
   getArtistSinglesScheme,
   getArtistTopTracks,
   getArtistTop,
+  singleFollowScheme,
 };

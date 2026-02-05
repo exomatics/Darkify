@@ -13,7 +13,7 @@ import database from '../../config/database.ts';
 import { errorMessages } from '../../errors/error-messages.ts';
 import InternalError from '../../errors/internal-error.ts';
 import { AlbumsSortBy } from '../../interfaces/album-interface.ts';
-import { LibrarySortBy } from '../../interfaces/library-interface.ts';
+import { LibrarySortBy, LibraryType } from '../../interfaces/library-interface.ts';
 import {
   Type,
   Restrictions,
@@ -1099,6 +1099,7 @@ class PlaylistManager {
     libraryInfo: {
       userId: string;
       type: Type;
+      extended: boolean;
       sort: { sortBy: LibrarySortBy; order: OrderBy };
     },
     limit?: number,
@@ -1106,20 +1107,15 @@ class PlaylistManager {
   ): Promise<
     SuccessfulResult<{
       total: number;
-      items: {
-        date_added: string;
-        date_played: string | null;
-        library_type?: string;
-        playlists: Omit<IPlaylist, 'playlistId' | 'owner' | 'coverId'> & {
-          placeholder_url_covers: string[] | null;
+      items: (Pick<IPlaylist, 'name'> & {
+        id: string;
+        owner?: {
           id: string;
-          owner: {
-            id: string;
-            visible_username: string;
-          };
-          cover_url: string | null;
+          visible_username: string;
         };
-      }[];
+        cover_url: string | null;
+        library_type?: LibraryType;
+      })[];
     }>
   > {
     const order = (
@@ -1127,6 +1123,7 @@ class PlaylistManager {
         ? [[{ model: database.playlistModel }, libraryInfo.sort.sortBy, libraryInfo.sort.order]]
         : [[libraryInfo.sort.sortBy, libraryInfo.sort.order]]
     ) as sequelize.Order;
+
     const playlistRecords = (await database.libraryPlaylists.findAndCountAll({
       where: { user_id: libraryInfo.userId },
       raw: true,
@@ -1136,7 +1133,7 @@ class PlaylistManager {
         {
           model: database.playlistModel,
           // associationType:
-          attributes: ['id', 'cover_id', 'name', 'owner', 'description', 'type'],
+          attributes: ['id', 'cover_id', 'name', 'owner'],
           where: { type: Type.General },
           // required: true,
           // required: true,
@@ -1167,54 +1164,22 @@ class PlaylistManager {
       }[];
       count: number;
     };
-    const processedPlaylistRecords = await Promise.all(
-      playlistRecords.rows.map(async (playlistLibraryRecord) => {
-        let placeholderUrlCovers: string[] = [];
-        const playlistTracks = await this.getAllTracksFromPlaylist(
-          {
-            playlistId: playlistLibraryRecord.playlist_id,
-            userId: playlistLibraryRecord.user_id,
-            sort: { sortBy: PlaylistSortBy.Date, order: OrderBy.Asc },
-          },
-          4,
-          0,
-        );
-        playlistTracks.data.items.forEach((playlistTrack) => {
-          if (playlistTrack.cover_url === null) {
-            return;
-          }
-
-          if (placeholderUrlCovers.includes(playlistTrack.cover_url)) {
-            placeholderUrlCovers = [placeholderUrlCovers[0]];
-            return;
-          }
-          placeholderUrlCovers.push(playlistTrack.cover_url);
-        });
-        if (placeholderUrlCovers.length !== 4 && placeholderUrlCovers.length > 0) {
-          placeholderUrlCovers = [placeholderUrlCovers[0]];
-        }
-        const processedRecord = {
-          ..._.omit(playlistLibraryRecord, ['user', 'playlist_id', 'user_id', 'order']),
-          date_played: playlistLibraryRecord.date_played,
-          date_added: playlistLibraryRecord.date_added,
-          playlists: {
-            ..._.omit(playlistLibraryRecord.playlists, ['cover_id', 'owner', 'user']),
-            placeholder_url_covers: placeholderUrlCovers.length === 0 ? null : placeholderUrlCovers,
-            owner: {
-              id: playlistLibraryRecord.playlists.user.id,
-              visible_username: playlistLibraryRecord.playlists.user.visible_username,
-            },
-            cover_url: playlistLibraryRecord.playlists.cover_id
-              ? `${STATIC_IMAGES_PATH}/${playlistLibraryRecord.playlists.cover_id}.jpg`
-              : null,
-          },
-        };
-        if (libraryInfo.type === Type.Album) {
-          return { ...processedRecord, library_type: 'album' };
-        }
-        return processedRecord;
-      }),
-    );
+    const processedPlaylistRecords = playlistRecords.rows.map((playlistLibraryRecord) => {
+      const processedRecord = {
+        ..._.pick(playlistLibraryRecord.playlists, ['name', 'id']),
+        owner: {
+          id: playlistLibraryRecord.playlists.user.id,
+          visible_username: playlistLibraryRecord.playlists.user.visible_username,
+        },
+        cover_url: playlistLibraryRecord.playlists.cover_id
+          ? `${STATIC_IMAGES_PATH}/${playlistLibraryRecord.playlists.cover_id}.jpg`
+          : null,
+      };
+      if (libraryInfo.type === Type.Album) {
+        return { ..._.omit(processedRecord, ['owner']), library_type: LibraryType.Albums };
+      }
+      return processedRecord;
+    });
     return {
       success: true,
       data: { total: playlistRecords.count, items: processedPlaylistRecords },
@@ -1248,7 +1213,10 @@ class PlaylistManager {
     if (!playlistRecord.success) {
       return playlistRecord;
     }
-    await playlistRecord.data.destroy({ transaction });
+    await database.libraryPlaylists.destroy({
+      where: { playlist_id: playlistId, user_id: userId },
+      transaction,
+    });
     return { success: true, data: null };
   }
 
