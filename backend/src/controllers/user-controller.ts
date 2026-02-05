@@ -4,12 +4,14 @@ import ValidationError from '../errors/validation-error.ts';
 import { LibrarySections } from '../interfaces/user-interface.ts';
 import ArtistManager from '../models/services/artist.ts';
 import PlaylistManager from '../models/services/playlist.ts';
+import TrackManager from '../models/services/track.ts';
 import UserManager from '../models/services/user.ts';
 
 import type { IUser, UpdateLibraryPlayDate } from '../interfaces/user-interface.ts';
 
 const user = new UserManager();
 const playlist = new PlaylistManager();
+const track = new TrackManager();
 const artist = new ArtistManager();
 
 export default {
@@ -130,6 +132,20 @@ export default {
       throw new ValidationError(modelResponse.reason);
     }
     return modelResponse.data;
+  },
+  async followSingle(user_id: string, single_id: string) {
+    const modelResponse = await track.followSingle(user_id, single_id);
+    if (!modelResponse.success) {
+      throw new ValidationError(modelResponse.reason);
+    }
+    return modelResponse.data;
+  },
+  async unfollowSingle(user_id: string, single_id: string) {
+    const modelResponse = await track.unfollowSingle(user_id, single_id);
+    if (!modelResponse.success) {
+      throw new ValidationError(modelResponse.reason);
+    }
+    return modelResponse;
   },
   async deleteUser(user_id: string) {
     const modelResponse = await user.deleteUser(user_id);

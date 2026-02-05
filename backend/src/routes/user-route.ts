@@ -17,6 +17,7 @@ import {
   updateLibraryPlayDate,
   createArtistScheme,
   userBannerScheme,
+  singleFollowScheme,
 } from '../validator.ts';
 
 import { ROUTES } from './routes.ts';
@@ -279,7 +280,43 @@ router.post(
     response.status(200).json(databaseResponse);
   }),
 );
+router.post(
+  ROUTES.USERS.POST_FOLLOW_SINGLE,
+  passport.authenticate('access-token', { session: false }) as RequestHandler,
+  asyncHandler(async (request: Request, response: Response) => {
+    const validation = singleFollowScheme.safeParse({
+      user_id: request.jwtPayload.user_id,
+      single_id: request.params.single_id,
+    });
+    if (!validation.success) {
+      throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
+    }
 
+    const databaseResponse = await userController.followSingle(
+      validation.data.user_id,
+      validation.data.single_id,
+    );
+    response.status(200).json(databaseResponse);
+  }),
+);
+router.post(
+  ROUTES.USERS.POST_UNFOLLOW_SINGLE,
+  passport.authenticate('access-token', { session: false }) as RequestHandler,
+  asyncHandler(async (request: Request, response: Response) => {
+    const validation = singleFollowScheme.safeParse({
+      user_id: request.jwtPayload.user_id,
+      single_id: request.params.single_id,
+    });
+    if (!validation.success) {
+      throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
+    }
+    const databaseResponse = await userController.unfollowSingle(
+      validation.data.user_id,
+      validation.data.single_id,
+    );
+    response.status(200).json(databaseResponse);
+  }),
+);
 router.post(
   ROUTES.USERS.PUT_EVENTS_PLAYED,
   passport.authenticate('access-token', { session: false }) as RequestHandler,

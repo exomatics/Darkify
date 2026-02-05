@@ -9,6 +9,7 @@ export const errorMessages = {
     FailedToCreate: 'Failed to create user',
     AlreadyFollowsPlaylist: 'User already follows this playlist',
     NotFollowsPlaylist: 'User not follows this playlist',
+    AlreadyFollowsSingle: 'User already follows this single',
     EmailAlreadyExists: 'User with this email already exists',
     WrongPassword: 'Wrong password',
     GotNoFile: 'Got no file',
@@ -49,6 +50,7 @@ export const errorMessages = {
     FailedToCreate: 'Failed to create track',
     NotTheAdmin: 'You are not the admin of this track',
     TrackAlreadyBelongsToAlbum: 'Track already belongs to this album',
+    TrackIsNotASingle: 'Track is not a single',
   }),
   validation: Object.freeze({
     PasswordNoCapital: 'Password has no capital letters',
