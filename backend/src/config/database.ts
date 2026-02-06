@@ -120,7 +120,7 @@ database.userModel.hasOne(database.artistModel, { foreignKey: 'user_id' });
 database.artistModel.belongsTo(database.userModel, { foreignKey: 'user_id' });
 
 const sequelizeSync = async (sequelizeConfig: Sequelize) => {
-  await sequelizeConfig.sync({ force: true });
+  await sequelizeConfig.sync({});
   logger.info('database sync!');
 };
 void sequelizeSync(sequelize);
