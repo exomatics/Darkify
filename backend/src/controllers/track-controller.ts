@@ -12,6 +12,7 @@ import database from '../config/database.ts';
 import { errorMessages } from '../errors/error-messages.ts';
 import InternalError from '../errors/internal-error.ts';
 import NotFoundError from '../errors/not-found-error.ts';
+import ValidationError from '../errors/validation-error.ts';
 import { FileUploader } from '../models/services/file-management.ts';
 import PlaylistManager from '../models/services/playlist.ts';
 import TrackManager from '../models/services/track.ts';
@@ -20,6 +21,7 @@ import { Bitrate } from '../types/bitrate-type.ts';
 
 import type { ITrack, UpdateTrack } from '../interfaces/track-interface.ts';
 import type { SuccessfulResult } from '../types/result-type.ts';
+
 const track = new TrackManager();
 const user = new UserManager();
 const playlist = new PlaylistManager();
@@ -94,6 +96,13 @@ export default {
       file: Express.Multer.File[] | null;
     },
   ) {
+    const userRecord = await user.getUserById(trackInfo.admin_id);
+    if (!userRecord.success) {
+      throw new NotFoundError(userRecord.reason);
+    }
+    if (!userRecord.data.is_artist) {
+      throw new ValidationError(errorMessages.artist.NotAnArtist);
+    }
     if (trackInfo.album_id) {
       const albumRecord = await playlist.getUserAlbumRecordById(
         trackInfo.album_id,

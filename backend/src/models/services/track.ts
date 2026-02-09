@@ -36,7 +36,7 @@ interface TrackModelWithUsers extends TrackModel {
   };
 }
 interface LibrarySinglesWithRelations extends LibrarySinglesModel {
-  tracks: TrackModel & { users: UserModel[] };
+  tracks: TrackModel[] & { users: UserModel[] }[];
 }
 
 class TrackManager {
@@ -169,6 +169,7 @@ class TrackManager {
       include: {
         model: database.trackModel,
         attributes: ['id', 'cover_id', 'name'],
+        required: true,
         include: [
           {
             model: database.userModel,
@@ -185,12 +186,14 @@ class TrackManager {
     const processedSingles = singles.rows.map((row) => {
       return {
         library_type: 'single',
-        id: row.tracks.id,
-        name: row.tracks.name,
-        cover_url: row.tracks.cover_id ? `${STATIC_IMAGES_PATH}/${row.tracks.cover_id}.jpg` : null,
+        id: row.tracks[0].id,
+        name: row.tracks[0].name,
+        cover_url: row.tracks[0].cover_id
+          ? `${STATIC_IMAGES_PATH}/${row.tracks[0].cover_id}.jpg`
+          : null,
         owner: {
-          id: row.tracks.users[0].id,
-          visible_username: row.tracks.users[0].visible_username,
+          id: row.tracks[0].users[0].id,
+          visible_username: row.tracks[0].users[0].visible_username,
         },
       };
     });

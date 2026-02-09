@@ -22,13 +22,11 @@ export default {
     const libraryPlaylists = await playlist.getLibrary({
       userId,
       type: Type.General,
-      extended: false,
       sort: { order: OrderBy.Desc, sortBy: LibrarySortBy.AddDate },
     });
     const libraryAlbums = await playlist.getLibrary({
       userId,
       type: Type.Album,
-      extended: false,
       sort: { order: OrderBy.Desc, sortBy: LibrarySortBy.AddDate },
     });
     const librarySingles = await track.getLibrary({
@@ -52,7 +50,6 @@ export default {
     const modelResponse = await playlist.getLibrary(
       {
         userId: libraryInfo.userId,
-        extended: true,
         type: Type.General,
         sort: libraryInfo.sort,
       },

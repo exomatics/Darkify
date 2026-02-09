@@ -113,6 +113,7 @@ export default {
         await playlist.createPlaylistAlbum({
           playlistId,
           userId: albumInfo.owner,
+          transaction,
         });
       });
     } catch {

@@ -74,7 +74,7 @@ class PlaylistManager {
     try {
       await database.sequelize.transaction(async (transaction) => {
         const playlistCount = await database.playlistModel.count({
-          where: { owner: playlistInfo.owner },
+          where: { owner: playlistInfo.owner, type: Type.General },
           transaction,
         });
         const defaultPlaylistName =
@@ -111,15 +111,15 @@ class PlaylistManager {
   async createPlaylistAlbum(albumInfo: {
     playlistId: string;
     userId: string;
-  }): Promise<Result<null, typeof errorMessages.album.NotExistsById>> {
-    const albumRecord = await this.getUserAlbumRecordById(albumInfo.playlistId, albumInfo.userId);
-    if (!albumRecord.success) {
-      return albumRecord;
-    }
-    await database.playlistAlbumsModel.create({
-      playlist_id: albumInfo.playlistId,
-      date_released: null,
-    });
+    transaction: Transaction;
+  }): Promise<SuccessfulResult<null>> {
+    await database.playlistAlbumsModel.create(
+      {
+        playlist_id: albumInfo.playlistId,
+        date_released: null,
+      },
+      { transaction: albumInfo.transaction },
+    );
     return { success: true, data: null };
   }
   async deletePlaylist(playlistInfo: {
@@ -1099,7 +1099,6 @@ class PlaylistManager {
     libraryInfo: {
       userId: string;
       type: Type;
-      extended: boolean;
       sort: { sortBy: LibrarySortBy; order: OrderBy };
     },
     limit?: number,
@@ -1128,14 +1127,15 @@ class PlaylistManager {
       where: { user_id: libraryInfo.userId },
       raw: true,
       nest: true,
+      distinct: true,
       order,
       include: [
         {
           model: database.playlistModel,
           // associationType:
           attributes: ['id', 'cover_id', 'name', 'owner'],
-          where: { type: Type.General },
-          // required: true,
+          where: { type: libraryInfo.type },
+          required: true,
           // required: true,
           // right: true,
           // through: { attributes: ['playlist_id'] },
