@@ -139,7 +139,7 @@ class UserManager {
           model: database.userModel,
           where: { is_artist: true },
           required: true,
-          attributes: ['id', 'cover_id', 'visible_username'],
+          attributes: ['id', 'avatar_url', 'visible_username'],
         },
       ],
       offset,

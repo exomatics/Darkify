@@ -77,11 +77,11 @@ database.trackModel.belongsTo(database.playlistModel.scope('albumOnly'), {
 database.playlistTrackModel.belongsTo(database.playlistModel, { foreignKey: 'playlist_id' });
 database.playlistModel.hasMany(database.playlistTrackModel, { foreignKey: 'playlist_id' });
 
-database.userModel.hasMany(database.userFollowersModel, { foreignKey: 'user_id' });
-database.userFollowersModel.belongsTo(database.userModel, { foreignKey: 'user_id' });
+database.userModel.hasMany(database.userFollowersModel, { foreignKey: 'followers_id' });
+database.userFollowersModel.belongsTo(database.userModel, { foreignKey: 'followers_id' });
 
-database.userModel.hasMany(database.userFollowingModel, { foreignKey: 'user_id' });
-database.userFollowingModel.belongsTo(database.userModel, { foreignKey: 'user_id' });
+database.userModel.hasMany(database.userFollowingModel, { foreignKey: 'following_id' });
+database.userFollowingModel.belongsTo(database.userModel, { foreignKey: 'following_id' });
 
 database.userModel.hasMany(database.playlistModel, { foreignKey: 'owner' });
 database.playlistModel.belongsTo(database.userModel, { foreignKey: 'owner' });
@@ -103,12 +103,12 @@ database.playlistFollowersModel.belongsTo(database.playlistModel, { foreignKey: 
 database.userModel.hasMany(database.playlistFollowersModel, { foreignKey: 'user_id' });
 database.playlistFollowersModel.belongsTo(database.userModel, { foreignKey: 'user_id' });
 
-database.libraryPlaylists.hasMany(database.playlistModel, { foreignKey: 'playlist_id' });
+database.libraryPlaylists.hasMany(database.playlistModel, { foreignKey: 'id' });
 database.playlistModel.belongsTo(database.libraryPlaylists, { foreignKey: 'id' });
 database.libraryPlaylists.belongsTo(database.userModel, { foreignKey: 'user_id' });
 database.userModel.hasMany(database.libraryPlaylists, { foreignKey: 'user_id' });
 
-database.librarySinglesModel.hasMany(database.trackModel, { foreignKey: 'track_id' });
+database.librarySinglesModel.hasMany(database.trackModel, { foreignKey: 'id' });
 database.trackModel.belongsTo(database.librarySinglesModel, { foreignKey: 'id' });
 database.trackModel.hasMany(database.librarySinglesModel, { foreignKey: 'track_id' });
 database.librarySinglesModel.belongsTo(database.trackModel, { foreignKey: 'track_id' });
@@ -120,7 +120,7 @@ database.userModel.hasOne(database.artistModel, { foreignKey: 'user_id' });
 database.artistModel.belongsTo(database.userModel, { foreignKey: 'user_id' });
 
 const sequelizeSync = async (sequelizeConfig: Sequelize) => {
-  await sequelizeConfig.sync({ force: true });
+  await sequelizeConfig.sync();
   logger.info('database sync!');
 };
 void sequelizeSync(sequelize);

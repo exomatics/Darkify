@@ -235,7 +235,6 @@ const updateLibraryPlayDate = z.object({
 
 const getLibraryScheme = z.object({
   userId: uuidScheme,
-  sort: z.object({ sortBy: z.enum(LibrarySortBy), order: z.enum(OrderBy) }),
 });
 
 const getLibraryPlaylistsScheme = z.object({
