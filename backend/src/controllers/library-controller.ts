@@ -2,7 +2,7 @@ import { DEFAULT_LIMIT, DEFAULT_OFFSET } from '../config/config.ts';
 import NotFoundError from '../errors/not-found-error.ts';
 import ValidationError from '../errors/validation-error.ts';
 import { LibrarySortBy } from '../interfaces/library-interface.ts';
-import { OrderBy, Type } from '../interfaces/playlist-interface.ts';
+import { OrderBy } from '../interfaces/playlist-interface.ts';
 import PlaylistManager from '../models/services/playlist.ts';
 import TrackManager from '../models/services/track.ts';
 import UserManager from '../models/services/user.ts';
@@ -19,24 +19,20 @@ export default {
       throw new NotFoundError(userRecord.reason);
     }
     const libraryArtists = await user.getUserFollowedArtists(userId);
-    const libraryPlaylists = await playlist.getLibrary({
+    const libraryPlaylists = await playlist.getPlaylistLibrary({
       userId,
-      type: Type.General,
+      extended: false,
       sort: { order: OrderBy.Desc, sortBy: LibrarySortBy.AddDate },
     });
-    const libraryAlbums = await playlist.getLibrary({
+    const libraryAlbumsSingles = await track.getLibrary({
       userId,
-      type: Type.Album,
-      sort: { order: OrderBy.Desc, sortBy: LibrarySortBy.AddDate },
-    });
-    const librarySingles = await track.getLibrary({
-      userId,
+      extended: false,
       sort: { order: OrderBy.Desc, sortBy: LibrarySortBy.AddDate },
     });
     return {
       playlists: libraryPlaylists.data.items,
       artists: libraryArtists.data.items,
-      albums: [...libraryAlbums.data.items, ...librarySingles.data.items],
+      albums: libraryAlbumsSingles.data.items,
     };
   },
   async getLibraryPlaylists(
@@ -47,10 +43,10 @@ export default {
     limit: number = DEFAULT_LIMIT,
     offset: number = DEFAULT_OFFSET,
   ) {
-    const modelResponse = await playlist.getLibrary(
+    const modelResponse = await playlist.getPlaylistLibrary(
       {
         userId: libraryInfo.userId,
-        type: Type.General,
+        extended: true,
         sort: libraryInfo.sort,
       },
       limit,

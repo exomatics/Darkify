@@ -63,6 +63,9 @@ export const errorMessages = {
     UniqueArrayOfUuid: 'Must be an array of unique uuids',
     ExcludeAdminId: 'Artists array shouldnt include the admin_id',
   }),
+  database: Object.freeze({
+    BothOrNone: 'only playlist_id or track_id must be defined',
+  }),
   init: Object.freeze({
     KeysAlreadyGenerated: 'Key pair already exists. Skipping generation.',
   }),

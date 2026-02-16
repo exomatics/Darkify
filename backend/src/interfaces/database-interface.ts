@@ -1,6 +1,6 @@
 import type { ArtistModel } from '../models/artists.ts';
 import type { LibraryPlaylistsModel } from '../models/library-playlists.ts';
-import type { LibrarySinglesModel } from '../models/library-singles.ts';
+import type { LibrarySinglesAlbumsModel } from '../models/library-singles-albums.ts';
 import type { PlaylistAlbumsModel } from '../models/playlist-albums.ts';
 import type { PlaylistFollowersModel } from '../models/playlist-followers.ts';
 import type { PlaylistTrackModel } from '../models/playlist-tracks.ts';
@@ -22,8 +22,8 @@ export interface Idb {
   userModel: ModelStatic<UserModel>;
   userFollowersModel: ModelStatic<UserFollowersModel>;
   userFollowingModel: ModelStatic<UserFollowingModel>;
-  libraryPlaylists: ModelStatic<LibraryPlaylistsModel>;
   playlistAlbumsModel: ModelStatic<PlaylistAlbumsModel>;
   artistModel: ModelStatic<ArtistModel>;
-  librarySinglesModel: ModelStatic<LibrarySinglesModel>;
+  librarySinglesAlbumsModel: ModelStatic<LibrarySinglesAlbumsModel>;
+  libraryPlaylists: ModelStatic<LibraryPlaylistsModel>;
 }
