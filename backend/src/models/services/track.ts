@@ -17,12 +17,12 @@ import {
 import database from '../../config/database.ts';
 import { errorMessages } from '../../errors/error-messages.ts';
 import InternalError from '../../errors/internal-error.ts';
-import { LibrarySortBy } from '../../interfaces/library-interface.ts';
+import { LibrarySortBy, LibraryType } from '../../interfaces/library-interface.ts';
+import { Type, type OrderBy, type IPlaylist } from '../../interfaces/playlist-interface.ts';
 
-import type { OrderBy } from '../../interfaces/playlist-interface.ts';
 import type { ITrack, TrackResult, UpdateTrack } from '../../interfaces/track-interface.ts';
 import type { Result, SuccessfulResult } from '../../types/result-type.ts';
-import type { LibrarySinglesModel } from '../library-singles.ts';
+import type { LibrarySinglesAlbumsModel } from '../library-singles-albums.ts';
 import type { PlaylistModel } from '../playlist.ts';
 import type { TrackModel } from '../track.ts';
 import type { UserModel } from '../user.ts';
@@ -35,8 +35,13 @@ interface TrackModelWithUsers extends TrackModel {
     playlists?: PlaylistModel[];
   };
 }
-interface LibrarySinglesWithRelations extends LibrarySinglesModel {
+interface LibrarySinglesWithRelations extends LibrarySinglesAlbumsModel {
   tracks: TrackModel[] & { users: UserModel[] }[];
+  playlists: undefined;
+}
+interface LibraryAlbumsWithRelations extends LibrarySinglesAlbumsModel {
+  playlists: PlaylistModel & { users: UserModel[] }[];
+  tracks: undefined;
 }
 
 class TrackManager {
@@ -138,22 +143,35 @@ class TrackManager {
     });
     return { success: true, data: { rows: tracksWithArtists, count: totalRecordsNumber } };
   }
+
   async getLibrary(libraryInfo: {
     userId: string;
+    extended: boolean;
     sort: { sortBy: LibrarySortBy; order: OrderBy };
   }): Promise<
     SuccessfulResult<{
       total: number;
-      items: {
-        library_type?: string;
-        id: string;
-        name: string;
-        owner: {
-          id: string;
-          visible_username: string;
-        };
-        cover_url: string | null;
-      }[];
+      items: (
+        | {
+            library_type?: string;
+            id: string;
+            name: string;
+            owner: {
+              id: string;
+              visible_username: string;
+            };
+            cover_url: string | null;
+          }
+        | (Pick<IPlaylist, 'name'> & {
+            id: string;
+            owner?: {
+              id: string;
+              visible_username: string;
+            };
+            cover_url: string | null;
+            library_type: LibraryType.Albums;
+          })
+      )[];
     }>
   > {
     const order = (
@@ -161,41 +179,86 @@ class TrackManager {
         ? [[{ model: database.trackModel }, libraryInfo.sort.sortBy, libraryInfo.sort.order]]
         : [[libraryInfo.sort.sortBy, libraryInfo.sort.order]]
     ) as sequelize.Order;
-    const singles = (await database.librarySinglesModel.findAndCountAll({
+    const singles = (await database.librarySinglesAlbumsModel.findAndCountAll({
       where: { user_id: libraryInfo.userId },
       attributes: ['date_played', 'date_added'],
       //check on existing in album when adding to library
       order,
-      include: {
-        model: database.trackModel,
-        attributes: ['id', 'cover_id', 'name'],
-        required: true,
-        include: [
-          {
-            model: database.userModel,
-            // required: true,
-            // right: true,
-            attributes: ['id', 'visible_username'],
-          },
-        ],
-      },
-    })) as {
-      count: number;
-      rows: LibrarySinglesWithRelations[];
-    };
-    const processedSingles = singles.rows.map((row) => {
-      return {
-        library_type: 'single',
-        id: row.tracks[0].id,
-        name: row.tracks[0].name,
-        cover_url: row.tracks[0].cover_id
-          ? `${STATIC_IMAGES_PATH}/${row.tracks[0].cover_id}.jpg`
-          : null,
-        owner: {
-          id: row.tracks[0].users[0].id,
-          visible_username: row.tracks[0].users[0].visible_username,
+      include: [
+        {
+          model: database.trackModel,
+          attributes: ['id', 'cover_id', 'name'],
+          include: [
+            {
+              model: database.userModel,
+              // required: true,
+              // right: true,
+              attributes: ['id', 'visible_username'],
+            },
+          ],
         },
-      };
+        {
+          model: database.playlistModel,
+          // associationType:
+          attributes: ['id', 'cover_id', 'name', 'owner'],
+          where: { type: Type.Album },
+          // required: true,
+          // right: true,
+          // through: { attributes: ['playlist_id'] },
+          include: [
+            {
+              model: database.userModel,
+              // required: true,
+              // right: true,
+              attributes: ['id', 'visible_username'],
+            },
+          ],
+        },
+      ],
+    })) as { count: number; rows: (LibrarySinglesWithRelations | LibraryAlbumsWithRelations)[] };
+    const processedSingles = singles.rows.map((row) => {
+      if (row.tracks) {
+        const processedSingleRecord = {
+          library_type: 'single',
+          id: row.tracks[0].id,
+          name: row.tracks[0].name,
+          cover_url: row.tracks[0].cover_id
+            ? `${STATIC_IMAGES_PATH}/${row.tracks[0].cover_id}.jpg`
+            : null,
+          owner: {
+            id: row.tracks[0].users[0].id,
+            visible_username: row.tracks[0].users[0].visible_username,
+          },
+        };
+        if (libraryInfo.extended) {
+          return {
+            ...processedSingleRecord,
+            owner: {
+              id: row.tracks[0].users[0].id,
+              visible_username: row.tracks[0].users[0].visible_username,
+            },
+          };
+        }
+        return processedSingleRecord;
+      } else {
+        const processedAlbumRecord = {
+          ..._.pick(row.playlists, ['name', 'id']),
+          cover_url: row.playlists.cover_id
+            ? `${STATIC_IMAGES_PATH}/${row.playlists.cover_id}.jpg`
+            : null,
+          library_type: LibraryType.Albums as LibraryType.Albums,
+        };
+        if (libraryInfo.extended) {
+          return {
+            ...processedAlbumRecord,
+            owner: {
+              id: row.playlists[0].users[0].id,
+              visible_username: row.playlists[0].users[0].visible_username,
+            },
+          };
+        }
+        return processedAlbumRecord;
+      }
     });
     return { success: true, data: { total: singles.count, items: processedSingles } };
   }
@@ -406,9 +469,10 @@ class TrackManager {
     return { success: true, data: trackRecord.data };
   }
   async createLibraryRecord(userId: string, single_id: string) {
-    const maxOrder = await database.librarySinglesModel.max('order', {
+    const maxOrder = await database.librarySinglesAlbumsModel.max('order', {
       where: {
         user_id: userId,
+        track_id: { [Op.not]: 'null' },
         [Op.and]: [
           sequelize.where(
             sequelize.fn('MOD', sequelize.col('order'), String(ORDER_NUMBER)),
@@ -418,7 +482,8 @@ class TrackManager {
         ],
       },
     });
-    await database.librarySinglesModel.create({
+    await database.librarySinglesAlbumsModel.create({
+      id: crypto.randomUUID(),
       track_id: single_id,
       user_id: userId,
       order: typeof maxOrder === 'number' ? maxOrder + ORDER_NUMBER : ORDER_NUMBER,
@@ -429,7 +494,7 @@ class TrackManager {
     if (!trackRecord.success) {
       return trackRecord;
     }
-    await database.librarySinglesModel.destroy({
+    await database.librarySinglesAlbumsModel.destroy({
       where: { user_id: userId, track_id: singleId },
       transaction,
     });
@@ -453,7 +518,7 @@ class TrackManager {
     if (trackRecord.data.album.id !== trackRecord.data.id) {
       return { success: false, reason: errorMessages.track.TrackIsNotASingle };
     }
-    const playlistFollowersRecord = await database.librarySinglesModel.findOne({
+    const playlistFollowersRecord = await database.librarySinglesAlbumsModel.findOne({
       where: { user_id: userId, track_id: singleId },
     });
     if (playlistFollowersRecord) {
@@ -476,7 +541,7 @@ class TrackManager {
     if (!trackRecord.success) {
       return trackRecord;
     }
-    const librarySingleRecord = await database.librarySinglesModel.findOne({
+    const librarySingleRecord = await database.librarySinglesAlbumsModel.findOne({
       where: { user_id: singleId, track_id: singleId },
     });
     if (!librarySingleRecord) {

@@ -1095,10 +1095,10 @@ class PlaylistManager {
     }
     return { success: true, data: playlistLibraryRecord };
   }
-  async getLibrary(
+  async getPlaylistLibrary(
     libraryInfo: {
       userId: string;
-      type: Type;
+      extended: boolean;
       sort: { sortBy: LibrarySortBy; order: OrderBy };
     },
     limit?: number,
@@ -1122,19 +1122,151 @@ class PlaylistManager {
         ? [[{ model: database.playlistModel }, libraryInfo.sort.sortBy, libraryInfo.sort.order]]
         : [[libraryInfo.sort.sortBy, libraryInfo.sort.order]]
     ) as sequelize.Order;
+    const playlistAttributes: sequelize.FindAttributeOptions = [
+      'id',
+      'cover_id',
+      'name',
+      'owner',
+      [database.sequelize.fn('COUNT', sequelize.col('tracks.id')), 'track_count'],
+    ];
+    if (libraryInfo.extended) {
+      playlistAttributes.push([
+        database.sequelize.literal(`
+              (
+                SELECT ARRAY(
+                  SELECT DISTINCT u.visible_username
+                  FROM playlist_tracks pt
+                  JOIN tracks t ON t.id = pt.track_id
+                  JOIN track_artists ta ON ta.track_id = t.id
+                  JOIN users u ON u.id = ta.artist_id
+                  WHERE pt.playlist_id = playlists.id
+                  LIMIT 3
+                )
+              )
+            `),
+        'artists_usernames',
+      ]);
+    }
+    const playlistRecords = (await database.libraryPlaylists.findAll({
+      // // 'distinct_artist',
 
-    const playlistRecords = (await database.libraryPlaylists.findAndCountAll({
       where: { user_id: libraryInfo.userId },
-      raw: true,
-      nest: true,
-      distinct: true,
+      // raw: true,
+      // nest: true,
+      // distinct: true,
       order,
+      // group: 'playlists.tracks.users.track_artists.artist_id',
+      include: [
+        {
+          model: database.playlistModel,
+          // associationType:
+          attributes: playlistAttributes,
+          where: { type: Type.General },
+          required: true,
+          // required: true,
+          // right: true,
+          // through: { attributes: ['playlist_id'] },
+          include: [
+            {
+              model: database.userModel,
+              // required: true,
+              // right: true,
+              attributes: ['id', 'visible_username'],
+            },
+            { model: database.trackModel, attributes: ['id'] },
+          ],
+        },
+      ],
+      offset,
+      limit,
+      logging: true,
+    })) as unknown as {
+      playlist_id: string;
+      user_id: string;
+      date_played: string | null;
+      date_added: string;
+      order: number;
+      playlists: PlaylistModel &
+        {
+          user: { id: string; visible_username: string };
+          dataValues: PlaylistModel['dataValues'] & {
+            artists_usernames?: string[];
+            track_count: number;
+          };
+        }[];
+    }[];
+    const playlistCount = await database.libraryPlaylists.count({
+      where: { user_id: libraryInfo.userId },
+    });
+    const processedPlaylistRecords = playlistRecords.map((playlistLibraryRecord) => {
+      const processedRecord = {
+        ..._.pick(playlistLibraryRecord.playlists, ['name', 'id']),
+        owner: {
+          id: playlistLibraryRecord.playlists[0].user.id,
+          visible_username: playlistLibraryRecord.playlists[0].user.visible_username,
+        },
+        cover_url: playlistLibraryRecord.playlists.cover_id
+          ? `${STATIC_IMAGES_PATH}/${playlistLibraryRecord.playlists.cover_id}.jpg`
+          : null,
+      };
+      if (libraryInfo.extended) {
+        return {
+          ...processedRecord,
+          count: playlistLibraryRecord.playlists.dataValues.tracks_count,
+          artists_usernames: playlistLibraryRecord.playlists[0].dataValues.artists_usernames,
+        };
+      }
+      return processedRecord;
+    });
+    return {
+      success: true,
+      data: { total: playlistCount, items: processedPlaylistRecords },
+    };
+  }
+  async getAlbumLibrary(
+    libraryInfo: {
+      userId: string;
+      extended: boolean;
+      sort: { sortBy: LibrarySortBy; order: OrderBy };
+    },
+    limit?: number,
+    offset?: number,
+  ): Promise<
+    SuccessfulResult<{
+      total: number;
+      items: (Pick<IPlaylist, 'name'> & {
+        id: string;
+        owner?: {
+          id: string;
+          visible_username: string;
+        };
+        cover_url: string | null;
+        library_type: LibraryType.Albums;
+      })[];
+    }>
+  > {
+    const order = (
+      libraryInfo.sort.sortBy === LibrarySortBy.Alphabetic
+        ? [[{ model: database.playlistModel }, libraryInfo.sort.sortBy, libraryInfo.sort.order]]
+        : [[libraryInfo.sort.sortBy, libraryInfo.sort.order]]
+    ) as sequelize.Order;
+
+    const playlistRecords = (await database.librarySinglesAlbumsModel.findAll({
+      // // 'distinct_artist',
+
+      where: { user_id: libraryInfo.userId, album_id: { [Op.not]: 'null' } },
+      // raw: true,
+      // nest: true,
+      // distinct: true,
+      order,
+      // group: 'playlists.tracks.users.track_artists.artist_id',
       include: [
         {
           model: database.playlistModel,
           // associationType:
           attributes: ['id', 'cover_id', 'name', 'owner'],
-          where: { type: libraryInfo.type },
+
+          where: { type: Type.Album },
           required: true,
           // required: true,
           // right: true,
@@ -1151,38 +1283,45 @@ class PlaylistManager {
       ],
       offset,
       limit,
+      logging: true,
     })) as unknown as {
-      rows: {
-        playlist_id: string;
-        user_id: string;
-        date_played: string | null;
-        date_added: string;
-        order: number;
-        playlists: PlaylistModel['dataValues'] & {
+      id: string;
+      playlist_id: string;
+      track_id: null;
+      user_id: string;
+      date_played: string | null;
+      date_added: string;
+      order: number;
+      playlists: PlaylistModel &
+        {
           user: { id: string; visible_username: string };
-        };
-      }[];
-      count: number;
-    };
-    const processedPlaylistRecords = playlistRecords.rows.map((playlistLibraryRecord) => {
+        }[];
+    }[];
+    const playlistCount = await database.libraryPlaylists.count({
+      where: { user_id: libraryInfo.userId },
+    });
+    const processedPlaylistRecords = playlistRecords.map((playlistLibraryRecord) => {
       const processedRecord = {
         ..._.pick(playlistLibraryRecord.playlists, ['name', 'id']),
-        owner: {
-          id: playlistLibraryRecord.playlists.user.id,
-          visible_username: playlistLibraryRecord.playlists.user.visible_username,
-        },
         cover_url: playlistLibraryRecord.playlists.cover_id
           ? `${STATIC_IMAGES_PATH}/${playlistLibraryRecord.playlists.cover_id}.jpg`
           : null,
+        library_type: LibraryType.Albums as LibraryType.Albums,
       };
-      if (libraryInfo.type === Type.Album) {
-        return { ..._.omit(processedRecord, ['owner']), library_type: LibraryType.Albums };
+      if (libraryInfo.extended) {
+        return {
+          ...processedRecord,
+          owner: {
+            id: playlistLibraryRecord.playlists[0].user.id,
+            visible_username: playlistLibraryRecord.playlists[0].user.visible_username,
+          },
+        };
       }
       return processedRecord;
     });
     return {
       success: true,
-      data: { total: playlistRecords.count, items: processedPlaylistRecords },
+      data: { total: playlistCount, items: processedPlaylistRecords },
     };
   }
   async createLibraryRecord(userId: string, playlistId: string, transaction: Transaction) {
