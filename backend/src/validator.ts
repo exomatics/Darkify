@@ -2,7 +2,7 @@ import { z } from 'zod/v4';
 
 import { errorMessages } from './errors/error-messages.ts';
 import { AlbumSpecificSortBy, AlbumsSortBy } from './interfaces/album-interface.ts';
-import { LibrarySortBy } from './interfaces/library-interface.ts';
+import { LibrarySortBy, LibraryType } from './interfaces/library-interface.ts';
 import { Restrictions, Type, OrderBy, PlaylistSortBy } from './interfaces/playlist-interface.ts';
 import { LibrarySections } from './interfaces/user-interface.ts';
 import { Bitrate } from './types/bitrate-type.ts';
@@ -211,6 +211,13 @@ const reorderPlaylistScheme = z.object({
   fromIndex: z.int().nonnegative(),
   toIndex: z.int().gte(-1),
 });
+const reorderLibraryReleases = z.object({
+  releaseId: uuidScheme,
+  userId: uuidScheme,
+  releaseType: z.enum(LibraryType),
+  fromIndex: z.int().nonnegative(),
+  toIndex: z.int().gte(-1),
+});
 const updateLibraryPlayDate = z.object({
   user_id: uuidScheme,
   event_data: z.union([
@@ -236,12 +243,13 @@ const updateLibraryPlayDate = z.object({
 const getLibraryScheme = z.object({
   userId: uuidScheme,
 });
-
-const getLibraryPlaylistsScheme = z.object({
+const getLibraryArtistsScheme = getLibraryScheme;
+const getLibraryItemsScheme = z.object({
   userId: uuidScheme,
   sort: z.object({ sortBy: z.enum(LibrarySortBy), order: z.enum(OrderBy) }),
   ...paginationScheme.shape,
 });
+
 const searchTrackInPlaylist = z.object({
   userId: uuidScheme,
   playlistId: uuidScheme,
@@ -363,7 +371,9 @@ export {
   deletePlaylistScheme,
   updateLibraryPlayDate,
   getLibraryScheme,
-  getLibraryPlaylistsScheme,
+  getLibraryArtistsScheme,
+  getLibraryItemsScheme,
+  reorderLibraryReleases,
   searchTrackInPlaylist,
   getLikedScheme,
   reorderLikedScheme,

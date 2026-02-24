@@ -1251,7 +1251,7 @@ class PlaylistManager {
         : [[libraryInfo.sort.sortBy, libraryInfo.sort.order]]
     ) as sequelize.Order;
 
-    const playlistRecords = (await database.librarySinglesAlbumsModel.findAll({
+    const playlistRecords = (await database.libraryReleasesModel.findAll({
       // // 'distinct_artist',
 
       where: { user_id: libraryInfo.userId, album_id: { [Op.not]: 'null' } },

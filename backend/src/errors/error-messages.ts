@@ -48,6 +48,7 @@ export const errorMessages = {
     NotExistsByName: 'There is no tracks with such name',
     FfmpegError: 'Error while converting to hls',
     FailedToCreate: 'Failed to create track',
+    LibraryNotExistsByIndex: 'Library single or album with this index doesnt exist in this library',
     NotTheAdmin: 'You are not the admin of this track',
     TrackAlreadyBelongsToAlbum: 'Track already belongs to this album',
     TrackIsNotASingle: 'Track is not a single',

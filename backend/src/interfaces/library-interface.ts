@@ -8,3 +8,10 @@ export enum LibraryType {
   Albums = 'albums',
   Singles = 'singles',
 }
+export interface IReleasesReorder {
+  releaseId: string;
+  userId: string;
+  releaseType: LibraryType;
+  fromIndex: number;
+  toIndex: number;
+}

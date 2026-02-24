@@ -20,9 +20,12 @@ import InternalError from '../../errors/internal-error.ts';
 import { LibrarySortBy, LibraryType } from '../../interfaces/library-interface.ts';
 import { Type, type OrderBy, type IPlaylist } from '../../interfaces/playlist-interface.ts';
 
+import PlaylistManager from './playlist.ts';
+
+import type { IReleasesReorder } from '../../interfaces/library-interface.ts';
 import type { ITrack, TrackResult, UpdateTrack } from '../../interfaces/track-interface.ts';
 import type { Result, SuccessfulResult } from '../../types/result-type.ts';
-import type { LibrarySinglesAlbumsModel } from '../library-singles-albums.ts';
+import type { LibraryReleasesModel } from '../library-releases.ts';
 import type { PlaylistModel } from '../playlist.ts';
 import type { TrackModel } from '../track.ts';
 import type { UserModel } from '../user.ts';
@@ -35,14 +38,15 @@ interface TrackModelWithUsers extends TrackModel {
     playlists?: PlaylistModel[];
   };
 }
-interface LibrarySinglesWithRelations extends LibrarySinglesAlbumsModel {
+interface LibrarySinglesWithRelations extends LibraryReleasesModel {
   tracks: TrackModel[] & { users: UserModel[] }[];
   playlists: undefined;
 }
-interface LibraryAlbumsWithRelations extends LibrarySinglesAlbumsModel {
+interface LibraryAlbumsWithRelations extends LibraryReleasesModel {
   playlists: PlaylistModel & { users: UserModel[] }[];
   tracks: undefined;
 }
+const playlist = new PlaylistManager();
 
 class TrackManager {
   async getTrackById(trackInfo: {
@@ -144,11 +148,15 @@ class TrackManager {
     return { success: true, data: { rows: tracksWithArtists, count: totalRecordsNumber } };
   }
 
-  async getLibrary(libraryInfo: {
-    userId: string;
-    extended: boolean;
-    sort: { sortBy: LibrarySortBy; order: OrderBy };
-  }): Promise<
+  async getLibrary(
+    libraryInfo: {
+      userId: string;
+      extended: boolean;
+      sort: { sortBy: LibrarySortBy; order: OrderBy };
+    },
+    limit?: number,
+    offset?: number,
+  ): Promise<
     SuccessfulResult<{
       total: number;
       items: (
@@ -179,7 +187,7 @@ class TrackManager {
         ? [[{ model: database.trackModel }, libraryInfo.sort.sortBy, libraryInfo.sort.order]]
         : [[libraryInfo.sort.sortBy, libraryInfo.sort.order]]
     ) as sequelize.Order;
-    const singles = (await database.librarySinglesAlbumsModel.findAndCountAll({
+    const singles = (await database.libraryReleasesModel.findAndCountAll({
       where: { user_id: libraryInfo.userId },
       attributes: ['date_played', 'date_added'],
       //check on existing in album when adding to library
@@ -215,6 +223,8 @@ class TrackManager {
           ],
         },
       ],
+      offset,
+      limit,
     })) as { count: number; rows: (LibrarySinglesWithRelations | LibraryAlbumsWithRelations)[] };
     const processedSingles = singles.rows.map((row) => {
       if (row.tracks) {
@@ -261,6 +271,123 @@ class TrackManager {
       }
     });
     return { success: true, data: { total: singles.count, items: processedSingles } };
+  }
+  async getLibraryByIndex(
+    userId: string,
+    index: number,
+  ): Promise<SuccessfulResult<LibraryReleasesModel | null>> {
+    const librarySinglesAlbumsRecord = await database.libraryReleasesModel.findOne({
+      where: { user_id: userId },
+      order: [['order', 'ASC']],
+      offset: index,
+    });
+
+    if (librarySinglesAlbumsRecord === null) {
+      return { success: true, data: librarySinglesAlbumsRecord };
+    }
+    return { success: true, data: librarySinglesAlbumsRecord };
+  }
+  async reorderLibrary(libraryInfo: IReleasesReorder) {
+    const itemRecord = await (libraryInfo.releaseType === LibraryType.Singles
+      ? this.getTrackRecordById(libraryInfo.releaseId)
+      : playlist.getAlbumRecordById(libraryInfo.releaseId, libraryInfo.userId));
+    if (!itemRecord.success) {
+      return itemRecord;
+    }
+    if (libraryInfo.fromIndex === libraryInfo.toIndex) {
+      return { success: true, data: null };
+    }
+    const fromIndexRecord = await this.getLibraryByIndex(libraryInfo.userId, libraryInfo.fromIndex);
+    if (!fromIndexRecord.data) {
+      return { success: false, reason: errorMessages.track.LibraryNotExistsByIndex };
+    }
+    let toIndexPlaylistRecord;
+    let afterPlaylistRecord;
+    if (libraryInfo.toIndex > 0) {
+      toIndexPlaylistRecord = await this.getLibraryByIndex(libraryInfo.userId, libraryInfo.toIndex);
+      if (!toIndexPlaylistRecord.data) {
+        return { success: false, reason: errorMessages.track.LibraryNotExistsByIndex };
+      }
+      afterPlaylistRecord = await database.libraryReleasesModel.findOne({
+        where: {
+          user_id: libraryInfo.userId,
+          order: { [Op.gt]: toIndexPlaylistRecord.data.order },
+        },
+        /////
+        order: [['order', 'ASC']],
+        /////
+      });
+    }
+    let newOrder;
+    if (toIndexPlaylistRecord || afterPlaylistRecord) {
+      newOrder = Math.floor(
+        ((toIndexPlaylistRecord?.data?.order ?? 0) + (afterPlaylistRecord?.order ?? 0)) / 2,
+      );
+    }
+    if (libraryInfo.toIndex === 0) {
+      newOrder = Math.floor((toIndexPlaylistRecord?.data?.order ?? 0) / 2);
+    }
+    if (afterPlaylistRecord === null || libraryInfo.toIndex === -1) {
+      const maxOrder = await database.libraryReleasesModel.max('order', {
+        where: {
+          [Op.and]: {
+            user_id: libraryInfo.userId,
+            [Op.and]: [
+              sequelize.where(
+                sequelize.fn('MOD', sequelize.col('order'), String(ORDER_NUMBER)),
+                '=',
+                '0',
+              ),
+            ],
+          },
+        },
+      });
+      newOrder = typeof maxOrder === 'number' ? maxOrder + ORDER_NUMBER : 0;
+    }
+    const collision = await database.libraryReleasesModel.findOne({
+      where: {
+        user_id: libraryInfo.userId,
+        order: newOrder,
+      },
+    });
+    if (collision) {
+      // console.log(collision);
+      await this.renormalizeLibraryOrder(libraryInfo.userId);
+      await this.reorderLibrary(libraryInfo);
+      return { success: true, data: null };
+    }
+    await database.libraryReleasesModel.update(
+      { order: newOrder },
+      { where: { order: fromIndexRecord.data.order } },
+    );
+    return { success: true, data: null };
+  }
+  async renormalizeLibraryOrder(userId: string) {
+    try {
+      await database.sequelize.transaction(async (transaction) => {
+        const rows = await database.libraryReleasesModel.findAll({
+          where: { user_id: userId },
+          order: [['order', 'ASC']],
+          transaction,
+          lock: transaction.LOCK.UPDATE,
+        });
+
+        const updates = rows.map((row, orderMultiplier) => ({
+          id: row.id,
+          user_id: userId,
+          album_id: row.album_id ?? null,
+          track_id: row.track_id ?? null,
+          order: (orderMultiplier + 1) * ORDER_NUMBER,
+        }));
+
+        await database.libraryReleasesModel.bulkCreate(updates, {
+          updateOnDuplicate: ['order'],
+          transaction,
+        });
+      });
+    } catch {
+      throw new InternalError(`failed to renormalize ${userId} Library order`);
+    }
   }
   async getTrackRecordById(
     trackId: string,
@@ -469,7 +596,7 @@ class TrackManager {
     return { success: true, data: trackRecord.data };
   }
   async createLibraryRecord(userId: string, single_id: string) {
-    const maxOrder = await database.librarySinglesAlbumsModel.max('order', {
+    const maxOrder = await database.libraryReleasesModel.max('order', {
       where: {
         user_id: userId,
         track_id: { [Op.not]: 'null' },
@@ -482,7 +609,7 @@ class TrackManager {
         ],
       },
     });
-    await database.librarySinglesAlbumsModel.create({
+    await database.libraryReleasesModel.create({
       id: crypto.randomUUID(),
       track_id: single_id,
       user_id: userId,
@@ -494,7 +621,7 @@ class TrackManager {
     if (!trackRecord.success) {
       return trackRecord;
     }
-    await database.librarySinglesAlbumsModel.destroy({
+    await database.libraryReleasesModel.destroy({
       where: { user_id: userId, track_id: singleId },
       transaction,
     });
@@ -518,7 +645,7 @@ class TrackManager {
     if (trackRecord.data.album.id !== trackRecord.data.id) {
       return { success: false, reason: errorMessages.track.TrackIsNotASingle };
     }
-    const playlistFollowersRecord = await database.librarySinglesAlbumsModel.findOne({
+    const playlistFollowersRecord = await database.libraryReleasesModel.findOne({
       where: { user_id: userId, track_id: singleId },
     });
     if (playlistFollowersRecord) {
@@ -541,7 +668,7 @@ class TrackManager {
     if (!trackRecord.success) {
       return trackRecord;
     }
-    const librarySingleRecord = await database.librarySinglesAlbumsModel.findOne({
+    const librarySingleRecord = await database.libraryReleasesModel.findOne({
       where: { user_id: singleId, track_id: singleId },
     });
     if (!librarySingleRecord) {

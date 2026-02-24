@@ -2,7 +2,7 @@ import { Sequelize, Op } from 'sequelize';
 
 import { artistModel } from '../models/artists.ts';
 import { libraryPlaylists } from '../models/library-playlists.ts';
-import { librarySinglesAlbumsModel } from '../models/library-singles-albums.ts';
+import { libraryReleasesModel } from '../models/library-releases.ts';
 import { playlistAlbumsModel } from '../models/playlist-albums.ts';
 import { playlistFollowersModel } from '../models/playlist-followers.ts';
 import { playlistTrackModel } from '../models/playlist-tracks.ts';
@@ -45,7 +45,7 @@ const database: Idb = {
   userFollowingModel: userFollowingModel(sequelize),
   playlistAlbumsModel: playlistAlbumsModel(sequelize),
   artistModel: artistModel(sequelize),
-  librarySinglesAlbumsModel: librarySinglesAlbumsModel(sequelize),
+  libraryReleasesModel: libraryReleasesModel(sequelize),
   libraryPlaylists: libraryPlaylists(sequelize),
 };
 
@@ -103,19 +103,19 @@ database.playlistFollowersModel.belongsTo(database.playlistModel, { foreignKey: 
 database.userModel.hasMany(database.playlistFollowersModel, { foreignKey: 'user_id' });
 database.playlistFollowersModel.belongsTo(database.userModel, { foreignKey: 'user_id' });
 
-database.librarySinglesAlbumsModel.hasMany(database.playlistModel.scope('albumOnly'), {
+database.libraryReleasesModel.hasMany(database.playlistModel.scope('albumOnly'), {
   foreignKey: 'id',
 });
 database.playlistModel
   .scope('albumOnly')
-  .belongsTo(database.librarySinglesAlbumsModel, { foreignKey: 'id' });
-database.librarySinglesAlbumsModel.belongsTo(database.userModel, { foreignKey: 'user_id' });
-database.userModel.hasMany(database.librarySinglesAlbumsModel, { foreignKey: 'user_id' });
+  .belongsTo(database.libraryReleasesModel, { foreignKey: 'id' });
+database.libraryReleasesModel.belongsTo(database.userModel, { foreignKey: 'user_id' });
+database.userModel.hasMany(database.libraryReleasesModel, { foreignKey: 'user_id' });
 
-database.librarySinglesAlbumsModel.hasMany(database.trackModel, { foreignKey: 'id' });
-database.trackModel.belongsTo(database.librarySinglesAlbumsModel, { foreignKey: 'id' });
-database.trackModel.hasMany(database.librarySinglesAlbumsModel, { foreignKey: 'track_id' });
-database.librarySinglesAlbumsModel.belongsTo(database.trackModel, { foreignKey: 'track_id' });
+database.libraryReleasesModel.hasMany(database.trackModel, { foreignKey: 'id' });
+database.trackModel.belongsTo(database.libraryReleasesModel, { foreignKey: 'id' });
+database.trackModel.hasMany(database.libraryReleasesModel, { foreignKey: 'track_id' });
+database.libraryReleasesModel.belongsTo(database.trackModel, { foreignKey: 'track_id' });
 
 database.playlistModel.addScope('notAlbum', {
   where: { type: { [Op.not]: 'album' } },
