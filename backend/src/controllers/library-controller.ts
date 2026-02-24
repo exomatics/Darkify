@@ -7,6 +7,7 @@ import PlaylistManager from '../models/services/playlist.ts';
 import TrackManager from '../models/services/track.ts';
 import UserManager from '../models/services/user.ts';
 
+import type { IReleasesReorder } from '../interfaces/library-interface.ts';
 import type { IReorder } from '../interfaces/playlist-interface.ts';
 
 const playlist = new PlaylistManager();
@@ -35,7 +36,15 @@ export default {
       albums: libraryAlbumsSingles.data.items,
     };
   },
-  async getLibraryPlaylists(
+  async getArtists(userId: string) {
+    const userRecord = await user.getUserById(userId);
+    if (!userRecord.success) {
+      throw new NotFoundError(userRecord.reason);
+    }
+    const libraryArtists = await user.getUserFollowedArtists(userId);
+    return libraryArtists.data;
+  },
+  async getPlaylists(
     libraryInfo: {
       userId: string;
       sort: { sortBy: LibrarySortBy; order: OrderBy };
@@ -43,7 +52,11 @@ export default {
     limit: number = DEFAULT_LIMIT,
     offset: number = DEFAULT_OFFSET,
   ) {
-    const modelResponse = await playlist.getPlaylistLibrary(
+    const userRecord = await user.getUserById(libraryInfo.userId);
+    if (!userRecord.success) {
+      throw new NotFoundError(userRecord.reason);
+    }
+    const libraryPlaylists = await playlist.getPlaylistLibrary(
       {
         userId: libraryInfo.userId,
         extended: true,
@@ -52,15 +65,43 @@ export default {
       limit,
       offset,
     );
-    const { items, total } = modelResponse.data;
-    return {
-      next: offset + items.length + 1 <= total ? offset + items.length : null,
-      offset,
-      ...modelResponse.data,
-    };
+    return libraryPlaylists.data;
   },
-  async reorderLibraryPlaylist(libraryInfo: IReorder) {
+  async getReleases(
+    libraryInfo: {
+      userId: string;
+      sort: { sortBy: LibrarySortBy; order: OrderBy };
+    },
+    limit: number = DEFAULT_LIMIT,
+    offset: number = DEFAULT_OFFSET,
+  ) {
+    const userRecord = await user.getUserById(libraryInfo.userId);
+    if (!userRecord.success) {
+      throw new NotFoundError(userRecord.reason);
+    }
+
+    const libraryAlbumsSingles = await track.getLibrary(
+      {
+        userId: libraryInfo.userId,
+        extended: true,
+        sort: libraryInfo.sort,
+      },
+      limit,
+      offset,
+    );
+    return libraryAlbumsSingles.data;
+  },
+  async reorderPlaylists(libraryInfo: IReorder) {
     const modelResponse = await playlist.reorderLibrary(libraryInfo);
+
+    if (!modelResponse.success) {
+      throw new ValidationError(modelResponse.reason);
+    }
+
+    return modelResponse.data;
+  },
+  async reorderReleases(libraryInfo: IReleasesReorder) {
+    const modelResponse = await track.reorderLibrary(libraryInfo);
 
     if (!modelResponse.success) {
       throw new ValidationError(modelResponse.reason);

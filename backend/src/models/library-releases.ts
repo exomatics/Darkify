@@ -4,20 +4,20 @@ import { errorMessages } from '../errors/error-messages.ts';
 
 import type { InferAttributes, InferCreationAttributes, Sequelize } from 'sequelize';
 
-class LibrarySinglesAlbumsModel extends Model<
-  InferAttributes<LibrarySinglesAlbumsModel>,
-  InferCreationAttributes<LibrarySinglesAlbumsModel>
+class LibraryReleasesModel extends Model<
+  InferAttributes<LibraryReleasesModel>,
+  InferCreationAttributes<LibraryReleasesModel>
 > {
   declare id: string;
-  declare track_id?: string;
-  declare album_id?: string;
+  declare track_id?: string | null;
+  declare album_id?: string | null;
   declare user_id: string;
   declare date_added?: string;
   declare date_played: string | null;
   declare order: number;
 }
-const librarySinglesAlbumsModel = (sequelize: Sequelize) => {
-  return sequelize.define<LibrarySinglesAlbumsModel>(
+const libraryReleasesModel = (sequelize: Sequelize) => {
+  return sequelize.define<LibraryReleasesModel>(
     'library_singles',
     {
       id: {
@@ -64,4 +64,4 @@ const librarySinglesAlbumsModel = (sequelize: Sequelize) => {
   );
 };
 
-export { librarySinglesAlbumsModel, LibrarySinglesAlbumsModel };
+export { libraryReleasesModel, LibraryReleasesModel };
