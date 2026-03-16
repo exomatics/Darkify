@@ -17,7 +17,6 @@ const playlistAlbumsModel = (sequelize: Sequelize) => {
         type: DataTypes.UUID,
         allowNull: false,
         primaryKey: true,
-        // unique: 'compositeIndex',
       },
       date_released: {
         type: DataTypes.DATE,
@@ -26,6 +25,13 @@ const playlistAlbumsModel = (sequelize: Sequelize) => {
     },
     {
       timestamps: false,
+      indexes: [
+        {
+          name: 'playlist_albums_playlist_id_unique',
+          unique: true,
+          fields: ['playlist_id'],
+        },
+      ],
     },
   );
 };
