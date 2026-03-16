@@ -6,6 +6,7 @@ class LibraryPlaylistsModel extends Model<
   InferAttributes<LibraryPlaylistsModel>,
   InferCreationAttributes<LibraryPlaylistsModel>
 > {
+  declare id: string;
   declare playlist_id: string;
   declare user_id: string;
   declare date_added?: string;
@@ -16,17 +17,22 @@ const libraryPlaylists = (sequelize: Sequelize) => {
   return sequelize.define<LibraryPlaylistsModel>(
     'library_playlists',
     {
+      id: {
+        type: DataTypes.UUID,
+        primaryKey: true,
+        allowNull: false,
+      },
       playlist_id: {
         type: DataTypes.UUID,
         allowNull: false,
-        primaryKey: true,
-        // unique: 'compositeIndex',
+        // primaryKey: true,
+        unique: 'compositeIndex',
       },
       user_id: {
         type: DataTypes.UUID,
         allowNull: false,
-        primaryKey: true,
-        // unique: 'compositeIndex',
+        // primaryKey: true,
+        unique: 'compositeIndex',
       },
       date_played: {
         type: DataTypes.DATE,

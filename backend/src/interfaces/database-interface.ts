@@ -10,14 +10,15 @@ import type { TrackModel } from '../models/track.ts';
 import type { UserFollowersModel } from '../models/user-followers.ts';
 import type { UserFollowingModel } from '../models/user-following.ts';
 import type { UserModel } from '../models/user.ts';
-import type { ModelStatic, Sequelize } from 'sequelize';
+import type { ModelStatic, QueryInterface, Sequelize } from 'sequelize';
 
 export interface Idb {
   sequelize: Sequelize;
+  queryInterface: QueryInterface;
   playlistModel: ModelStatic<PlaylistModel>;
+  trackModel: ModelStatic<TrackModel>;
   playlistTrackModel: ModelStatic<PlaylistTrackModel>;
   playlistFollowersModel: ModelStatic<PlaylistFollowersModel>;
-  trackModel: ModelStatic<TrackModel>;
   trackArtistsModel: ModelStatic<TrackArtistsModel>;
   userModel: ModelStatic<UserModel>;
   userFollowersModel: ModelStatic<UserFollowersModel>;

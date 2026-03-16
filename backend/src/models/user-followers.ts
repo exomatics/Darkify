@@ -6,7 +6,7 @@ class UserFollowersModel extends Model<
   InferCreationAttributes<UserFollowersModel>
 > {
   declare user_id: string;
-  declare followers_id: string | null;
+  declare follower_id: string | null;
 }
 const userFollowersModel = (sequelize: Sequelize) => {
   return sequelize.define<UserFollowersModel>(
@@ -18,7 +18,7 @@ const userFollowersModel = (sequelize: Sequelize) => {
         primaryKey: true,
         // unique: 'compositeIndex',
       },
-      followers_id: {
+      follower_id: {
         type: DataTypes.UUID,
         allowNull: false,
         primaryKey: true,

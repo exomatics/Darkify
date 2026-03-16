@@ -18,7 +18,7 @@ class LibraryReleasesModel extends Model<
 }
 const libraryReleasesModel = (sequelize: Sequelize) => {
   return sequelize.define<LibraryReleasesModel>(
-    'library_singles',
+    'library_releases',
     {
       id: {
         type: DataTypes.UUID,

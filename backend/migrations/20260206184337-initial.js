@@ -290,7 +290,7 @@ module.exports = {
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE',
       },
-      followers_id: {
+      follower_id: {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
@@ -303,13 +303,13 @@ module.exports = {
     });
 
     await queryInterface.addConstraint('user_followers', {
-      fields: ['user_id', 'followers_id'],
+      fields: ['user_id', 'follower_id'],
       type: 'primary key',
       name: 'user_followers_pkey',
     });
 
-    await queryInterface.addIndex('user_followers', ['followers_id'], {
-      name: 'idx_user_followers_followers_id',
+    await queryInterface.addIndex('user_followers', ['follower_id'], {
+      name: 'idx_user_followers_follower_id',
     });
 
     await queryInterface.createTable('user_following', {

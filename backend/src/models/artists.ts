@@ -28,6 +28,13 @@ const artistModel = (sequelize: Sequelize) => {
     },
     {
       timestamps: false,
+      indexes: [
+        {
+          name: 'artists_user_id_unique',
+          unique: true,
+          fields: ['user_id'],
+        },
+      ],
     },
   );
 };

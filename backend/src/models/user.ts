@@ -44,16 +44,13 @@ const userModel = (sequelize: Sequelize) => {
       username: {
         type: DataTypes.STRING(25),
         allowNull: false,
-        unique: true,
       },
       email: {
         type: DataTypes.STRING(254),
         allowNull: false,
-        unique: true,
       },
       avatar_url: {
         type: DataTypes.UUID,
-        unique: true,
       },
       bitrate: {
         type: DataTypes.ENUM(...Object.values(Bitrate)),
@@ -62,6 +59,23 @@ const userModel = (sequelize: Sequelize) => {
     },
     {
       timestamps: false,
+      indexes: [
+        {
+          name: 'users_username_unique',
+          unique: true,
+          fields: ['username'],
+        },
+        {
+          name: 'users_email_unique',
+          unique: true,
+          fields: ['email'],
+        },
+        {
+          name: 'users_avatar_unique',
+          unique: true,
+          fields: ['avatar_url'],
+        },
+      ],
     },
   );
 };

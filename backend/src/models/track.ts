@@ -51,7 +51,6 @@ const trackModel = (sequelize: Sequelize) => {
       },
       cover_id: {
         type: DataTypes.UUID,
-        unique: true,
       },
       creation_date: {
         type: DataTypes.DATEONLY,
@@ -60,6 +59,13 @@ const trackModel = (sequelize: Sequelize) => {
     },
     {
       timestamps: false,
+      indexes: [
+        {
+          name: 'tracks_cover_id_unique',
+          unique: true,
+          fields: ['cover_id'],
+        },
+      ],
     },
   );
 };
