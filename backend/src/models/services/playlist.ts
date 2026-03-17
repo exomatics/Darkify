@@ -359,6 +359,7 @@ class PlaylistManager {
         const maxOrder = await database.playlistTrackModel.max('order', {
           where: {
             playlist_id: playlistTrackInfo.playlistId,
+            user_id: playlistTrackInfo.userId,
             [Op.and]: [
               sequelize.where(
                 sequelize.fn('MOD', sequelize.col('order'), String(ORDER_NUMBER)),
@@ -373,6 +374,7 @@ class PlaylistManager {
           {
             playlist_id: playlistTrackInfo.playlistId,
             id: playlistTrackInfo.playlistTrackId,
+            user_id: playlistTrackInfo.userId,
             track_id: playlistTrackInfo.trackId,
             order: typeof maxOrder === 'number' ? maxOrder + ORDER_NUMBER : ORDER_NUMBER,
           },
@@ -1555,6 +1557,7 @@ class PlaylistManager {
         where: {
           [Op.and]: {
             playlist_id: playlistInfo.playlistId,
+            user_id: playlistInfo.userId,
             [Op.and]: [
               sequelize.where(
                 sequelize.fn('MOD', sequelize.col('order'), String(ORDER_NUMBER)),
@@ -1564,12 +1567,14 @@ class PlaylistManager {
             ],
           },
         },
+        logging: true,
       });
       newOrder = typeof maxOrder === 'number' ? maxOrder + ORDER_NUMBER : 0;
     }
 
     const collision = await database.playlistTrackModel.findOne({
       where: {
+        user_id: playlistInfo.userId,
         playlist_id: playlistInfo.playlistId,
         order: newOrder,
       },
@@ -1598,6 +1603,7 @@ class PlaylistManager {
 
         const updates = rows.map((row, orderMultiplier) => ({
           playlist_id: playlistId,
+          user_id: row.user_id,
           track_id: row.track_id,
           order: (orderMultiplier + 1) * ORDER_NUMBER,
           id: row.id,
@@ -1616,7 +1622,6 @@ class PlaylistManager {
     const maxOrder = await database.libraryReleasesModel.max('order', {
       where: {
         user_id: userId,
-        album_id: { [Op.not]: null },
         [Op.and]: [
           sequelize.where(
             sequelize.fn('MOD', sequelize.col('order'), String(ORDER_NUMBER)),

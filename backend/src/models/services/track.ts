@@ -577,7 +577,6 @@ class TrackManager {
     const maxOrder = await database.libraryReleasesModel.max('order', {
       where: {
         user_id: userId,
-        track_id: { [Op.not]: null },
         [Op.and]: [
           sequelize.where(
             sequelize.fn('MOD', sequelize.col('order'), String(ORDER_NUMBER)),

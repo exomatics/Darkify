@@ -4,7 +4,7 @@ async function assignRelations(database: Idb) {
   await database.queryInterface.addConstraint('playlist_tracks', {
     fields: ['playlist_id'],
     type: 'foreign key',
-    name: 'fk_playlist_tracks_playlist',
+    name: 'fk_playlist_tracks_playlist_id',
     references: {
       table: 'playlists',
       field: 'id',
@@ -15,9 +15,20 @@ async function assignRelations(database: Idb) {
   await database.queryInterface.addConstraint('playlist_tracks', {
     fields: ['track_id'],
     type: 'foreign key',
-    name: 'fk_playlist_tracks_track',
+    name: 'fk_playlist_tracks_track_id',
     references: {
       table: 'tracks',
+      field: 'id',
+    },
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  });
+  await database.queryInterface.addConstraint('playlist_tracks', {
+    fields: ['user_id'],
+    type: 'foreign key',
+    name: 'fk_playlist_tracks_user_id',
+    references: {
+      table: 'users',
       field: 'id',
     },
     onDelete: 'CASCADE',

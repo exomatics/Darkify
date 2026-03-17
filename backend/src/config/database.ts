@@ -83,6 +83,17 @@ database.playlistModel.hasMany(database.playlistTrackModel, {
   constraints: false,
 });
 
+database.playlistTrackModel.belongsTo(database.userModel, {
+  // targetKey: 'playlist_id',
+  foreignKey: 'user_id',
+  constraints: false,
+});
+database.userModel.hasMany(database.playlistTrackModel, {
+  // sourceKey: 'id',
+  foreignKey: 'user_id',
+  constraints: false,
+});
+
 // database.userFollowersModel.belongsTo(database.userModel, {
 //   foreignKey: 'id',
 // });
