@@ -117,7 +117,7 @@ export default {
         });
       });
     } catch {
-      throw new InternalError(errorMessages.album.failedToCreateAlbum);
+      throw new InternalError(errorMessages.album.FailedToCreate);
     }
     return { id: playlistResponse?.data.playlistId };
   },

@@ -25,13 +25,11 @@ const libraryPlaylists = (sequelize: Sequelize) => {
       playlist_id: {
         type: DataTypes.UUID,
         allowNull: false,
-        // primaryKey: true,
         unique: 'compositeIndex',
       },
       user_id: {
         type: DataTypes.UUID,
         allowNull: false,
-        // primaryKey: true,
         unique: 'compositeIndex',
       },
       date_played: {

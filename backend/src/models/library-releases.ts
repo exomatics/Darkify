@@ -55,7 +55,7 @@ const libraryReleasesModel = (sequelize: Sequelize) => {
       timestamps: false,
       validate: {
         isBothOrNone() {
-          if (this.playlist_id !== this.track_id) {
+          if (!!this.album_id === !!this.track_id) {
             throw new Error(errorMessages.database.BothOrNone);
           }
         },

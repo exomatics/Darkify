@@ -25,19 +25,11 @@ const playlistTrackModel = (sequelize: Sequelize) => {
         type: DataTypes.UUID,
         allowNull: false,
         primaryKey: true,
-        references: {
-          model: 'playlists',
-          key: 'id',
-        },
       },
       track_id: {
         type: DataTypes.UUID,
         allowNull: false,
         primaryKey: true,
-        references: {
-          model: 'tracks',
-          key: 'id',
-        },
       },
       order: {
         type: DataTypes.INTEGER,

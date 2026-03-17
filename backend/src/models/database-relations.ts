@@ -27,7 +27,7 @@ async function assignRelations(database: Idb) {
   await database.queryInterface.addConstraint('track_artists', {
     fields: ['artist_id'],
     type: 'foreign key',
-    name: 'fk_track_artists_user_id',
+    name: 'fk_track_artists_artist_id',
     references: {
       table: 'users',
       field: 'id',
@@ -106,6 +106,18 @@ async function assignRelations(database: Idb) {
     fields: ['user_id'],
     type: 'foreign key',
     name: 'user_followers_user_id_fk',
+    references: {
+      table: 'users',
+      field: 'id',
+    },
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  });
+
+  await database.queryInterface.addConstraint('tracks', {
+    fields: ['admin_id'],
+    type: 'foreign key',
+    name: 'tracks_admin_id_fk',
     references: {
       table: 'users',
       field: 'id',

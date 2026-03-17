@@ -27,7 +27,6 @@ export default {
     });
     const libraryAlbumsSingles = await track.getLibrary({
       userId,
-      extended: false,
       sort: { order: OrderBy.Desc, sortBy: LibrarySortBy.AddDate },
     });
     return {
@@ -83,7 +82,6 @@ export default {
     const libraryAlbumsSingles = await track.getLibrary(
       {
         userId: libraryInfo.userId,
-        extended: true,
         sort: libraryInfo.sort,
       },
       limit,
