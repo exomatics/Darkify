@@ -54,14 +54,12 @@ const database: Idb = {
   libraryPlaylists: libraryPlaylists(sequelize),
 };
 
-// database.playlistTrackModel.belongsTo(database.trackModel, {
-//   foreignKey: 'id',
-//   targetKey: 'id',
-// });
-// database.trackModel.hasMany(database.playlistTrackModel, {
-//   foreignKey: 'track_id',
-//   sourceKey: 'id',
-// });
+database.playlistTrackModel.belongsTo(database.trackModel, {
+  foreignKey: 'track_id',
+});
+database.trackModel.hasMany(database.playlistTrackModel, {
+  foreignKey: 'track_id',
+});
 
 database.playlistModel.addScope('albumOnly', {
   where: { type: 'album' },
@@ -74,14 +72,16 @@ database.trackModel.belongsTo(database.playlistModel.scope('albumOnly'), {
   onUpdate: 'CASCADE',
 });
 
-// database.playlistTrackModel.belongsTo(database.playlistModel, {
-//   targetKey: 'playlist_id',
-//   foreignKey: 'id',
-// });
-// database.playlistModel.hasMany(database.playlistTrackModel, {
-//   sourceKey: 'id',
-//   foreignKey: 'playlist_id',
-// });
+database.playlistTrackModel.belongsTo(database.playlistModel, {
+  // targetKey: 'playlist_id',
+  foreignKey: 'playlist_id',
+  constraints: false,
+});
+database.playlistModel.hasMany(database.playlistTrackModel, {
+  // sourceKey: 'id',
+  foreignKey: 'playlist_id',
+  constraints: false,
+});
 
 // database.userFollowersModel.belongsTo(database.userModel, {
 //   foreignKey: 'id',
@@ -90,60 +90,91 @@ database.trackModel.belongsTo(database.playlistModel.scope('albumOnly'), {
 //   foreignKey: 'followers_id',
 // });
 
-// database.userFollowingModel.belongsTo(database.userModel, {
-//   foreignKey: 'following_id',
-// });
-// database.userModel.hasMany(database.userFollowingModel, {
-//   foreignKey: 'following_id',
-// });
-
-database.playlistModel.belongsTo(database.userModel, { foreignKey: 'id' });
-database.userModel.hasMany(database.playlistModel, { foreignKey: 'owner' });
-
-// database.userModel.belongsToMany(database.trackModel, {
-//   // foreignKey: 'artist_id',
-//   through: database.trackArtistsModel,
-//   // otherKey: 'track_id',
-// });
-// database.trackModel.belongsToMany(database.userModel, {
-//   // foreignKey: 'track_id',
-//   through: database.trackArtistsModel,
-//   // otherKey: 'artist_id',
-// });
-
-// database.playlistFollowersModel.belongsTo(database.playlistModel, {
-//   targetKey: 'id',
-//   foreignKey: 'playlist_id',
-// });
-// database.playlistModel.hasMany(database.playlistFollowersModel, {
-//   sourceKey: 'id',
-//   foreignKey: 'playlist_id',
-// });
-
-// database.playlistFollowersModel.belongsTo(database.userModel, {
-//   targetKey: 'id',
-//   foreignKey: 'user_id',
-// });
-// database.userModel.hasMany(database.playlistFollowersModel, {
-//   sourceKey: 'id',
-//   foreignKey: 'user_id',
-// });
-
-database.libraryReleasesModel.hasMany(database.playlistModel.scope('albumOnly'), {
-  foreignKey: 'id',
+database.userFollowingModel.belongsTo(database.userModel, {
+  foreignKey: 'following_id',
+  constraints: false,
 });
+database.userModel.hasMany(database.userFollowingModel, {
+  foreignKey: 'following_id',
+  constraints: false,
+});
+
+database.userModel.hasMany(database.playlistModel, { foreignKey: 'owner', constraints: false });
+database.playlistModel.belongsTo(database.userModel, { foreignKey: 'owner', constraints: false });
+
+database.userModel.belongsToMany(database.trackModel, {
+  foreignKey: 'artist_id',
+  through: database.trackArtistsModel,
+  otherKey: 'track_id',
+  constraints: false,
+});
+database.trackModel.belongsToMany(database.userModel, {
+  foreignKey: 'track_id',
+  through: database.trackArtistsModel,
+  otherKey: 'artist_id',
+  constraints: false,
+});
+
+database.playlistModel.belongsToMany(database.trackModel, {
+  through: { model: database.playlistTrackModel, unique: false },
+  foreignKey: 'playlist_id',
+  otherKey: 'track_id',
+  constraints: false,
+});
+database.trackModel.belongsToMany(database.playlistModel, {
+  through: { model: database.playlistTrackModel, unique: false },
+  foreignKey: 'track_id',
+  otherKey: 'playlist_id',
+  constraints: false,
+});
+
+database.playlistFollowersModel.belongsTo(database.playlistModel, {
+  foreignKey: 'playlist_id',
+  constraints: false,
+});
+database.playlistModel.hasMany(database.playlistFollowersModel, {
+  foreignKey: 'playlist_id',
+  constraints: false,
+});
+
+database.playlistFollowersModel.belongsTo(database.userModel, {
+  foreignKey: 'user_id',
+  constraints: false,
+});
+database.userModel.hasMany(database.playlistFollowersModel, {
+  foreignKey: 'user_id',
+  constraints: false,
+});
+
 database.libraryReleasesModel.belongsTo(database.playlistModel.scope('albumOnly'), {
   foreignKey: 'album_id',
+  onDelete: 'CASCADE',
 });
-database.playlistModel
-  .scope('albumOnly')
-  .belongsTo(database.libraryReleasesModel, { foreignKey: 'album_id' });
+database.playlistModel.scope('albumOnly').hasMany(database.libraryReleasesModel, {
+  foreignKey: 'album_id',
+  onDelete: 'CASCADE',
+});
+// database.playlistModel
+//   .scope('albumOnly')
+//   .belongsTo(database.libraryReleasesModel, { foreignKey: 'album_id' });
 
-database.libraryReleasesModel.belongsTo(database.userModel, { foreignKey: 'user_id' });
-database.userModel.hasMany(database.libraryReleasesModel, { foreignKey: 'user_id' });
+database.libraryReleasesModel.belongsTo(database.userModel, {
+  foreignKey: 'user_id',
+  onDelete: 'CASCADE',
+});
+database.userModel.hasMany(database.libraryReleasesModel, {
+  foreignKey: 'user_id',
+  onDelete: 'CASCADE',
+});
 
-database.trackModel.hasMany(database.libraryReleasesModel, { foreignKey: 'track_id' });
-database.libraryReleasesModel.belongsTo(database.trackModel, { foreignKey: 'track_id' });
+database.trackModel.hasMany(database.libraryReleasesModel, {
+  foreignKey: 'track_id',
+  onDelete: 'CASCADE',
+});
+database.libraryReleasesModel.belongsTo(database.trackModel, {
+  foreignKey: 'track_id',
+  onDelete: 'CASCADE',
+});
 
 database.playlistModel.addScope('notAlbum', {
   where: { type: { [Op.not]: 'album' } },
@@ -151,19 +182,30 @@ database.playlistModel.addScope('notAlbum', {
 
 database.libraryPlaylists.belongsTo(database.playlistModel.scope('notAlbum'), {
   foreignKey: 'playlist_id',
+  onDelete: 'CASCADE',
 });
 
 database.playlistModel
   .scope('notAlbum')
-  .hasMany(database.libraryPlaylists, { foreignKey: 'playlist_id' });
+  .hasMany(database.libraryPlaylists, { foreignKey: 'playlist_id', onDelete: 'CASCADE' });
 
-database.libraryPlaylists.belongsTo(database.userModel, { foreignKey: 'user_id' });
-database.userModel.hasMany(database.libraryPlaylists, { foreignKey: 'user_id' });
+database.libraryPlaylists.belongsTo(database.userModel, {
+  foreignKey: 'user_id',
+  onDelete: 'CASCADE',
+});
+database.userModel.hasMany(database.libraryPlaylists, {
+  foreignKey: 'user_id',
+  onDelete: 'CASCADE',
+});
 
-// database.playlistAlbumsModel.belongsTo(database.playlistModel, {
-//   foreignKey: 'playlist_id',
-// });
-// database.playlistModel.hasOne(database.playlistAlbumsModel, { foreignKey: 'playlist_id' });
+database.playlistAlbumsModel.belongsTo(database.playlistModel, {
+  foreignKey: 'playlist_id',
+  constraints: false,
+});
+database.playlistModel.hasOne(database.playlistAlbumsModel, {
+  foreignKey: 'playlist_id',
+  constraints: false,
+});
 
 database.userModel.hasOne(database.artistModel, { foreignKey: 'user_id' });
 database.artistModel.belongsTo(database.userModel, { foreignKey: 'user_id' });

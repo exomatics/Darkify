@@ -255,7 +255,7 @@ router.post(
       throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }
 
-    const databaseResponse = await userController.followPlaylist(
+    const databaseResponse = await userController.followAlbum(
       validation.data.user_id,
       validation.data.playlist_id,
     );
@@ -273,7 +273,7 @@ router.post(
     if (!validation.success) {
       throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }
-    const databaseResponse = await userController.unfollowPlaylist(
+    const databaseResponse = await userController.unfollowAlbum(
       validation.data.user_id,
       validation.data.playlist_id,
     );

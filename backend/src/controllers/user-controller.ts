@@ -133,6 +133,20 @@ export default {
     }
     return modelResponse.data;
   },
+  async followAlbum(user_id: string, playlist_id: string) {
+    const modelResponse = await playlist.followAlbum(user_id, playlist_id);
+    if (!modelResponse.success) {
+      throw new ValidationError(modelResponse.reason);
+    }
+    return modelResponse.data;
+  },
+  async unfollowAlbum(user_id: string, playlist_id: string) {
+    const modelResponse = await playlist.unfollowAlbum(user_id, playlist_id);
+    if (!modelResponse.success) {
+      throw new ValidationError(modelResponse.reason);
+    }
+    return modelResponse;
+  },
   async followSingle(user_id: string, single_id: string) {
     const modelResponse = await track.followSingle(user_id, single_id);
     if (!modelResponse.success) {

@@ -87,7 +87,7 @@ class ArtistManager {
         required: true,
         through: { attributes: [], where: { artist_id: artistInfo.artistId } },
       },
-    })) as TracksWithArtists[];
+    })) as TracksWithArtists[] | [];
     const isFollowingArtist = await database.userFollowingModel.findOne({
       where: { user_id: artistInfo.userId, following_id: artistInfo.artistId },
     });
@@ -113,7 +113,7 @@ class ArtistManager {
         banner_id: artistRow.data.banner_id,
         description: artistRow.data.description,
         followers_count: artistFollowersCount,
-        listening_count: Number(artistListens[0].dataValues.total_listens),
+        listening_count: artistListens[0] ? Number(artistListens[0].dataValues.total_listens) : 0,
         is_following: !!isFollowingArtist,
         liked_songs_count: artistLikedCount,
       },

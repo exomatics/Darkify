@@ -27,13 +27,18 @@ export const errorMessages = {
     IsNotAnOwner: 'User is not the owner of the playlist',
     LibraryNotExistsById: 'Library playlist with this id does not exist',
     FailedToCreate: 'Failed to create playlist',
+    FailedToDelete: 'Failed to delete playlist',
+    FailedToAddTrack: 'Failed to add track to playlist',
     LibraryNotExistsByIndex: 'Library playlist with this index doesnt exist in this library',
-    playlistTrackNotExistsByID: 'playlistTrack with this id does not exist',
+    PlaylistTrackNotExistsByID: 'playlistTrack with this id does not exist',
     TrackNotExistsByIndex: 'Track with this index doesnt exist in this playlist',
+    AlreadyFollowsAlbum: 'User already follows album',
+    NotFollowsAlbum: 'User not follows album',
   }),
   album: Object.freeze({
     NotExistsById: 'Album with this id does not exist',
-    failedToCreateAlbum: 'Failed to create album',
+    FailedToCreate: 'Failed to create album',
+    FailedToDelete: 'Failed to delete album',
     failedToAddTrack: 'Failed to add track to album',
     playlistAlbumRecordNotExists: 'playlistAlbumRecord with this albumId doesnt not exist',
     AlbumIsNotAnAlbum: 'Playlist is not an Album',
@@ -52,6 +57,7 @@ export const errorMessages = {
     NotTheAdmin: 'You are not the admin of this track',
     TrackAlreadyBelongsToAlbum: 'Track already belongs to this album',
     TrackIsNotASingle: 'Track is not a single',
+    TrackAlreadyDeleted: 'Track is already deleted',
   }),
   validation: Object.freeze({
     PasswordNoCapital: 'Password has no capital letters',
@@ -65,7 +71,7 @@ export const errorMessages = {
     ExcludeAdminId: 'Artists array shouldnt include the admin_id',
   }),
   database: Object.freeze({
-    BothOrNone: 'only playlist_id or track_id must be defined',
+    BothOrNone: 'only album_id or track_id must be defined',
   }),
   init: Object.freeze({
     KeysAlreadyGenerated: 'Key pair already exists. Skipping generation.',

@@ -256,7 +256,7 @@ class UserManager {
           { transaction },
         );
         await database.userFollowersModel.create(
-          { followers_id: user_id, user_id: follow_id },
+          { follower_id: user_id, user_id: follow_id },
           { transaction },
         );
       });
@@ -273,7 +273,7 @@ class UserManager {
       where: { user_id, following_id: unfollow_id },
     });
     const userFollowersRecord = await database.userFollowersModel.findOne({
-      where: { followers_id: user_id, user_id: unfollow_id },
+      where: { follower_id: user_id, user_id: unfollow_id },
     });
 
     if (!userFollowingRecord || !userFollowersRecord) {

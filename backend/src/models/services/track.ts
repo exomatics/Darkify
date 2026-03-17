@@ -39,12 +39,12 @@ interface TrackModelWithUsers extends TrackModel {
   };
 }
 interface LibrarySinglesWithRelations extends LibraryReleasesModel {
-  tracks: TrackModel[] & { users: UserModel[] }[];
-  playlists: undefined;
+  track: TrackModel & { users: UserModel[] };
+  playlist: undefined;
 }
 interface LibraryAlbumsWithRelations extends LibraryReleasesModel {
-  playlists: PlaylistModel & { users: UserModel[] }[];
-  tracks: undefined;
+  playlist: PlaylistModel & { users: UserModel[] };
+  track: undefined;
 }
 const playlist = new PlaylistManager();
 
@@ -151,7 +151,6 @@ class TrackManager {
   async getLibrary(
     libraryInfo: {
       userId: string;
-      extended: boolean;
       sort: { sortBy: LibrarySortBy; order: OrderBy };
     },
     limit?: number,
@@ -187,10 +186,9 @@ class TrackManager {
         ? [[{ model: database.trackModel }, libraryInfo.sort.sortBy, libraryInfo.sort.order]]
         : [[libraryInfo.sort.sortBy, libraryInfo.sort.order]]
     ) as sequelize.Order;
-    const singles = (await database.libraryReleasesModel.findAndCountAll({
+    const singlesWithAlbums = (await database.libraryReleasesModel.findAndCountAll({
       where: { user_id: libraryInfo.userId },
-      attributes: ['date_played', 'date_added'],
-      //check on existing in album when adding to library
+      attributes: ['date_played', 'date_added', 'order'],
       order,
       include: [
         {
@@ -199,7 +197,7 @@ class TrackManager {
           include: [
             {
               model: database.userModel,
-              // required: true,
+              required: false,
               // right: true,
               attributes: ['id', 'visible_username'],
             },
@@ -210,7 +208,7 @@ class TrackManager {
           // associationType:
           attributes: ['id', 'cover_id', 'name', 'owner'],
           where: { type: Type.Album },
-          // required: true,
+          required: false,
           // right: true,
           // through: { attributes: ['playlist_id'] },
           include: [
@@ -223,54 +221,35 @@ class TrackManager {
           ],
         },
       ],
+      logging: true,
       offset,
       limit,
     })) as { count: number; rows: (LibrarySinglesWithRelations | LibraryAlbumsWithRelations)[] };
-    const processedSingles = singles.rows.map((row) => {
-      if (row.tracks) {
+    const processedSingles = singlesWithAlbums.rows.map((row) => {
+      if (row.track) {
         const processedSingleRecord = {
           library_type: 'single',
-          id: row.tracks[0].id,
-          name: row.tracks[0].name,
-          cover_url: row.tracks[0].cover_id
-            ? `${STATIC_IMAGES_PATH}/${row.tracks[0].cover_id}.jpg`
-            : null,
+          id: row.track.id,
+          name: row.track.name,
+          cover_url: row.track.cover_id ? `${STATIC_IMAGES_PATH}/${row.track.cover_id}.jpg` : null,
           owner: {
-            id: row.tracks[0].users[0].id,
-            visible_username: row.tracks[0].users[0].visible_username,
+            id: row.track.users[0].id,
+            visible_username: row.track.users[0].visible_username,
           },
         };
-        if (libraryInfo.extended) {
-          return {
-            ...processedSingleRecord,
-            owner: {
-              id: row.tracks[0].users[0].id,
-              visible_username: row.tracks[0].users[0].visible_username,
-            },
-          };
-        }
         return processedSingleRecord;
       } else {
         const processedAlbumRecord = {
-          ..._.pick(row.playlists, ['name', 'id']),
-          cover_url: row.playlists.cover_id
-            ? `${STATIC_IMAGES_PATH}/${row.playlists.cover_id}.jpg`
+          ..._.pick(row.playlist, ['name', 'id']),
+          cover_url: row.playlist.cover_id
+            ? `${STATIC_IMAGES_PATH}/${row.playlist.cover_id}.jpg`
             : null,
           library_type: LibraryType.Albums as LibraryType.Albums,
         };
-        if (libraryInfo.extended) {
-          return {
-            ...processedAlbumRecord,
-            owner: {
-              id: row.playlists[0].users[0].id,
-              visible_username: row.playlists[0].users[0].visible_username,
-            },
-          };
-        }
         return processedAlbumRecord;
       }
     });
-    return { success: true, data: { total: singles.count, items: processedSingles } };
+    return { success: true, data: { total: singlesWithAlbums.count, items: processedSingles } };
   }
   async getLibraryByIndex(
     userId: string,
@@ -549,13 +528,12 @@ class TrackManager {
           },
           { transaction },
         );
-
         await database.trackArtistsModel.bulkCreate(
           [
             { track_id: trackInfo.id, is_admin: true, artist_id: trackInfo.admin_id },
             ...trackArtists,
           ],
-          { transaction },
+          { transaction, logging: true },
         );
       });
     } catch {
@@ -599,7 +577,7 @@ class TrackManager {
     const maxOrder = await database.libraryReleasesModel.max('order', {
       where: {
         user_id: userId,
-        track_id: { [Op.not]: 'null' },
+        track_id: { [Op.not]: null },
         [Op.and]: [
           sequelize.where(
             sequelize.fn('MOD', sequelize.col('order'), String(ORDER_NUMBER)),
@@ -613,6 +591,7 @@ class TrackManager {
       id: crypto.randomUUID(),
       track_id: single_id,
       user_id: userId,
+      album_id: null,
       order: typeof maxOrder === 'number' ? maxOrder + ORDER_NUMBER : ORDER_NUMBER,
     });
   }
@@ -645,14 +624,13 @@ class TrackManager {
     if (trackRecord.data.album.id !== trackRecord.data.id) {
       return { success: false, reason: errorMessages.track.TrackIsNotASingle };
     }
-    const playlistFollowersRecord = await database.libraryReleasesModel.findOne({
+    const librarySingleRecord = await database.libraryReleasesModel.findOne({
       where: { user_id: userId, track_id: singleId },
     });
-    if (playlistFollowersRecord) {
+    if (librarySingleRecord) {
       return { success: false, reason: errorMessages.user.AlreadyFollowsSingle };
     }
     await this.createLibraryRecord(userId, singleId);
-
     return { success: true, data: null };
   }
   async unfollowSingle(
@@ -669,7 +647,7 @@ class TrackManager {
       return trackRecord;
     }
     const librarySingleRecord = await database.libraryReleasesModel.findOne({
-      where: { user_id: singleId, track_id: singleId },
+      where: { user_id: userId, track_id: singleId },
     });
     if (!librarySingleRecord) {
       return { success: false, reason: errorMessages.user.NotFollowsPlaylist };
@@ -757,10 +735,18 @@ class TrackManager {
   }
   async deleteTrack(
     trackId: string,
-  ): Promise<Result<null, typeof errorMessages.track.NotExistsById>> {
+  ): Promise<
+    Result<
+      null,
+      typeof errorMessages.track.NotExistsById | typeof errorMessages.track.TrackAlreadyDeleted
+    >
+  > {
     const trackRecord = await this.getTrackRecordById(trackId);
     if (!trackRecord.success) {
       return trackRecord;
+    }
+    if (trackRecord.data.deleted) {
+      return { success: false, reason: errorMessages.track.TrackAlreadyDeleted };
     }
 
     await trackRecord.data.update({ deleted: true });
