@@ -4,7 +4,7 @@ async function assignRelations(database: Idb) {
   await database.queryInterface.addConstraint('playlist_tracks', {
     fields: ['playlist_id'],
     type: 'foreign key',
-    name: 'fk_playlist_tracks_playlist_idF',
+    name: 'fk_playlist_tracks_playlist_id',
     references: {
       table: 'playlists',
       field: 'id',
