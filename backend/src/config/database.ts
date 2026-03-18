@@ -83,7 +83,6 @@ database.playlistModel.hasMany(database.playlistTrackModel, {
   constraints: false,
 });
 
-<<<<<<< HEAD
 database.playlistTrackModel.belongsTo(database.userModel, {
   // targetKey: 'playlist_id',
   foreignKey: 'user_id',
@@ -94,40 +93,14 @@ database.userModel.hasMany(database.playlistTrackModel, {
   foreignKey: 'user_id',
   constraints: false,
 });
-||||||| parent of efe502e (feature: refine library. extend library functionality (#63))
-database.userModel.hasMany(database.userFollowersModel, { foreignKey: 'user_id' });
-database.userFollowersModel.belongsTo(database.userModel, { foreignKey: 'user_id' });
-=======
+
 // database.userFollowersModel.belongsTo(database.userModel, {
 //   foreignKey: 'id',
 // });
 // database.userModel.hasMany(database.userFollowersModel, {
 //   foreignKey: 'followers_id',
 // });
->>>>>>> efe502e (feature: refine library. extend library functionality (#63))
 
-<<<<<<< HEAD
-// database.userFollowersModel.belongsTo(database.userModel, {
-//   foreignKey: 'id',
-// });
-// database.userModel.hasMany(database.userFollowersModel, {
-//   foreignKey: 'followers_id',
-// });
-||||||| parent of efe502e (feature: refine library. extend library functionality (#63))
-database.userModel.hasMany(database.userFollowingModel, { foreignKey: 'user_id' });
-database.userFollowingModel.belongsTo(database.userModel, { foreignKey: 'user_id' });
-=======
-database.userFollowingModel.belongsTo(database.userModel, {
-  foreignKey: 'following_id',
-  constraints: false,
-});
-database.userModel.hasMany(database.userFollowingModel, {
-  foreignKey: 'following_id',
-  constraints: false,
-});
->>>>>>> efe502e (feature: refine library. extend library functionality (#63))
-
-<<<<<<< HEAD
 database.userFollowingModel.belongsTo(database.userModel, {
   foreignKey: 'following_id',
   constraints: false,
@@ -139,13 +112,6 @@ database.userModel.hasMany(database.userFollowingModel, {
 
 database.userModel.hasMany(database.playlistModel, { foreignKey: 'owner', constraints: false });
 database.playlistModel.belongsTo(database.userModel, { foreignKey: 'owner', constraints: false });
-||||||| parent of efe502e (feature: refine library. extend library functionality (#63))
-database.userModel.hasMany(database.playlistModel, { foreignKey: 'owner' });
-database.playlistModel.belongsTo(database.userModel, { foreignKey: 'owner' });
-=======
-database.userModel.hasMany(database.playlistModel, { foreignKey: 'owner', constraints: false });
-database.playlistModel.belongsTo(database.userModel, { foreignKey: 'owner', constraints: false });
->>>>>>> efe502e (feature: refine library. extend library functionality (#63))
 
 database.userModel.belongsToMany(database.trackModel, {
   foreignKey: 'artist_id',
