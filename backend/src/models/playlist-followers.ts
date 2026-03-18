@@ -23,6 +23,10 @@ const playlistFollowersModel = (sequelize: Sequelize) => {
         type: DataTypes.UUID,
         allowNull: false,
         primaryKey: true,
+        references: {
+          model: 'users',
+          key: 'id',
+        },
         // unique: 'compositeIndex',
       },
     },

@@ -5,7 +5,7 @@ import database from '../../config/database.ts';
 import { errorMessages } from '../../errors/error-messages.ts';
 import { AlbumsSortBy } from '../../interfaces/album-interface.ts';
 import { ArtistAlbumsSortBy } from '../../interfaces/artist-interface.ts';
-import { Order, Restrictions } from '../../interfaces/playlist-interface.ts';
+import { OrderBy, Restrictions } from '../../interfaces/playlist-interface.ts';
 
 import type { IArtist, ArtistSinglesSortBy } from '../../interfaces/artist-interface.ts';
 import type { Result } from '../../types/result-type.ts';
@@ -87,7 +87,7 @@ class ArtistManager {
         required: true,
         through: { attributes: [], where: { artist_id: artistInfo.artistId } },
       },
-    })) as TracksWithArtists[];
+    })) as TracksWithArtists[] | [];
     const isFollowingArtist = await database.userFollowingModel.findOne({
       where: { user_id: artistInfo.userId, following_id: artistInfo.artistId },
     });
@@ -113,7 +113,7 @@ class ArtistManager {
         banner_id: artistRow.data.banner_id,
         description: artistRow.data.description,
         followers_count: artistFollowersCount,
-        listening_count: Number(artistListens[0].dataValues.total_listens),
+        listening_count: artistListens[0] ? Number(artistListens[0].dataValues.total_listens) : 0,
         is_following: !!isFollowingArtist,
         liked_songs_count: artistLikedCount,
       },
@@ -204,7 +204,7 @@ class ArtistManager {
   }
   async getArtistAlbums(
     artistInfo: { artistId: string; userId: string },
-    sort: { sortBy: ArtistAlbumsSortBy; order: Order },
+    sort: { sortBy: ArtistAlbumsSortBy; order: OrderBy },
     limit?: number,
     offset?: number,
   ): Promise<
@@ -260,7 +260,7 @@ class ArtistManager {
       [
         { model: database.playlistAlbumsModel, as: 'playlist_album' },
         AlbumsSortBy.Released,
-        Order.Desc,
+        OrderBy.Desc,
       ],
     ];
     let group: sequelize.GroupOption = [
@@ -336,7 +336,7 @@ class ArtistManager {
   }
   async getArtistSingles(
     artistInfo: { artistId: string; userId: string },
-    sort: { sortBy: ArtistSinglesSortBy; order: Order },
+    sort: { sortBy: ArtistSinglesSortBy; order: OrderBy },
     limit?: number,
     offset?: number,
   ): Promise<
@@ -457,7 +457,7 @@ class ArtistManager {
           )`),
         },
       },
-      order: [['play_count', Order.Desc]],
+      order: [['play_count', OrderBy.Desc]],
       include: [
         {
           model: database.userModel,

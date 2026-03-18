@@ -6,7 +6,7 @@ import NotFoundError from '../errors/not-found-error.ts';
 import ValidationError from '../errors/validation-error.ts';
 import {
   type PlaylistSortBy,
-  type Order,
+  type OrderBy,
   type IReorder,
   Type,
 } from '../interfaces/playlist-interface.ts';
@@ -40,7 +40,7 @@ export default {
   async getLikedTracks(
     playlistInfo: {
       userId: string;
-      sort: { sortBy: PlaylistSortBy; order: Order };
+      sort: { sortBy: PlaylistSortBy; order: OrderBy };
     },
     limit: number = DEFAULT_LIMIT,
     offset: number = DEFAULT_OFFSET,
@@ -114,7 +114,7 @@ export default {
     searchInfo: {
       search?: string;
       userId: string;
-      sort: { sortBy: PlaylistSortBy; order: Order };
+      sort: { sortBy: PlaylistSortBy; order: OrderBy };
     },
     limit: number = DEFAULT_LIMIT,
     offset: number = DEFAULT_OFFSET,

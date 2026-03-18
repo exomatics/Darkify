@@ -101,7 +101,7 @@ export default tseslint.config(
     },
   },
   {
-    ignores: ['eslint.config.mjs', 'prettier.config.js', './uploads/*'],
+    ignores: ['eslint.config.mjs', 'prettier.config.js', './uploads/*', './migrations/*'],
   },
   {
     files: ['./src/**/*.ts'],

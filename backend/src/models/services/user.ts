@@ -2,7 +2,7 @@ import crypto from 'node:crypto';
 
 import { Op } from 'sequelize';
 
-import { DEFAULT_LIMIT, DEFAULT_OFFSET, STATIC_IMAGES_PATH } from '../../config/config.ts';
+import { STATIC_IMAGES_PATH } from '../../config/config.ts';
 import database from '../../config/database.ts';
 import { errorMessages } from '../../errors/error-messages.ts';
 import InternalError from '../../errors/internal-error.ts';
@@ -82,8 +82,8 @@ class UserManager {
   }
   async getUserFollowing(
     user_id: string,
-    limit: number = DEFAULT_LIMIT,
-    offset: number = DEFAULT_OFFSET,
+    limit?: number,
+    offset?: number,
   ): Promise<
     Result<
       { rows: UserModel[]; count: number },
@@ -120,6 +120,43 @@ class UserManager {
       return { success: false, reason: errorMessages.user.NotFollowsAnyone };
     }
     return { success: true, data: { rows: followingUsers, count: userFollowingRecords.count } };
+  }
+  async getUserFollowedArtists(
+    user_id: string,
+    limit?: number,
+    offset?: number,
+  ): Promise<
+    SuccessfulResult<{
+      items: { id: string; cover_url: string | null; visible_username: string }[];
+      count: number;
+    }>
+  > {
+    const userFollowedArtists = (await database.userFollowingModel.findAndCountAll({
+      attributes: [],
+      where: { user_id },
+      include: [
+        {
+          model: database.userModel,
+          where: { is_artist: true },
+          required: true,
+          attributes: ['id', 'avatar_url', 'visible_username'],
+        },
+      ],
+      offset,
+      limit,
+    })) as { count: number; rows: (UserFollowingModel & { user: UserModel })[] };
+
+    const userFollowingData = userFollowedArtists.rows.map((row) => {
+      return {
+        id: row.user.id,
+        visible_username: row.user.visible_username,
+        cover_url: row.user.avatar_url ? `${STATIC_IMAGES_PATH}/${row.user.avatar_url}.jpg` : null,
+      };
+    });
+    return {
+      success: true,
+      data: { items: userFollowingData, count: userFollowedArtists.count },
+    };
   }
   async updateUserInfo(
     user_id: string,
@@ -219,7 +256,7 @@ class UserManager {
           { transaction },
         );
         await database.userFollowersModel.create(
-          { followers_id: user_id, user_id: follow_id },
+          { follower_id: user_id, user_id: follow_id },
           { transaction },
         );
       });
@@ -236,7 +273,7 @@ class UserManager {
       where: { user_id, following_id: unfollow_id },
     });
     const userFollowersRecord = await database.userFollowersModel.findOne({
-      where: { followers_id: user_id, user_id: unfollow_id },
+      where: { follower_id: user_id, user_id: unfollow_id },
     });
 
     if (!userFollowingRecord || !userFollowersRecord) {
@@ -312,11 +349,12 @@ class UserManager {
         await playlist.deleteLibraryRecord(user_id, playlist_id, transaction);
       });
     } catch {
-      throw new InternalError('failed to follow the playlist');
+      throw new InternalError('failed to unfollow the playlist');
     }
 
     return { success: true, data: null };
   }
+
   async deleteUser(
     user_id: string,
   ): Promise<Result<null, typeof errorMessages.user.NotExistsById>> {

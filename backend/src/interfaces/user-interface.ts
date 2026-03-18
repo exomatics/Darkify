@@ -17,9 +17,11 @@ export enum LibrarySections {
   PLAYLISTS = 'playlists',
   ALBUMS = 'albums',
   ARTISTS = 'artists',
+  SINGLES = 'singles',
 }
 
 export type UpdateLibraryPlayDate =
   | { section: LibrarySections.PLAYLISTS; playlist_id: string }
   | { section: LibrarySections.ALBUMS; album_id: string }
-  | { section: LibrarySections.ARTISTS; artist_id: string };
+  | { section: LibrarySections.ARTISTS; artist_id: string }
+  | { section: LibrarySections.SINGLES; track_id: string };

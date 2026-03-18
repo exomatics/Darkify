@@ -40,7 +40,6 @@ const playlistModel = (sequelize: Sequelize) => {
       },
       cover_id: {
         type: DataTypes.UUID,
-        unique: true,
       },
       likes: {
         type: DataTypes.INTEGER,
@@ -62,6 +61,13 @@ const playlistModel = (sequelize: Sequelize) => {
     },
     {
       timestamps: false,
+      indexes: [
+        {
+          name: 'playlists_cover_id_unique',
+          unique: true,
+          fields: ['cover_id'],
+        },
+      ],
     },
   );
 };

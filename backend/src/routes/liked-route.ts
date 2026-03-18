@@ -4,7 +4,7 @@ import { z } from 'zod/v4';
 
 import likedController from '../controllers/liked-controller.ts';
 import ValidationError from '../errors/validation-error.ts';
-import { Order, PlaylistSortBy } from '../interfaces/playlist-interface.ts';
+import { OrderBy, PlaylistSortBy } from '../interfaces/playlist-interface.ts';
 import asyncHandler from '../middleware/async-handler.ts';
 import {
   uuidScheme,
@@ -47,7 +47,7 @@ router.get(
       userId: request.jwtPayload.user_id,
       sort: {
         sortBy: request.query.sort ?? PlaylistSortBy.Custom,
-        order: request.query.order ?? Order.Desc,
+        order: request.query.order ?? OrderBy.Desc,
       },
       search: request.query.search,
       limit: +(request.query.limit ?? 5),

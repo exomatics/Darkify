@@ -2,8 +2,8 @@ import { z } from 'zod/v4';
 
 import { errorMessages } from './errors/error-messages.ts';
 import { AlbumSpecificSortBy, AlbumsSortBy } from './interfaces/album-interface.ts';
-import { LibrarySortBy } from './interfaces/library-interface.ts';
-import { Restrictions, Type, Order, PlaylistSortBy } from './interfaces/playlist-interface.ts';
+import { LibrarySortBy, LibraryType } from './interfaces/library-interface.ts';
+import { Restrictions, Type, OrderBy, PlaylistSortBy } from './interfaces/playlist-interface.ts';
 import { LibrarySections } from './interfaces/user-interface.ts';
 import { Bitrate } from './types/bitrate-type.ts';
 
@@ -69,6 +69,10 @@ const userFollowScheme = z.object({
 const playlistFollowScheme = z.object({
   user_id: uuidScheme,
   playlist_id: uuidScheme,
+});
+const singleFollowScheme = z.object({
+  user_id: uuidScheme,
+  single_id: uuidScheme,
 });
 const userAvatarScheme = z.object({
   user_id: uuidScheme,
@@ -194,7 +198,7 @@ const updatePlaylistCoverScheme = z.object({
 const getAllFromPlaylistScheme = z.object({
   playlistId: uuidScheme,
   userId: uuidScheme,
-  sort: z.object({ sortBy: z.enum(PlaylistSortBy), order: z.enum(Order) }),
+  sort: z.object({ sortBy: z.enum(PlaylistSortBy), order: z.enum(OrderBy) }),
   ...paginationScheme.shape,
 });
 const deletePlaylistScheme = z.object({
@@ -207,6 +211,13 @@ const reorderPlaylistScheme = z.object({
   fromIndex: z.int().nonnegative(),
   toIndex: z.int().gte(-1),
 });
+const reorderLibraryReleases = z.object({
+  releaseId: uuidScheme,
+  userId: uuidScheme,
+  releaseType: z.enum(LibraryType),
+  fromIndex: z.int().nonnegative(),
+  toIndex: z.int().gte(-1),
+});
 const updateLibraryPlayDate = z.object({
   user_id: uuidScheme,
   event_data: z.union([
@@ -214,31 +225,42 @@ const updateLibraryPlayDate = z.object({
       section: z.literal(LibrarySections.PLAYLISTS),
       playlist_id: uuidScheme,
     }),
-    //just add albums and artists in union later
+    z.object({
+      section: z.literal(LibrarySections.ALBUMS),
+      album_id: uuidScheme,
+    }),
+    z.object({
+      section: z.literal(LibrarySections.ARTISTS),
+      artist_id: uuidScheme,
+    }),
+    z.object({
+      section: z.literal(LibrarySections.SINGLES),
+      track_id: uuidScheme,
+    }),
   ]),
 });
 
 const getLibraryScheme = z.object({
   userId: uuidScheme,
-  sort: z.object({ sortBy: z.enum(LibrarySortBy), order: z.enum(Order) }),
 });
-
-const getLibraryPlaylistsScheme = z.object({
+const getLibraryArtistsScheme = getLibraryScheme;
+const getLibraryItemsScheme = z.object({
   userId: uuidScheme,
-  sort: z.object({ sortBy: z.enum(LibrarySortBy), order: z.enum(Order) }),
+  sort: z.object({ sortBy: z.enum(LibrarySortBy), order: z.enum(OrderBy) }),
   ...paginationScheme.shape,
 });
+
 const searchTrackInPlaylist = z.object({
   userId: uuidScheme,
   playlistId: uuidScheme,
   search: z.string().max(100).nonoptional(),
-  sort: z.object({ sortBy: z.enum(PlaylistSortBy), order: z.enum(Order) }),
+  sort: z.object({ sortBy: z.enum(PlaylistSortBy), order: z.enum(OrderBy) }),
   ...paginationScheme.shape,
 });
 const getLikedScheme = z.object({
   userId: uuidScheme,
   search: z.string().max(100).optional(),
-  sort: z.object({ sortBy: z.enum(PlaylistSortBy), order: z.enum(Order) }),
+  sort: z.object({ sortBy: z.enum(PlaylistSortBy), order: z.enum(OrderBy) }),
   ...paginationScheme.shape,
 });
 const reorderLikedScheme = reorderPlaylistScheme.omit({ playlistId: true });
@@ -249,7 +271,7 @@ const removeFromLikedScheme = removeFromPlaylist.omit({ playlistId: true });
 
 const getMyAlbumsScheme = z.object({
   userId: uuidScheme,
-  sort: z.object({ sortBy: z.enum(AlbumsSortBy), order: z.enum(Order) }),
+  sort: z.object({ sortBy: z.enum(AlbumsSortBy), order: z.enum(OrderBy) }),
   ...paginationScheme.shape,
 });
 
@@ -278,7 +300,7 @@ const getAllFromAlbumScheme = getAllFromPlaylistScheme
     albumId: uuidScheme,
     sort: z.object({
       sortBy: z.enum({ ...PlaylistSortBy, ...AlbumSpecificSortBy }),
-      order: z.enum(Order),
+      order: z.enum(OrderBy),
     }),
   });
 
@@ -349,7 +371,9 @@ export {
   deletePlaylistScheme,
   updateLibraryPlayDate,
   getLibraryScheme,
-  getLibraryPlaylistsScheme,
+  getLibraryArtistsScheme,
+  getLibraryItemsScheme,
+  reorderLibraryReleases,
   searchTrackInPlaylist,
   getLikedScheme,
   reorderLikedScheme,
@@ -372,4 +396,5 @@ export {
   getArtistSinglesScheme,
   getArtistTopTracks,
   getArtistTop,
+  singleFollowScheme,
 };

@@ -41,6 +41,8 @@ export const ROUTES = Object.freeze({
     POST_UNFOLLOW_PLAYLIST: `${API_BASE}/users/unfollow/playlist/:playlist_id`,
     POST_FOLLOW_ALBUM: `${API_BASE}/users/follow/album/:album_id`,
     POST_UNFOLLOW_ALBUM: `${API_BASE}/users/unfollow/album/:album_id`,
+    POST_FOLLOW_SINGLE: `${API_BASE}/users/follow/single/:single_id`,
+    POST_UNFOLLOW_SINGLE: `${API_BASE}/users/unfollow/single/:single_id`,
     PUT_ME_AVATAR: `${API_BASE}/users/me/avatar`,
   },
   PLAYLISTS: {
@@ -67,8 +69,11 @@ export const ROUTES = Object.freeze({
   },
   LIBRARY: {
     GET_ME_LIBRARY: `${API_BASE}/me/library`,
+    GET_ME_ARTISTS: `${API_BASE}/me/library/artists`,
     GET_ME_PLAYLISTS: `${API_BASE}/me/library/playlists`,
-    PUT_PLAYLISTS_REORDER: `${API_BASE}/me/library/playlists/:playlistId/reorder`,
+    GET_ME_RELEASES: `${API_BASE}/me/library/releases`,
+    PUT_ME_RELEASES_REORDER: `${API_BASE}/me/library/releases/:releaseId/reorder`,
+    PUT_ME_PLAYLISTS_REORDER: `${API_BASE}/me/library/playlists/:playlistId/reorder`,
   },
   ALBUMS: {
     GET_ALBUM: `${API_BASE}/albums/:albumId`,

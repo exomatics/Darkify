@@ -44,7 +44,7 @@ export enum PlaylistSortBy {
   Artist = 'artist',
   Custom = 'order',
 }
-export enum Order {
+export enum OrderBy {
   Asc = 'ASC',
   Desc = 'DESC',
 }
