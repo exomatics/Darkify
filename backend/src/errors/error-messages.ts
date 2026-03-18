@@ -29,9 +29,15 @@ export const errorMessages = {
     IsNotAnOwner: 'User is not the owner of the playlist',
     LibraryNotExistsById: 'Library playlist with this id does not exist',
     FailedToCreate: 'Failed to create playlist',
+<<<<<<< HEAD
     FailedToDelete: 'Failed to delete playlist',
     FailedToAddTrack: 'Failed to add track to playlist',
     FailedToFollow: 'Failed to follow the playlist',
+||||||| parent of efe502e (feature: refine library. extend library functionality (#63))
+=======
+    FailedToDelete: 'Failed to delete playlist',
+    FailedToAddTrack: 'Failed to add track to playlist',
+>>>>>>> efe502e (feature: refine library. extend library functionality (#63))
     LibraryNotExistsByIndex: 'Library playlist with this index doesnt exist in this library',
     PlaylistTrackNotExistsByID: 'playlistTrack with this id does not exist',
     TrackNotExistsByIndex: 'Track with this index doesnt exist in this playlist',

@@ -1622,6 +1622,7 @@ class PlaylistManager {
       throw new InternalError(`failed to renormalize Playlist ${playlistId} order`);
     }
   }
+<<<<<<< HEAD
   async createLibraryReleases(userId: string, playlist_id: string) {
     const maxOrder = await database.libraryReleasesModel.max('order', {
       where: {
@@ -1703,6 +1704,84 @@ class PlaylistManager {
 
     return { success: true, data: null };
   }
+||||||| parent of efe502e (feature: refine library. extend library functionality (#63))
+=======
+  async createLibraryReleases(userId: string, playlist_id: string) {
+    const maxOrder = await database.libraryReleasesModel.max('order', {
+      where: {
+        user_id: userId,
+        album_id: { [Op.not]: null },
+        [Op.and]: [
+          sequelize.where(
+            sequelize.fn('MOD', sequelize.col('order'), String(ORDER_NUMBER)),
+            '=',
+            '0',
+          ),
+        ],
+      },
+    });
+    await database.libraryReleasesModel.create({
+      id: crypto.randomUUID(),
+      track_id: null,
+      user_id: userId,
+      album_id: playlist_id,
+      order: typeof maxOrder === 'number' ? maxOrder + ORDER_NUMBER : ORDER_NUMBER,
+    });
+  }
+
+  async followAlbum(
+    userId: string,
+    playlistId: string,
+  ): Promise<
+    Result<
+      null,
+      | typeof errorMessages.album.NotExistsById
+      | typeof errorMessages.album.AlbumIsNotAnAlbum
+      | typeof errorMessages.playlist.AlreadyFollowsAlbum
+    >
+  > {
+    const albumRecord = await this.getAlbumRecordById(playlistId, userId);
+    if (!albumRecord.success) {
+      return albumRecord;
+    }
+    const libraryAlbumRecord = await database.libraryReleasesModel.findOne({
+      where: { user_id: userId, album_id: playlistId },
+    });
+    if (libraryAlbumRecord) {
+      return { success: false, reason: errorMessages.playlist.AlreadyFollowsAlbum };
+    }
+    await this.createLibraryReleases(userId, playlistId);
+    // console.log(singleId);
+
+    return { success: true, data: null };
+  }
+  async unfollowAlbum(
+    userId: string,
+    playlistId: string,
+  ): Promise<
+    Result<
+      null,
+      | typeof errorMessages.album.NotExistsById
+      | typeof errorMessages.album.AlbumIsNotAnAlbum
+      | typeof errorMessages.playlist.NotFollowsAlbum
+    >
+  > {
+    const albumRecord = await this.getAlbumRecordById(playlistId, userId);
+    if (!albumRecord.success) {
+      return albumRecord;
+    }
+    const libraryAlbumRecord = await database.libraryReleasesModel.findOne({
+      where: { user_id: userId, album_id: playlistId },
+    });
+    if (!libraryAlbumRecord) {
+      return { success: false, reason: errorMessages.playlist.NotFollowsAlbum };
+    }
+
+    await libraryAlbumRecord.destroy();
+
+    return { success: true, data: null };
+  }
+>>>>>>> efe502e (feature: refine library. extend library functionality (#63))
 }
 
 export default PlaylistManager;
