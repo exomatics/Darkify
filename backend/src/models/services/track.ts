@@ -292,9 +292,7 @@ class TrackManager {
           user_id: libraryInfo.userId,
           order: { [Op.gt]: toIndexPlaylistRecord.data.order },
         },
-        /////
         order: [['order', 'ASC']],
-        /////
       });
     }
     let newOrder;
@@ -330,14 +328,16 @@ class TrackManager {
       },
     });
     if (collision) {
-      // console.log(collision);
       await this.renormalizeLibraryOrder(libraryInfo.userId);
       await this.reorderLibrary(libraryInfo);
       return { success: true, data: null };
     }
     await database.libraryReleasesModel.update(
       { order: newOrder },
-      { where: { order: fromIndexRecord.data.order } },
+      {
+        where: { user_id: libraryInfo.userId, order: fromIndexRecord.data.order },
+        validate: false,
+      },
     );
     return { success: true, data: null };
   }
@@ -577,7 +577,6 @@ class TrackManager {
     const maxOrder = await database.libraryReleasesModel.max('order', {
       where: {
         user_id: userId,
-        track_id: { [Op.not]: null },
         [Op.and]: [
           sequelize.where(
             sequelize.fn('MOD', sequelize.col('order'), String(ORDER_NUMBER)),

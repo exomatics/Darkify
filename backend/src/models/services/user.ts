@@ -295,7 +295,9 @@ class UserManager {
   ): Promise<
     Result<
       null,
-      typeof errorMessages.playlist.NotExistsById | typeof errorMessages.user.AlreadyFollowsPlaylist
+      | typeof errorMessages.playlist.NotExistsById
+      | typeof errorMessages.user.AlreadyFollowsPlaylist
+      | typeof errorMessages.user.CanNotFollowYourPlaylist
     >
   > {
     const playlistRecord = await playlist.getPlaylistRecordById(playlist_id, user_id);
@@ -308,6 +310,12 @@ class UserManager {
     if (playlistFollowersRecord) {
       return { success: false, reason: errorMessages.user.AlreadyFollowsPlaylist };
     }
+    const playlistLibraryRecord = await database.libraryPlaylists.findOne({
+      where: { user_id, playlist_id },
+    });
+    if (playlistLibraryRecord) {
+      return { success: false, reason: errorMessages.user.CanNotFollowYourPlaylist };
+    }
     try {
       await database.sequelize.transaction(async (transaction) => {
         await database.playlistFollowersModel.create(
@@ -315,12 +323,12 @@ class UserManager {
             user_id,
             playlist_id,
           },
-          { transaction },
+          { transaction, logging: true },
         );
         await playlist.createLibraryRecord(user_id, playlist_id, transaction);
       });
     } catch {
-      throw new InternalError('failed to follow the playlist');
+      throw new InternalError(errorMessages.playlist.FailedToFollow);
     }
     return { success: true, data: null };
   }
