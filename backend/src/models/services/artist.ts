@@ -499,5 +499,25 @@ class ArtistManager {
     });
     return { success: true, data: { total: artistTopTracks.count, items: processedArtistLiked } };
   }
+  async searchForArtists(searchString: string, offset = 0, limit = 9) {
+    const searchPattern = `%${searchString}%`;
+    const artists = (await database.artistModel.findAndCountAll({
+      include: {
+        model: database.userModel,
+        where: { visible_username: { [Op.iLike]: searchPattern } },
+        attributes: ['id', 'visible_username', 'cover_id'],
+      },
+      offset,
+      limit,
+    })) as { rows: (ArtistModel & { user: UserModel })[]; count: number };
+    const processedArtists = artists.rows.map((row) => {
+      return {
+        id: row.user_id,
+        avatar_url: row.user.avatar_url ? `${STATIC_IMAGES_PATH}/${row.user.avatar_url}.jpg` : null,
+        visible_username: row.user.visible_username,
+      };
+    });
+    return { success: true, data: { items: processedArtists, total: artists.count } };
+  }
 }
 export default ArtistManager;
