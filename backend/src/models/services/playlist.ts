@@ -21,7 +21,10 @@ import {
   OrderBy,
 } from '../../interfaces/playlist-interface.ts';
 
-import type { AlbumSpecificSortBy } from '../../interfaces/album-interface.ts';
+import type {
+  AlbumSpecificSortBy,
+  PlaylistAlbumInstanceWithRelations,
+} from '../../interfaces/album-interface.ts';
 import type {
   ICreatePlaylist,
   IPlaylist,
@@ -781,10 +784,6 @@ class PlaylistManager {
       }[];
     }>
   > {
-    type PlaylistAlbumInstanceWithRelations = PlaylistModel & {
-      playlist_album: PlaylistAlbumsModel;
-    };
-
     const order = (
       sort.sortBy === AlbumsSortBy.Released
         ? [[database.playlistAlbumsModel, sort.sortBy, sort.order]]
