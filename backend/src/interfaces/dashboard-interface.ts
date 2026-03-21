@@ -9,7 +9,7 @@ export interface RecentRelease {
   type: ReleaseType;
   cover_url: string | null;
   is_followed: boolean;
-  date_releases: Date | null;
+  date_released: Date | null;
 }
 
 export type RecentlyPlayed = RecentRelease & { date_played: Date };

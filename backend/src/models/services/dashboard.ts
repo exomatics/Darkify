@@ -92,8 +92,10 @@ class DashboardManager {
   }
   async getRandomArtists(): Promise<SuccessfulResult<RandomArtist[]>> {
     const artistRecords = await database.userModel.findAll({
+      order: database.sequelize.random(),
       where: { is_artist: true },
       attributes: ['id', 'avatar_url', 'visible_username'],
+      limit: 20,
     });
     const processedArtistRecords = artistRecords.map((row) => {
       return {
