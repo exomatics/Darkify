@@ -100,4 +100,12 @@ export const ROUTES = Object.freeze({
   DASHBOARD: {
     GET_DASHBOARD: `${API_BASE}/dashboard`,
   },
+  GLOBAL_SEARCH: {
+    GET_ALL: `${API_BASE}/search/global`,
+    GET_TRACKS: `${API_BASE}/search/tracks`,
+    GET_ARTISTS: `${API_BASE}/search/artists`,
+    GET_PLAYLISTS: `${API_BASE}/search/playlists`,
+    GET_ALBUMS: `${API_BASE}/search/albums`,
+    GET_USERS: `${API_BASE}/search/users`,
+  },
 } as const);

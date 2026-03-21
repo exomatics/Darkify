@@ -147,7 +147,54 @@ class TrackManager {
     });
     return { success: true, data: { rows: tracksWithArtists, count: totalRecordsNumber } };
   }
-
+  async searchForTracks(searchString: string, offset = 0, limit = 9) {
+    const searchPattern = `%${searchString}%`;
+    const trackRecords = (await database.trackModel.findAll({
+      where: {
+        [Op.or]: [
+          { name: { [Op.iLike]: searchPattern } },
+          { lyrics: { [Op.iLike]: searchPattern } },
+          sequelize.literal(`
+        EXISTS (
+          SELECT 1
+          FROM "track_artists" ta
+          JOIN "users" u ON u.id = ta.artist_id
+          WHERE ta.track_id = "track"."id"
+            AND u.visible_username ILIKE ${database.sequelize.escape(searchPattern)}
+        )
+      `),
+        ],
+        [Op.and]: { deleted: false },
+      },
+      include: [
+        {
+          model: database.userModel,
+          through: { attributes: [] },
+          attributes: ['id', 'visible_username'],
+        },
+        { association: 'album', attributes: ['id', 'name'] },
+      ],
+      offset,
+      limit,
+    })) as TrackModelWithUsers[] | [];
+    const processedTracks = trackRecords.map((trackRecord) => {
+      return {
+        ..._.omit(trackRecord.dataValues, 'cover_id', 'album_id', 'users', 'admin_id', 'playlists'),
+        artists: trackRecord.dataValues.users.map((trackArtists) => {
+          return { id: trackArtists.id, visible_username: trackArtists.visible_username };
+        }),
+        is_liked: Boolean(trackRecord.dataValues.playlists?.length),
+        album: trackRecord.dataValues.album ?? {
+          id: trackRecord.dataValues.id,
+          name: trackRecord.dataValues.name,
+        },
+        cover_url: trackRecord.dataValues.cover_id
+          ? `${STATIC_IMAGES_PATH}/${trackRecord.dataValues.cover_id}.jpg`
+          : null,
+      };
+    });
+    return { success: true, data: processedTracks };
+  }
   async getLibrary(
     libraryInfo: {
       userId: string;

@@ -342,6 +342,8 @@ const getArtistSinglesScheme = getArtistLikedScheme;
 const getArtistTopTracks = getArtistScheme;
 const getArtistTop = getArtistScheme;
 
+const searchScheme = z.object({ search: z.string(), userId: uuidScheme });
+const searchWithPaginationScheme = searchScheme.extend(paginationScheme.shape);
 export {
   uuidScheme,
   loginScheme,
@@ -397,4 +399,6 @@ export {
   getArtistTopTracks,
   getArtistTop,
   singleFollowScheme,
+  searchScheme,
+  searchWithPaginationScheme,
 };
