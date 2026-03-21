@@ -21,7 +21,10 @@ import {
   OrderBy,
 } from '../../interfaces/playlist-interface.ts';
 
-import type { AlbumSpecificSortBy } from '../../interfaces/album-interface.ts';
+import type {
+  AlbumSpecificSortBy,
+  PlaylistAlbumInstanceWithRelations,
+} from '../../interfaces/album-interface.ts';
 import type {
   ICreatePlaylist,
   IPlaylist,
@@ -58,9 +61,7 @@ type PlaylistTrackInstanceWithRelations = PlaylistTrackModel & {
     playlists?: PlaylistModel[];
   };
 };
-type PlaylistAlbumInstanceWithRelations = PlaylistModel & {
-  playlist_album: PlaylistAlbumsModel;
-};
+
 type DeleteAlbumErrors =
   | typeof errorMessages.playlist.NotExistsById
   | typeof errorMessages.liked.CantDelete

@@ -22,6 +22,7 @@ import { FileUploader } from './models/services/file-management.ts';
 import albumRouter from './routes/album-route.ts';
 import artistRouter from './routes/artist-route.ts';
 import authRouter from './routes/auth-route.ts';
+import dashboardRouter from './routes/dashboard-route.ts';
 import globalSearchRouter from './routes/global-search-route.ts';
 import libraryRouter from './routes/library-route.ts';
 import likedRouter from './routes/liked-route.ts';
@@ -63,6 +64,7 @@ app.use('/', libraryRouter);
 app.use('/', likedRouter);
 app.use('/', albumRouter);
 app.use('/', artistRouter);
+app.use('/', dashboardRouter);
 app.use('/', globalSearchRouter);
 
 app.use(errorHandler);
