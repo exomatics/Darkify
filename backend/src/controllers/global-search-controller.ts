@@ -65,7 +65,7 @@ export default {
     if (!isUserExists.success) {
       throw new NotFoundError(isUserExists.reason);
     }
-    const albumsResult = await playlist.searchForAlbums(searchInfo, limit, offset);
+    const albumsResult = await playlist.searchForAlbums(searchInfo, offset, limit);
     return albumsResult;
   },
   async searchForPlaylists(

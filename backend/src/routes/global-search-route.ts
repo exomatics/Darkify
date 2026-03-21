@@ -138,7 +138,7 @@ router.get(
 );
 
 router.get(
-  ROUTES.GLOBAL_SEARCH.GET_ALBUMS,
+  ROUTES.GLOBAL_SEARCH.GET_USERS,
   passport.authenticate('access-token', { session: false }) as RequestHandler,
   asyncHandler(async (request: Request, response: Response) => {
     const validation = searchWithPaginationScheme.safeParse({

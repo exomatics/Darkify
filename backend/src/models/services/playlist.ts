@@ -823,8 +823,8 @@ class PlaylistManager {
   }
   async searchForAlbums(
     searchInfo: { userId: string; searchString: string },
-    limit = 0,
-    offset = 9,
+    offset = 0,
+    limit = 9,
   ): Promise<
     SuccessfulResult<{
       total: number;
