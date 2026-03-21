@@ -58,7 +58,9 @@ type PlaylistTrackInstanceWithRelations = PlaylistTrackModel & {
     playlists?: PlaylistModel[];
   };
 };
-
+type PlaylistAlbumInstanceWithRelations = PlaylistModel & {
+  playlist_album: PlaylistAlbumsModel;
+};
 type DeleteAlbumErrors =
   | typeof errorMessages.playlist.NotExistsById
   | typeof errorMessages.liked.CantDelete
@@ -663,6 +665,7 @@ class PlaylistManager {
             play_count: row.track.play_count,
             deleted: row.track.deleted,
             duration: row.track.duration,
+            album: row.track.album ?? { id: row.track.id, name: row.track.name },
             is_liked: Boolean(row.track.playlists?.length),
             creation_date: row.track.creation_date ?? null,
             cover_url: row.track.cover_id
@@ -781,10 +784,6 @@ class PlaylistManager {
       }[];
     }>
   > {
-    type PlaylistAlbumInstanceWithRelations = PlaylistModel & {
-      playlist_album: PlaylistAlbumsModel;
-    };
-
     const order = (
       sort.sortBy === AlbumsSortBy.Released
         ? [[database.playlistAlbumsModel, sort.sortBy, sort.order]]
@@ -812,6 +811,82 @@ class PlaylistManager {
         name: albumRecord.name,
         published: !!albumRecord.playlist_album.date_released,
         date_released: albumRecord.playlist_album.date_released,
+        cover_url: albumRecord.cover_id
+          ? `${STATIC_IMAGES_PATH}/${albumRecord.cover_id}.jpg`
+          : null,
+      };
+    });
+    return {
+      success: true,
+      data: { total: playlistRecords.count, items: processedPlaylistRecords },
+    };
+  }
+  async searchForAlbums(
+    searchInfo: { userId: string; searchString: string },
+    offset = 0,
+    limit = 9,
+  ): Promise<
+    SuccessfulResult<{
+      total: number;
+      items: {
+        id: string;
+        name: string;
+        cover_url: string | null;
+      }[];
+    }>
+  > {
+    const searchPattern = `%${searchInfo.searchString}%`;
+    const playlistRecords = (await database.playlistModel.scope('albumOnly').findAndCountAll({
+      attributes: [
+        'id',
+        'cover_id',
+        'name',
+        'owner',
+        [
+          database.sequelize.literal(`
+        (
+          SELECT ARRAY(
+            SELECT DISTINCT u.visible_username
+            FROM playlist_tracks pt
+            JOIN tracks t ON t.id = pt.track_id
+            JOIN track_artists ta ON ta.track_id = t.id
+            JOIN users u ON u.id = ta.artist_id
+            WHERE pt.playlist_id = playlist.id
+            LIMIT 3
+          )
+        )
+      `),
+          'artists_usernames',
+        ],
+      ],
+      where: {
+        name: {
+          [Op.iLike]: searchPattern,
+        },
+        [Op.or]: { restrictions: Restrictions.Public, owner: searchInfo.userId },
+      },
+      include: [
+        {
+          model: database.playlistAlbumsModel,
+          attributes: ['date_released'],
+        },
+      ],
+      offset,
+      limit,
+    })) as {
+      rows: (PlaylistModel & {
+        playlist_album: PlaylistAlbumsModel;
+        artists_usernames: string[];
+      })[];
+      count: number;
+    };
+    const processedPlaylistRecords = playlistRecords.rows.map((albumRecord) => {
+      return {
+        id: albumRecord.id,
+        name: albumRecord.name,
+        published: !!albumRecord.playlist_album.date_released,
+        date_released: albumRecord.playlist_album.date_released,
+        artists_usernames: albumRecord.artists_usernames,
         cover_url: albumRecord.cover_id
           ? `${STATIC_IMAGES_PATH}/${albumRecord.cover_id}.jpg`
           : null,

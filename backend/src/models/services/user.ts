@@ -158,6 +158,23 @@ class UserManager {
       data: { items: userFollowingData, count: userFollowedArtists.count },
     };
   }
+  async searchForUsers(searchString: string, limit = 9, offset = 0) {
+    const searchPattern = `%${searchString}%`;
+
+    const users = await database.userModel.findAndCountAll({
+      where: { visible_username: { [Op.iLike]: searchPattern } },
+      limit,
+      offset,
+    });
+    const processedUsers = users.rows.map((row) => {
+      return {
+        id: row.id,
+        visible_username: row.visible_username,
+        avatar_url: row.avatar_url ? `${STATIC_IMAGES_PATH}/${row.avatar_url}.jpg` : null,
+      };
+    });
+    return { success: true, data: { items: processedUsers, total: users.count } };
+  }
   async updateUserInfo(
     user_id: string,
     userInfo: Pick<IUser, 'visible_username'>,

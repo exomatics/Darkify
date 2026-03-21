@@ -22,11 +22,13 @@ import { FileUploader } from './models/services/file-management.ts';
 import albumRouter from './routes/album-route.ts';
 import artistRouter from './routes/artist-route.ts';
 import authRouter from './routes/auth-route.ts';
+import globalSearchRouter from './routes/global-search-route.ts';
 import libraryRouter from './routes/library-route.ts';
 import likedRouter from './routes/liked-route.ts';
 import playlistRouter from './routes/playlist-route.ts';
 import trackRouter from './routes/track-route.ts';
 import userRouter from './routes/user-route.ts';
+
 FileUploader.init();
 
 const openapiFile = fs.readFileSync(PATH_TO_OPENAPI, 'utf8');
@@ -61,6 +63,7 @@ app.use('/', libraryRouter);
 app.use('/', likedRouter);
 app.use('/', albumRouter);
 app.use('/', artistRouter);
+app.use('/', globalSearchRouter);
 
 app.use(errorHandler);
 app.listen(3000, () => logger.info('server is running'));
