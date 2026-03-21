@@ -61,9 +61,7 @@ type PlaylistTrackInstanceWithRelations = PlaylistTrackModel & {
     playlists?: PlaylistModel[];
   };
 };
-type PlaylistAlbumInstanceWithRelations = PlaylistModel & {
-  playlist_album: PlaylistAlbumsModel;
-};
+
 type DeleteAlbumErrors =
   | typeof errorMessages.playlist.NotExistsById
   | typeof errorMessages.liked.CantDelete
