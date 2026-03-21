@@ -57,7 +57,7 @@ router.get(
   passport.authenticate('access-token', { session: false }) as RequestHandler,
   asyncHandler(async (request: Request, response: Response) => {
     const validation = getAlbumInfoScheme.safeParse({
-      playlistId: request.params.playlistId,
+      albumId: request.params.albumId,
       userId: request.jwtPayload.user_id,
     });
 

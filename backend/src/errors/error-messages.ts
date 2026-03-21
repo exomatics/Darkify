@@ -2,7 +2,6 @@ export const errorMessages = {
   user: Object.freeze({
     NotExistsById: 'User with this id does not exist',
     NotExistsByUsernameOrEmail: 'User with this username or email does not exist',
-    NotFollowsAnyone: 'User does not follow anyone',
     AlreadyFollowsUser: 'User already follows this user',
     NotFollowsUser: 'User not follows this user',
     CanNotFollowYourself: 'User can not follow themself',

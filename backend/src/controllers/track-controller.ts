@@ -43,7 +43,12 @@ export default {
   ) {
     const modelResponse = await track.getTracksByName(searchInfo, limit, offset);
     if (!modelResponse.success) {
-      return [];
+      return {
+        next: 0,
+        offset: 0,
+        total: 0,
+        items: [],
+      };
     }
     const { rows, count } = modelResponse.data;
     return {

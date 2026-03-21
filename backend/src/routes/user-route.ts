@@ -317,7 +317,7 @@ router.post(
     response.status(200).json(databaseResponse);
   }),
 );
-router.post(
+router.put(
   ROUTES.USERS.PUT_EVENTS_PLAYED,
   passport.authenticate('access-token', { session: false }) as RequestHandler,
   asyncHandler(
@@ -343,8 +343,8 @@ router.post(
 );
 router.put(
   ROUTES.USERS.PUT_ME_AVATAR,
-  fileUploader.uploadImageMiddleware.single('avatar'),
   passport.authenticate('access-token', { session: false }) as RequestHandler,
+  fileUploader.uploadImageMiddleware.single('avatar'),
   asyncHandler(async (request: Request, response: Response) => {
     const validation = userAvatarScheme.safeParse({
       user_id: request.jwtPayload.user_id,
@@ -363,8 +363,8 @@ router.put(
 );
 router.put(
   ROUTES.USERS.PUT_ME_BANNER,
-  fileUploader.uploadImageMiddleware.single('banner'),
   passport.authenticate('access-token', { session: false }) as RequestHandler,
+  fileUploader.uploadImageMiddleware.single('banner'),
   asyncHandler(async (request: Request, response: Response) => {
     const validation = userBannerScheme.safeParse({
       user_id: request.jwtPayload.user_id,
@@ -392,7 +392,7 @@ router.delete(
 
     const databaseResponse = await userController.deleteUser(validation.data);
     response.clearCookie('Authorization');
-    response.clearCookie('refresh-token');
+    response.clearCookie('refreshToken');
     response.status(200).json(databaseResponse);
   }),
 );

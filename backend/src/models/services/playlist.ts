@@ -217,7 +217,7 @@ class PlaylistManager {
         result = { success: true, data: null };
       });
     } catch {
-      throw new InternalError(errorMessages.album.FailedToCreate);
+      throw new InternalError(errorMessages.album.FailedToDelete);
     }
     return result;
   }

@@ -85,10 +85,7 @@ class UserManager {
     limit?: number,
     offset?: number,
   ): Promise<
-    Result<
-      { rows: UserModel[]; count: number },
-      typeof errorMessages.user.NotExistsById | typeof errorMessages.user.NotFollowsAnyone
-    >
+    Result<{ rows: UserModel[]; count: number }, typeof errorMessages.user.NotExistsById>
   > {
     const userRecord = await this.getUserById(user_id);
     if (!userRecord.success) {
@@ -116,9 +113,6 @@ class UserManager {
       attributes: ['id', 'visible_username', 'avatar_url'],
       where: { id: { [Op.in]: userFollowingData } },
     });
-    if (!userFollowingData[0]) {
-      return { success: false, reason: errorMessages.user.NotFollowsAnyone };
-    }
     return { success: true, data: { rows: followingUsers, count: userFollowingRecords.count } };
   }
   async getUserFollowedArtists(

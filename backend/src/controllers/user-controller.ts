@@ -33,11 +33,11 @@ export default {
       is_artist: userRecord.data.is_artist,
       followers: followersCount.data,
     };
-    const artistData = await artist.getArtistById(user_id);
-    if (!artistData.success) {
-      throw new NotFoundError(artistData.reason);
-    }
     if (userRecord.data.is_artist) {
+      const artistData = await artist.getArtistById(user_id);
+      if (!artistData.success) {
+        throw new NotFoundError(artistData.reason);
+      }
       return {
         ...requiredUserInfo,
         banner_url: artistData.data.banner_id
@@ -92,7 +92,7 @@ export default {
       await user.updateArtistInfo({ user_id, description: user_info.description });
       const artistData = await artist.getArtistById(user_id);
       if (!artistData.success) {
-        return artistData;
+        throw new NotFoundError(artistData.reason);
       }
       return { ...updateUserInfo.data, description: artistData.data.description };
     }
@@ -145,7 +145,7 @@ export default {
     if (!modelResponse.success) {
       throw new ValidationError(modelResponse.reason);
     }
-    return modelResponse;
+    return modelResponse.data;
   },
   async followSingle(user_id: string, single_id: string) {
     const modelResponse = await track.followSingle(user_id, single_id);
@@ -159,7 +159,7 @@ export default {
     if (!modelResponse.success) {
       throw new ValidationError(modelResponse.reason);
     }
-    return modelResponse;
+    return modelResponse.data;
   },
   async deleteUser(user_id: string) {
     const modelResponse = await user.deleteUser(user_id);
@@ -169,6 +169,8 @@ export default {
     return modelResponse.data;
   },
   async updateLibraryPlayDate(user_id: string, event_data: UpdateLibraryPlayDate) {
+    ///DOOOOOOOOOOOOOOOO
+    // 23;
     if (event_data.section === LibrarySections.PLAYLISTS) {
       const modelResponse = await playlist.updateLibraryPlayDate(user_id, event_data.playlist_id);
       if (!modelResponse.success) {
