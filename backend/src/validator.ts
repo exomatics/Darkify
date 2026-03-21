@@ -78,6 +78,7 @@ const userAvatarScheme = z.object({
   user_id: uuidScheme,
   file: fileScheme,
 });
+const userFollowingScheme = z.object({ user_id: uuidScheme }).extend(paginationScheme.shape);
 const userBannerScheme = userAvatarScheme;
 
 const updateUserScheme = z
@@ -349,6 +350,7 @@ export {
   loginScheme,
   refreshTokenScheme,
   registerScheme,
+  userFollowingScheme,
   updateUserScheme,
   updateUserSettingsScheme,
   userFollowScheme,

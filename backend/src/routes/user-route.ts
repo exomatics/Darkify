@@ -18,6 +18,7 @@ import {
   createArtistScheme,
   userBannerScheme,
   singleFollowScheme,
+  userFollowingScheme,
 } from '../validator.ts';
 
 import { ROUTES } from './routes.ts';
@@ -45,12 +46,20 @@ router.get(
   ROUTES.USERS.GET_ME_FOLLOWING,
   passport.authenticate('access-token', { session: false }) as RequestHandler,
   asyncHandler(async (request: Request, response: Response) => {
-    const validation = uuidScheme.safeParse(request.jwtPayload.user_id);
+    const validation = userFollowingScheme.safeParse({
+      user_id: request.jwtPayload.user_id,
+      limit: +(request.query.limit ?? 5),
+      offset: +(request.query.offset ?? 0),
+    });
     if (!validation.success) {
       throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }
 
-    const databaseResponse = await userController.getUserFollowing(validation.data.trim());
+    const databaseResponse = await userController.getUserFollowing(
+      validation.data.user_id,
+      validation.data.offset,
+      validation.data.limit,
+    );
     response.status(200).json(databaseResponse);
   }),
 );
