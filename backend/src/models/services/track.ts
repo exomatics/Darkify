@@ -292,6 +292,10 @@ class TrackManager {
             ? `${STATIC_IMAGES_PATH}/${row.playlist.cover_id}.jpg`
             : null,
           library_type: LibraryType.Albums as LibraryType.Albums,
+          owner: {
+            id: row.playlist.users[0].id,
+            visible_username: row.playlist.users[0].visible_username,
+          },
         };
         return processedAlbumRecord;
       }

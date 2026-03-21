@@ -71,6 +71,7 @@ export const errorMessages = {
     SpecifyWhatToUpdate: 'Specify what you want to update',
     UniqueArrayOfUuid: 'Must be an array of unique uuids',
     ExcludeAdminId: 'Artists array shouldnt include the admin_id',
+    NoTrackSpecified: 'No track specified',
   }),
   database: Object.freeze({
     BothOrNone: 'only album_id or track_id must be defined',

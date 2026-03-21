@@ -118,7 +118,8 @@ const createTrackScheme = trackScheme
     artists: z.array(uuidScheme).refine((items) => new Set(items).size === items.length, {
       message: errorMessages.validation.UniqueArrayOfUuid,
     }),
-    file: fileScheme.array().nullable(),
+    cover: fileScheme.array().nullable(),
+    track: fileScheme.array().nullable(),
   })
   .omit({ duration: true, id: true });
 

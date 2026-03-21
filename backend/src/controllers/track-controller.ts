@@ -98,9 +98,13 @@ export default {
   },
   async createTrack(
     trackInfo: Omit<ITrack, 'cover_id' | 'duration' | 'play_count'> & {
-      file: Express.Multer.File[] | null;
+      cover: Express.Multer.File[] | null;
+      track: Express.Multer.File[] | null;
     },
   ) {
+    if (!trackInfo.track) {
+      throw new ValidationError(errorMessages.validation.NoTrackSpecified);
+    }
     const userRecord = await user.getUserById(trackInfo.admin_id);
     if (!userRecord.success) {
       throw new NotFoundError(userRecord.reason);
@@ -118,8 +122,8 @@ export default {
       }
     }
     let coverId = null;
-    if (trackInfo.file) {
-      coverId = await fileUploader.uploadImage(trackInfo.file[0]);
+    if (trackInfo.cover) {
+      coverId = await fileUploader.uploadImage(trackInfo.cover[0]);
     }
     let result: SuccessfulResult<unknown> = { success: true, data: {} };
     await database.sequelize.transaction(async (transaction) => {
