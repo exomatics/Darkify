@@ -165,28 +165,48 @@ class TrackManager {
     const searchPattern = `%${searchString}%`;
     const trackRecords = (await database.trackModel.findAll({
       where: {
+        deleted: false,
         [Op.or]: [
           { name: { [Op.iLike]: searchPattern } },
           { lyrics: { [Op.iLike]: searchPattern } },
           sequelize.literal(`
-        EXISTS (
-          SELECT 1
-          FROM "track_artists" ta
-          JOIN "users" u ON u.id = ta.artist_id
-          WHERE ta.track_id = "track"."id"
-            AND u.visible_username ILIKE ${database.sequelize.escape(searchPattern)}
-        )
-      `),
+            EXISTS (
+              SELECT 1
+              FROM "track_artists" ta
+              JOIN "users" u ON u.id = ta.artist_id
+              WHERE ta.track_id = "track"."id"
+                AND u.visible_username ILIKE ${database.sequelize.escape(searchPattern)}
+            )
+          `),
         ],
-        [Op.and]: { deleted: false },
+        [Op.and]: [
+          {
+            [Op.or]: [
+              { album_id: null },
+              { '$album.playlist_album.playlist_id$': { [Op.ne]: null } },
+            ],
+          },
+        ],
       },
+
       include: [
         {
           model: database.userModel,
           through: { attributes: [] },
           attributes: ['id', 'visible_username'],
         },
-        { association: 'album', attributes: ['id', 'name'] },
+        {
+          association: 'album',
+          attributes: ['id', 'name'],
+          required: false,
+          include: [
+            {
+              model: database.playlistAlbumsModel,
+              required: false,
+              attributes: ['playlist_id', 'date_released'],
+            },
+          ],
+        },
       ],
       offset,
       limit,
