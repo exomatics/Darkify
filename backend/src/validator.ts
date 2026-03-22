@@ -277,17 +277,16 @@ const createAlbumScheme = playlistScheme
   .omit({ playlistId: true, description: true, type: true, coverId: true })
   .extend({ file: fileScheme.nullable() });
 
-const updateAlbumInfoScheme = z
-  .object({
-    name: z.string().max(100).nullable().optional(),
-    albumId: uuidScheme,
-    userId: uuidScheme,
-    releaseDate: z.iso.datetime().nullable().optional(),
-  })
-  .refine(({ name, releaseDate }) => {
-    return requireAtLeastOneCheck({ name, releaseDate });
-  }, errorMessages.validation.SpecifyWhatToUpdate);
-
+const updateAlbumInfoScheme = z.object({
+  name: z.string().max(100),
+  albumId: uuidScheme,
+  userId: uuidScheme,
+});
+const releaseAlbumScheme = z.object({
+  albumId: uuidScheme,
+  userId: uuidScheme,
+  releaseDate: z.iso.datetime().nullable().optional(),
+});
 const getAlbumInfoScheme = getPlaylistInfoScheme
   .omit({ playlistId: true })
   .extend({ albumId: uuidScheme });
@@ -383,6 +382,7 @@ export {
   getMyAlbumsScheme,
   createAlbumScheme,
   updateAlbumInfoScheme,
+  releaseAlbumScheme,
   getAlbumInfoScheme,
   getAllFromAlbumScheme,
   addToAlbumScheme,

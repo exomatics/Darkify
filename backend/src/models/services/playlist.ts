@@ -921,7 +921,7 @@ class PlaylistManager {
     try {
       await database.sequelize.transaction(async (transaction) => {
         await database.playlistAlbumsModel.update(
-          { date_released: albumInfo.releaseDate ?? playlistAlbumRecord.data.date_released },
+          { date_released: albumInfo.releaseDate ?? sequelize.fn('NOW') },
           {
             where: { playlist_id: albumInfo.albumId },
             transaction,

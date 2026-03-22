@@ -14,7 +14,6 @@ export enum AlbumSpecificSortBy {
 export interface IUpdateAlbum {
   playlistId: string;
   name?: string | null;
-  releaseDate?: Date | null;
 }
 export type PlaylistAlbumInstanceWithRelations = PlaylistModel & {
   playlist_album: PlaylistAlbumsModel;

@@ -84,6 +84,7 @@ export const ROUTES = Object.freeze({
     POST_ADD_TRACK: `${API_BASE}/albums/add-track/:trackId`,
     POST_REMOVE_TRACK: `${API_BASE}/albums/remove-track/:albumTrackId`,
     PUT_ALBUM_INFO: `${API_BASE}/albums/:albumId`,
+    PUT_ALBUM_RELEASE: `${API_BASE}/albums/:albumId/release`,
     PUT_ALBUM_COVER: `${API_BASE}/albums/:albumId/cover`,
     PUT_ALBUM_REORDER: `${API_BASE}/albums/:albumId/reorder`,
     DELETE_ALBUM: `${API_BASE}/albums/:albumId`,
