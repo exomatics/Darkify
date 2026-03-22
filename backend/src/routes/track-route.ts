@@ -53,7 +53,7 @@ router.get(
       response: Response,
     ) => {
       const validation = getTracksScheme.safeParse({
-        name: request.params.trackName,
+        name: request.query.trackName,
         userId: request.jwtPayload.user_id,
         limit: +(request.query.limit ?? 5),
         offset: +(request.query.offset ?? 0),
@@ -107,7 +107,8 @@ router.post(
       artists: [...processedArtists, request.jwtPayload.user_id],
       albumId: request.body.albumId ?? null,
       admin_id: request.jwtPayload.user_id,
-      file: request.files?.cover ?? null,
+      cover: request.files?.cover ?? null,
+      track: request.files?.track ?? null,
     });
     if (!validation.success) {
       throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));

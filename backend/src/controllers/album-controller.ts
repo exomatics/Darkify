@@ -231,11 +231,6 @@ export default {
     if (!playlistResponse.success) {
       throw new ValidationError(playlistResponse.reason);
     }
-    await playlist.updateAlbumReleaseDate({
-      albumId: albumInfo.playlistId,
-      userId: albumInfo.userId,
-      releaseDate: albumInfo.releaseDate,
-    });
     const userResponse = await user.getUserById(playlistResponse.data.owner);
     if (!userResponse.success) {
       throw new NotFoundError(userResponse.reason);
@@ -245,6 +240,22 @@ export default {
       userId: albumInfo.userId,
     });
     return playlistData;
+  },
+  async releaseAlbum(albumInfo: { releaseDate?: Date | null; playlistId: string; userId: string }) {
+    const userResponse = await user.getUserById(albumInfo.userId);
+    if (!userResponse.success) {
+      throw new NotFoundError(userResponse.reason);
+    }
+    const playlistResponse = await playlist.getAlbumInfo(_.omit(albumInfo, ['releaseDate']));
+    if (!playlistResponse.success) {
+      throw new ValidationError(playlistResponse.reason);
+    }
+    await playlist.updateAlbumReleaseDate({
+      albumId: albumInfo.playlistId,
+      userId: albumInfo.userId,
+      releaseDate: albumInfo.releaseDate,
+    });
+    return null;
   },
   async updateCoverById(
     albumInfo: Pick<IPlaylist, 'playlistId'> & { file: Express.Multer.File; userId: string },

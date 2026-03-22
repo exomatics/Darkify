@@ -13,7 +13,7 @@ const API_BASE = '/api';
 
 export const ROUTES = Object.freeze({
   TRACKS: {
-    GET_TRACK_INFO: `${API_BASE}/tracks/:trackId`,
+    GET_TRACK_INFO: `${API_BASE}/tracks/`,
     GET_TRACKS: `${API_BASE}/tracks/search/:trackName`,
     PUT_TRACK: `${API_BASE}/tracks/:trackId`,
     POST_TRACK: `${API_BASE}/tracks/`,
@@ -24,7 +24,7 @@ export const ROUTES = Object.freeze({
     GET_ME: `${API_BASE}/users/me`,
     PUT_ME: `${API_BASE}/users/me`,
     PUT_ME_SETTINGS: `${API_BASE}/users/me/settings`,
-    PUT_EVENTS_PLAYED: `${API_BASE}/me/events/played`,
+    PUT_EVENTS_PLAYED: `${API_BASE}/users/me/events/played`,
     DELETE_ME: `${API_BASE}/users/me`,
     GET_ME_SETTINGS: `${API_BASE}/users/me/settings`,
     GET_ME_AVATAR: `${API_BASE}/users/me/avatar`,
@@ -84,6 +84,7 @@ export const ROUTES = Object.freeze({
     POST_ADD_TRACK: `${API_BASE}/albums/add-track/:trackId`,
     POST_REMOVE_TRACK: `${API_BASE}/albums/remove-track/:albumTrackId`,
     PUT_ALBUM_INFO: `${API_BASE}/albums/:albumId`,
+    PUT_ALBUM_RELEASE: `${API_BASE}/albums/:albumId/release`,
     PUT_ALBUM_COVER: `${API_BASE}/albums/:albumId/cover`,
     PUT_ALBUM_REORDER: `${API_BASE}/albums/:albumId/reorder`,
     DELETE_ALBUM: `${API_BASE}/albums/:albumId`,

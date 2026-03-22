@@ -2,7 +2,6 @@ export const errorMessages = {
   user: Object.freeze({
     NotExistsById: 'User with this id does not exist',
     NotExistsByUsernameOrEmail: 'User with this username or email does not exist',
-    NotFollowsAnyone: 'User does not follow anyone',
     AlreadyFollowsUser: 'User already follows this user',
     NotFollowsUser: 'User not follows this user',
     CanNotFollowYourself: 'User can not follow themself',
@@ -72,6 +71,7 @@ export const errorMessages = {
     SpecifyWhatToUpdate: 'Specify what you want to update',
     UniqueArrayOfUuid: 'Must be an array of unique uuids',
     ExcludeAdminId: 'Artists array shouldnt include the admin_id',
+    NoTrackSpecified: 'No track specified',
   }),
   database: Object.freeze({
     BothOrNone: 'only album_id or track_id must be defined',

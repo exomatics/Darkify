@@ -78,6 +78,7 @@ const userAvatarScheme = z.object({
   user_id: uuidScheme,
   file: fileScheme,
 });
+const userFollowingScheme = z.object({ user_id: uuidScheme }).extend(paginationScheme.shape);
 const userBannerScheme = userAvatarScheme;
 
 const updateUserScheme = z
@@ -117,7 +118,8 @@ const createTrackScheme = trackScheme
     artists: z.array(uuidScheme).refine((items) => new Set(items).size === items.length, {
       message: errorMessages.validation.UniqueArrayOfUuid,
     }),
-    file: fileScheme.array().nullable(),
+    cover: fileScheme.array().nullable(),
+    track: fileScheme.array().nullable(),
   })
   .omit({ duration: true, id: true });
 
@@ -230,10 +232,6 @@ const updateLibraryPlayDate = z.object({
       album_id: uuidScheme,
     }),
     z.object({
-      section: z.literal(LibrarySections.ARTISTS),
-      artist_id: uuidScheme,
-    }),
-    z.object({
       section: z.literal(LibrarySections.SINGLES),
       track_id: uuidScheme,
     }),
@@ -279,17 +277,16 @@ const createAlbumScheme = playlistScheme
   .omit({ playlistId: true, description: true, type: true, coverId: true })
   .extend({ file: fileScheme.nullable() });
 
-const updateAlbumInfoScheme = z
-  .object({
-    name: z.string().max(100).nullable().optional(),
-    albumId: uuidScheme,
-    userId: uuidScheme,
-    releaseDate: z.iso.datetime().nullable().optional(),
-  })
-  .refine(({ name, releaseDate }) => {
-    return requireAtLeastOneCheck({ name, releaseDate });
-  }, errorMessages.validation.SpecifyWhatToUpdate);
-
+const updateAlbumInfoScheme = z.object({
+  name: z.string().max(100),
+  albumId: uuidScheme,
+  userId: uuidScheme,
+});
+const releaseAlbumScheme = z.object({
+  albumId: uuidScheme,
+  userId: uuidScheme,
+  releaseDate: z.iso.datetime().nullable().optional(),
+});
 const getAlbumInfoScheme = getPlaylistInfoScheme
   .omit({ playlistId: true })
   .extend({ albumId: uuidScheme });
@@ -349,6 +346,7 @@ export {
   loginScheme,
   refreshTokenScheme,
   registerScheme,
+  userFollowingScheme,
   updateUserScheme,
   updateUserSettingsScheme,
   userFollowScheme,
@@ -384,6 +382,7 @@ export {
   getMyAlbumsScheme,
   createAlbumScheme,
   updateAlbumInfoScheme,
+  releaseAlbumScheme,
   getAlbumInfoScheme,
   getAllFromAlbumScheme,
   addToAlbumScheme,

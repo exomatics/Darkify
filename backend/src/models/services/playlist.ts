@@ -217,7 +217,7 @@ class PlaylistManager {
         result = { success: true, data: null };
       });
     } catch {
-      throw new InternalError(errorMessages.album.FailedToCreate);
+      throw new InternalError(errorMessages.album.FailedToDelete);
     }
     return result;
   }
@@ -921,7 +921,7 @@ class PlaylistManager {
     try {
       await database.sequelize.transaction(async (transaction) => {
         await database.playlistAlbumsModel.update(
-          { date_released: albumInfo.releaseDate ?? playlistAlbumRecord.data.date_released },
+          { date_released: albumInfo.releaseDate ?? sequelize.fn('NOW') },
           {
             where: { playlist_id: albumInfo.albumId },
             transaction,
@@ -940,7 +940,7 @@ class PlaylistManager {
     }
     return { success: true, data: null };
   }
-  async updateLibraryPlayDate(
+  async updatePlaylistPlayDate(
     userId: string,
     playlistId: string,
   ): Promise<Result<null, typeof errorMessages.playlist.NotExistsById>> {
@@ -951,6 +951,25 @@ class PlaylistManager {
     await database.libraryPlaylists.update(
       { date_played: sequelize.fn('NOW') },
       { where: { user_id: userId, playlist_id: playlistId } },
+    );
+    return { success: true, data: null };
+  }
+  async updateAlbumPlayDate(
+    userId: string,
+    albumId: string,
+  ): Promise<
+    Result<
+      null,
+      typeof errorMessages.album.NotExistsById | typeof errorMessages.album.AlbumIsNotAnAlbum
+    >
+  > {
+    const playlistRecord = await this.getAlbumRecordById(albumId, userId);
+    if (!playlistRecord.success) {
+      return playlistRecord;
+    }
+    await database.libraryReleasesModel.update(
+      { date_played: sequelize.fn('NOW') },
+      { where: { user_id: userId, album_id: albumId } },
     );
     return { success: true, data: null };
   }

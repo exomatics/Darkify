@@ -17,7 +17,7 @@ import type { ParamsDictionary } from 'express-serve-static-core';
 const router = Router();
 router.post(
   ROUTES.USERS.POST_ISSUE_ACCESS_TOKEN,
-  passport.authenticate('refresh-token', { session: false }) as RequestHandler,
+  passport.authenticate('refreshToken', { session: false }) as RequestHandler,
   asyncHandler(async (request: Request<ParamsDictionary, unknown>, response: Response) => {
     const validation = refreshTokenScheme.safeParse({
       user_id: request.jwtPayload.user_id,
@@ -80,8 +80,7 @@ router.post(
         throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
       }
       const tokens = await authController.registerUser(validation.data);
-
-      response.cookie('refreshToken', tokens.refreshToken, {
+      response.cookie('refreshToken', tokens.refreshToken.token, {
         httpOnly: true,
         secure: true,
         sameSite: 'strict',

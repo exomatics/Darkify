@@ -18,6 +18,7 @@ import {
   createArtistScheme,
   userBannerScheme,
   singleFollowScheme,
+  userFollowingScheme,
 } from '../validator.ts';
 
 import { ROUTES } from './routes.ts';
@@ -45,12 +46,20 @@ router.get(
   ROUTES.USERS.GET_ME_FOLLOWING,
   passport.authenticate('access-token', { session: false }) as RequestHandler,
   asyncHandler(async (request: Request, response: Response) => {
-    const validation = uuidScheme.safeParse(request.jwtPayload.user_id);
+    const validation = userFollowingScheme.safeParse({
+      user_id: request.jwtPayload.user_id,
+      limit: +(request.query.limit ?? 5),
+      offset: +(request.query.offset ?? 0),
+    });
     if (!validation.success) {
       throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }
 
-    const databaseResponse = await userController.getUserFollowing(validation.data.trim());
+    const databaseResponse = await userController.getUserFollowing(
+      validation.data.user_id,
+      validation.data.offset,
+      validation.data.limit,
+    );
     response.status(200).json(databaseResponse);
   }),
 );
@@ -317,7 +326,7 @@ router.post(
     response.status(200).json(databaseResponse);
   }),
 );
-router.post(
+router.put(
   ROUTES.USERS.PUT_EVENTS_PLAYED,
   passport.authenticate('access-token', { session: false }) as RequestHandler,
   asyncHandler(
@@ -343,8 +352,8 @@ router.post(
 );
 router.put(
   ROUTES.USERS.PUT_ME_AVATAR,
-  fileUploader.uploadImageMiddleware.single('avatar'),
   passport.authenticate('access-token', { session: false }) as RequestHandler,
+  fileUploader.uploadImageMiddleware.single('avatar'),
   asyncHandler(async (request: Request, response: Response) => {
     const validation = userAvatarScheme.safeParse({
       user_id: request.jwtPayload.user_id,
@@ -363,8 +372,8 @@ router.put(
 );
 router.put(
   ROUTES.USERS.PUT_ME_BANNER,
-  fileUploader.uploadImageMiddleware.single('banner'),
   passport.authenticate('access-token', { session: false }) as RequestHandler,
+  fileUploader.uploadImageMiddleware.single('banner'),
   asyncHandler(async (request: Request, response: Response) => {
     const validation = userBannerScheme.safeParse({
       user_id: request.jwtPayload.user_id,
@@ -392,7 +401,7 @@ router.delete(
 
     const databaseResponse = await userController.deleteUser(validation.data);
     response.clearCookie('Authorization');
-    response.clearCookie('refresh-token');
+    response.clearCookie('refreshToken');
     response.status(200).json(databaseResponse);
   }),
 );

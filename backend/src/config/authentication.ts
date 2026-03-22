@@ -6,6 +6,7 @@ import passportJwt from 'passport-jwt';
 import { PATH_TO_KEYS } from './config.ts';
 import database from './database.ts';
 
+import type { Request } from 'express';
 import type { PassportStatic } from 'passport';
 import type { WithSecretOrKey } from 'passport-jwt';
 
@@ -34,7 +35,9 @@ const accessTokenOptions: WithSecretOrKey = {
 };
 const refreshTokenOptions = {
   ...tokenConfig,
-  jwtFromRequest: jwtExtract.fromHeader('refresh_token'),
+  jwtFromRequest: (request: Request) => {
+    return request.headers.cookie ? request.headers.cookie.split('=')[1] : null;
+  },
 };
 const createStrategy = (options: WithSecretOrKey) => {
   return new jwtStrategy(options, (payload: { user_id: string; hash?: string }, done) => {
@@ -53,7 +56,7 @@ const createStrategy = (options: WithSecretOrKey) => {
 const accessTokenStrategy = createStrategy(accessTokenOptions);
 const refreshTokenStrategy = createStrategy(refreshTokenOptions);
 const passportConfiguration = (passport: PassportStatic) => {
-  passport.use('refresh-token', refreshTokenStrategy);
+  passport.use('refreshToken', refreshTokenStrategy);
   passport.use('access-token', accessTokenStrategy);
 };
 export default passportConfiguration;

@@ -97,6 +97,20 @@ class TrackManager {
     }
     await trackRecord.data.update({ play_count: ++trackRecord.data.play_count });
   }
+  async updateLibraryPlayDate(
+    userId: string,
+    trackId: string,
+  ): Promise<Result<null, typeof errorMessages.track.NotExistsById>> {
+    const playlistRecord = await this.getTrackById({ trackId, userId });
+    if (!playlistRecord.success) {
+      return playlistRecord;
+    }
+    await database.libraryReleasesModel.update(
+      { date_played: sequelize.fn('NOW') },
+      { where: { user_id: userId, track_id: trackId } },
+    );
+    return { success: true, data: null };
+  }
   async getTracksByName(
     searchInfo: { userId: string; trackName: string },
     limit: number = DEFAULT_LIMIT,
@@ -292,6 +306,10 @@ class TrackManager {
             ? `${STATIC_IMAGES_PATH}/${row.playlist.cover_id}.jpg`
             : null,
           library_type: LibraryType.Albums as LibraryType.Albums,
+          owner: {
+            id: row.playlist.users[0].id,
+            visible_username: row.playlist.users[0].visible_username,
+          },
         };
         return processedAlbumRecord;
       }

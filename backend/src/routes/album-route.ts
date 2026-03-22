@@ -19,6 +19,7 @@ import {
   reorderAlbumScheme,
   updateAlbumCoverScheme,
   deleteAlbumScheme,
+  releaseAlbumScheme,
 } from '../validator.ts';
 
 import { ROUTES } from './routes.ts';
@@ -57,7 +58,7 @@ router.get(
   passport.authenticate('access-token', { session: false }) as RequestHandler,
   asyncHandler(async (request: Request, response: Response) => {
     const validation = getAlbumInfoScheme.safeParse({
-      playlistId: request.params.playlistId,
+      albumId: request.params.albumId,
       userId: request.jwtPayload.user_id,
     });
 
@@ -247,14 +248,39 @@ router.put(
       const validation = updateAlbumInfoScheme.safeParse({
         albumId: request.params.albumId,
         userId: request.jwtPayload.user_id,
-        name: request.body.name ?? null,
-        releaseDate: request.body.releaseDate ?? null,
+        name: request.body.name,
       });
 
       if (!validation.success) {
         throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
       }
       const databaseResponse = await albumController.updateAlbumInfo({
+        ...validation.data,
+        playlistId: validation.data.albumId,
+      });
+
+      response.status(200).json(databaseResponse);
+    },
+  ),
+);
+router.put(
+  ROUTES.ALBUMS.PUT_ALBUM_RELEASE,
+  passport.authenticate('access-token', { session: false }) as RequestHandler,
+  asyncHandler(
+    async (
+      request: Request<ParamsDictionary, unknown, { releaseDate: Date | null }>,
+      response: Response,
+    ) => {
+      const validation = releaseAlbumScheme.safeParse({
+        albumId: request.params.albumId,
+        userId: request.jwtPayload.user_id,
+        releaseDate: request.body.releaseDate ?? null,
+      });
+
+      if (!validation.success) {
+        throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
+      }
+      const databaseResponse = await albumController.releaseAlbum({
         ...validation.data,
         playlistId: validation.data.albumId,
         releaseDate: validation.data.releaseDate ? new Date(validation.data.releaseDate) : null,
