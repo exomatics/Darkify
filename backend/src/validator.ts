@@ -232,10 +232,6 @@ const updateLibraryPlayDate = z.object({
       album_id: uuidScheme,
     }),
     z.object({
-      section: z.literal(LibrarySections.ARTISTS),
-      artist_id: uuidScheme,
-    }),
-    z.object({
       section: z.literal(LibrarySections.SINGLES),
       track_id: uuidScheme,
     }),

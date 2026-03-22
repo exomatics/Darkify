@@ -169,14 +169,31 @@ export default {
     return modelResponse.data;
   },
   async updateLibraryPlayDate(user_id: string, event_data: UpdateLibraryPlayDate) {
-    ///DOOOOOOOOOOOOOOOO
-    // 23;
-    if (event_data.section === LibrarySections.PLAYLISTS) {
-      const modelResponse = await playlist.updateLibraryPlayDate(user_id, event_data.playlist_id);
-      if (!modelResponse.success) {
-        throw new NotFoundError(modelResponse.reason);
+    switch (event_data.section) {
+      case LibrarySections.PLAYLISTS: {
+        const modelResponse = await playlist.updatePlaylistPlayDate(
+          user_id,
+          event_data.playlist_id,
+        );
+        if (!modelResponse.success) {
+          throw new NotFoundError(modelResponse.reason);
+        }
+        return modelResponse.data;
       }
-      return modelResponse.data;
+      case LibrarySections.ALBUMS: {
+        const modelResponse = await playlist.updateAlbumPlayDate(user_id, event_data.album_id);
+        if (!modelResponse.success) {
+          throw new NotFoundError(modelResponse.reason);
+        }
+        return modelResponse.data;
+      }
+      case LibrarySections.SINGLES: {
+        const modelResponse = await track.updateLibraryPlayDate(user_id, event_data.track_id);
+        if (!modelResponse.success) {
+          throw new NotFoundError(modelResponse.reason);
+        }
+        return modelResponse.data;
+      }
     }
   },
   async updateUserAvatar(user_id: string, fileBuffer: Express.Multer.File) {
