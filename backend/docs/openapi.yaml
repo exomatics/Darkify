@@ -1178,9 +1178,26 @@ paths:
                 properties:
                   recently_released:
                     type: array
-                    description: Recently released singles
+                    description: Recently released singles and albums
                     items:
-                      $ref: '#/components/schemas/ArtistSingleInfo'
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                        name:
+                          type: string
+                        type:
+                          type: string
+                          enum: [single, album]
+                        cover_url:
+                          type: ['string', 'null']
+                          format: uri-reference
+                        is_followed:
+                          type: boolean
+                        date_released:
+                          type: ['string', 'null']
+                          format: date
                   random_albums:
                     type: array
                     items:
@@ -1209,6 +1226,26 @@ paths:
                     type: array
                     items:
                       type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                        name:
+                          type: string
+                        type:
+                          type: string
+                          enum: [single, album]
+                        cover_url:
+                          type: ['string', 'null']
+                          format: uri-reference
+                        is_followed:
+                          type: boolean
+                        date_released:
+                          type: ['string', 'null']
+                          format: date
+                        date_played:
+                          type: string
+                          format: date-time
         '400':
           $ref: '#/components/responses/ValidationError'
         '401':
