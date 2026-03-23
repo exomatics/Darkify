@@ -14,6 +14,6 @@ const errorHandler: ErrorRequestHandler = (error, request, response, next) => {
   response.status(500).json({
     message: 'Internal Server Error',
   });
-  next();
+  return;
 };
 export default errorHandler;

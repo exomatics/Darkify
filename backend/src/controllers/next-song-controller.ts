@@ -152,9 +152,9 @@ export default {
         throw new NotFoundError(firstSong.reason);
       }
       if (nextSongInfo.loop) {
-        return formatSong(nextSong.data);
+        return formatSong(firstSong.data);
       }
-      return formatSong(nextSong.data, true);
+      return formatSong(firstSong.data, true);
     }
 
     return formatSong(nextSong.data);
@@ -211,7 +211,7 @@ export default {
     return formatSong(nextSong.data);
   },
   async otherNextSong(nextSongInfo: GetNextSong & { userId: string }) {
-    await this.playlistOrAlbumNextSong({
+    return this.playlistOrAlbumNextSong({
       ...nextSongInfo,
       context: SongContext.Liked,
       index: 0,

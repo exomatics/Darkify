@@ -213,7 +213,7 @@ export default {
         }
       });
     } catch {
-      throw new InternalError(errorMessages.album.failedToAddTrack);
+      throw new InternalError(errorMessages.album.failedToRemoveTrack);
     }
     return null;
   },

@@ -42,6 +42,7 @@ export const errorMessages = {
     FailedToCreate: 'Failed to create album',
     FailedToDelete: 'Failed to delete album',
     failedToAddTrack: 'Failed to add track to album',
+    failedToRemoveTrack: 'Failed to remove track from album',
     playlistAlbumRecordNotExists: 'playlistAlbumRecord with this albumId doesnt not exist',
     AlbumIsNotAnAlbum: 'Playlist is not an Album',
   }),

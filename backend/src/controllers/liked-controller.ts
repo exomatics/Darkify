@@ -1,6 +1,6 @@
 import _ from 'lodash';
 
-import { DEFAULT_LIMIT, DEFAULT_OFFSET } from '../config/config.ts';
+import { DEFAULT_LIMIT, DEFAULT_OFFSET, STATIC_IMAGES_PATH } from '../config/config.ts';
 import { errorMessages } from '../errors/error-messages.ts';
 import NotFoundError from '../errors/not-found-error.ts';
 import ValidationError from '../errors/validation-error.ts';
@@ -34,7 +34,9 @@ export default {
 
     return {
       count: playlistResponse.data.songsCount,
-      // coverUrl: playlistResponse.data.coverId
+      cover_url: playlistResponse.data.coverId
+        ? `${STATIC_IMAGES_PATH}/${playlistResponse.data.coverId}.jpg`
+        : null,
     };
   },
   async getLikedTracks(

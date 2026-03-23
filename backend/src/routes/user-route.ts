@@ -57,8 +57,8 @@ router.get(
 
     const databaseResponse = await userController.getUserFollowing(
       validation.data.user_id,
-      validation.data.offset,
       validation.data.limit,
+      validation.data.offset,
     );
     response.status(200).json(databaseResponse);
   }),
