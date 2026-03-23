@@ -109,4 +109,7 @@ export const ROUTES = Object.freeze({
     GET_ALBUMS: `${API_BASE}/search/albums`,
     GET_USERS: `${API_BASE}/search/users`,
   },
+  NEXT_SONG: {
+    POST_NEXT_SONG: `${API_BASE}/tracks/next`,
+  },
 } as const);
