@@ -51,7 +51,8 @@ paths:
     post:
       tags: [Auth]
       summary: Issue new access token using refresh token
-
+      security: []
+      description: Requires a valid `refreshToken` cookie (httpOnly) set during login or register.
       responses:
         '200':
           description: Access token returned
@@ -90,6 +91,11 @@ paths:
               properties:
                 visible_username:
                   type: string
+                  maxLength: 25
+                description:
+                  type: string
+                  maxLength: 1500
+                  description: Artist bio. Only applicable when the user is an artist.
 
       responses:
         '200':
@@ -279,6 +285,21 @@ paths:
                 avatar:
                   type: string
                   format: binary
+      responses:
+        '200':
+          description: Updated avatar url
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  avatar_url:
+                    type: ['string', 'null']
+                    format: uri-reference
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 
   /users/me/banner:
     put:
@@ -391,35 +412,44 @@ paths:
   /users/me/events/played:
     put:
       tags: [User]
+      summary: Record that the user played something (updates last-played date)
       requestBody:
+        required: true
         content:
           application/json:
             schema:
-              oneOf:
-                - type: object
-                  properties:
-                    section:
-                      type: string
-                      default: 'playlists'
-                    playlist_id:
-                      type: string
-                      format: uuid
-                - type: object
-                  properties:
-                    section:
-                      type: string
-                      default: 'albums'
-                    album_id:
-                      type: string
-                      format: uuid
-                - type: object
-                  properties:
-                    section:
-                      type: string
-                      default: 'artists'
-                    artist_id:
-                      type: string
-                      format: uuid
+              type: object
+              required: [event_data]
+              properties:
+                event_data:
+                  oneOf:
+                    - type: object
+                      required: [section, playlist_id]
+                      properties:
+                        section:
+                          type: string
+                          enum: ['playlists']
+                        playlist_id:
+                          type: string
+                          format: uuid
+                    - type: object
+                      required: [section, album_id]
+                      properties:
+                        section:
+                          type: string
+                          enum: ['albums']
+                        album_id:
+                          type: string
+                          format: uuid
+                    - type: object
+                      required: [section, track_id]
+                      properties:
+                        section:
+                          type: string
+                          enum: ['singles']
+                        track_id:
+                          type: string
+                          format: uuid
       responses:
         '200':
           $ref: '#/components/responses/SuccessStatus'
@@ -651,12 +681,12 @@ paths:
         - $ref: '#/components/parameters/PaginationLimitParameter'
         - $ref: '#/components/parameters/PaginationOffsetParameter'
         - in: query
-          name: sortBy
+          name: sort
           schema:
             type: string
-            description: sortBy order is default. default order is DESC
+            description: Sort field. Default is order (custom sort).
             default: 'order'
-            enum: [name, title, album, duration, order]
+            enum: [name, date_added, album, duration, artist, order]
         - $ref: '#/components/parameters/OrderParameter'
       responses:
         '200':
@@ -816,12 +846,14 @@ paths:
     post:
       tags: [Playlist]
       requestBody:
+        required: true
         content:
           application/json:
             schema:
               type: object
+              required: [playlistId, playlistTrackId]
               properties:
-                trackId:
+                playlistId:
                   type: string
                   format: uuid
                 playlistTrackId:
@@ -858,24 +890,18 @@ paths:
   /playlists/{playlistId}/reorder:
     put:
       tags: [Playlist]
-      description: 'Reorder playlist`s custom order. Indexes must be exactly indexes, in other words start from 0. To reorder to 0 index, need to send toIndex 0. To reored to the last index, need to send toIndex -1 or the last existing index.'
+      description: 'Reorder playlist`s custom order. Indexes must be exactly indexes, in other words start from 0. To reorder to 0 index, need to send toIndex 0. To reorder to the last index, need to send toIndex -1 or the last existing index.'
       parameters:
         - $ref: '#/components/parameters/PlaylistIdParameter'
       requestBody:
+        required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                fromIndex:
-                  type: number
-                  minimum: 0
-                toIndex:
-                  type: number
-                  minimum: -1
+              $ref: '#/components/schemas/ReorderRequestBody'
       responses:
         '200':
-          $ref: '#/components/responses/PlaylistInfoResponse'
+          $ref: '#/components/responses/SuccessStatus'
         '400':
           $ref: '#/components/responses/ValidationError'
         '401':
@@ -1110,39 +1136,23 @@ paths:
     get:
       tags: [Playlist]
       parameters:
+        - $ref: '#/components/parameters/PlaylistIdParameter'
         - in: query
           name: search
-          description: 'name of the track, artist name, album name or a part from the lyrics'
+          required: true
+          description: 'Name of the track, artist name, album name or a part from the lyrics'
           schema:
             type: string
             maxLength: 100
         - in: query
-          name: sortBy
+          name: sort
           schema:
             type: string
             default: 'order'
-            enum: [date_added, date_played, name, order]
+            enum: [name, date_added, album, duration, artist, order]
         - $ref: '#/components/parameters/OrderParameter'
         - $ref: '#/components/parameters/PaginationLimitParameter'
         - $ref: '#/components/parameters/PaginationOffsetParameter'
-      requestBody:
-        description: sortBy date_added is default
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                sort:
-                  type: object
-                  properties:
-                    sortBy:
-                      type: string
-                      default: 'order'
-                      enum: [date_added, date_played, name, order]
-                    order:
-                      type: string
-                      default: 'DESC'
-                      enum: [ASC, DESC]
       responses:
         '200':
           description: playlist tracks
@@ -1208,15 +1218,6 @@ paths:
     get:
       tags: [Library]
       description: 'get user library'
-      parameters:
-        - in: query
-          name: sortBy
-          schema:
-            type: string
-            description: sortBy date_added is default. album and artists are not implemented yet
-            default: 'date_added'
-            enum: [date_added, date_played, name, order]
-        - $ref: '#/components/parameters/OrderParameter'
       responses:
         '200':
           description: user library
@@ -1236,12 +1237,12 @@ paths:
         - $ref: '#/components/parameters/PaginationLimitParameter'
         - $ref: '#/components/parameters/PaginationOffsetParameter'
         - in: query
-          name: sortBy
+          name: sort
           schema:
             type: string
-            description: sortBy order is default
+            description: Sort field. Default is order (custom sort).
             default: 'order'
-            enum: [name, title, album, duration, order]
+            enum: [date_added, date_played, name, order]
         - $ref: '#/components/parameters/OrderParameter'
       responses:
         '200':
@@ -1444,43 +1445,37 @@ paths:
   /liked/reorder:
     put:
       tags: [Liked]
-      description: 'Reorder liked`s custom order. Indexes must be exactly indexes, in other words start from 0. To reorder to 0 index, need to send toIndex 0. To reored to the last index, need to send toIndex -1 or the last existing index.'
+      description: 'Reorder liked`s custom order. Indexes must be exactly indexes, in other words start from 0. To reorder to 0 index, need to send toIndex 0. To reorder to the last index, need to send toIndex -1 or the last existing index.'
       requestBody:
+        required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                fromIndex:
-                  type: number
-                  minimum: 0
-                toIndex:
-                  type: number
-                  minimum: -1
+              $ref: '#/components/schemas/ReorderRequestBody'
       responses:
         '200':
-          $ref: '#/components/responses/PlaylistInfoResponse'
+          $ref: '#/components/responses/SuccessStatus'
         '400':
           $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/Unauthorized'
   /liked/tracks:
     get:
-      tags: [Playlist]
+      tags: [Liked]
       parameters:
         - in: query
           name: search
-          description: 'name of the track, artist name, album name or a part from the lyrics'
+          description: 'Name of the track, artist name, album name or a part from the lyrics'
           schema:
             type: string
             maxLength: 100
         - in: query
-          name: sortBy
+          name: sort
           schema:
             type: string
-            description: sortBy date_added is default
+            description: Sort field. Default is order (custom sort).
             default: 'order'
-            enum: [date_added, date_played, name, order]
+            enum: [name, date_added, album, duration, artist, order]
         - $ref: '#/components/parameters/OrderParameter'
         - $ref: '#/components/parameters/PaginationLimitParameter'
         - $ref: '#/components/parameters/PaginationOffsetParameter'
@@ -1716,8 +1711,8 @@ paths:
               properties:
                 releaseDate:
                   type: ['string', 'null']
-                  format: date
-                  description: Release date for the album. Set to null to unpublish.
+                  format: date-time
+                  description: Release datetime for the album (ISO 8601). Set to null to unpublish.
       responses:
         '200':
           $ref: '#/components/responses/SuccessStatus'
@@ -1730,15 +1725,16 @@ paths:
     get:
       tags: [Album]
       parameters:
+        - $ref: '#/components/parameters/AlbumIdParameter'
         - $ref: '#/components/parameters/PaginationLimitParameter'
         - $ref: '#/components/parameters/PaginationOffsetParameter'
         - in: query
-          name: sortBy
+          name: sort
           schema:
             type: string
-            description: sortBy order is default. default order is DESC
+            description: Sort field. Default is order (custom sort).
             default: 'order'
-            enum: [name, title, album, duration, playCount, order]
+            enum: [name, date_added, album, duration, artist, play_count, order]
         - $ref: '#/components/parameters/OrderParameter'
       responses:
         '200':
@@ -1758,10 +1754,10 @@ paths:
         - $ref: '#/components/parameters/PaginationLimitParameter'
         - $ref: '#/components/parameters/PaginationOffsetParameter'
         - in: query
-          name: sortBy
+          name: sort
           schema:
             type: string
-            description: sortBy order is default. default order is DESC
+            description: Sort field. Default is order (custom sort).
             default: 'order'
             enum: [date_released, date_added, name, order]
         - $ref: '#/components/parameters/OrderParameter'
@@ -2039,10 +2035,17 @@ components:
         is_artist:
           type: boolean
         avatar_url:
-          type: string
+          type: ['string', 'null']
           format: uri-reference
         followers:
           type: integer
+        banner_url:
+          type: ['string', 'null']
+          format: uri-reference
+          description: Only present when is_artist is true
+        description:
+          type: ['string', 'null']
+          description: Artist bio. Only present when is_artist is true
     UserSettings:
       type: object
       properties:
@@ -2079,25 +2082,23 @@ components:
               visible_username:
                 type: string
         cover_url:
-          type: string
+          type: ['string', 'null']
           format: uri-reference
         lyrics:
           type: [string, 'null']
         play_count:
           type: number
         album_id:
-          type: string
+          type: ['string', 'null']
           format: uuid
         album:
-          type: array
-          items:
-            type: object
-            properties:
-              id:
-                type: string
-                format: uuid
-              name:
-                type: string
+          type: ['object', 'null']
+          properties:
+            id:
+              type: string
+              format: uuid
+            name:
+              type: string
         is_liked:
           type: boolean
         creation_date:
@@ -2121,13 +2122,12 @@ components:
           type: string
           format: binary
         artists:
-          type: array
-          items:
-            type: object
-            properties:
-              id:
-                type: string
-                format: uuid
+          type: string
+          description: 'JSON-encoded array of artist UUIDs (excluding the uploader, who is added automatically). Example: ["uuid1","uuid2"]'
+        albumId:
+          type: string
+          format: uuid
+          description: Optional album to associate the track with at upload time.
         lyrics:
           type: [string, 'null']
     PutTrackRequest:
