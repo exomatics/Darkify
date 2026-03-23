@@ -648,7 +648,7 @@ class PlaylistManager {
             album: row.track.album ?? { id: row.track.id, name: row.track.name },
             duration: row.track.duration,
             is_liked: true,
-            creation_date: row.track.creation_date ?? null,
+            creation_date: row.track.creation_date,
             cover_url: row.track.cover_id
               ? `${STATIC_IMAGES_PATH}/${row.track.cover_id}.jpg`
               : null,
@@ -668,7 +668,7 @@ class PlaylistManager {
             duration: row.track.duration,
             album: row.track.album ?? { id: row.track.id, name: row.track.name },
             is_liked: Boolean(row.track.playlists?.length),
-            creation_date: row.track.creation_date ?? null,
+            creation_date: row.track.creation_date,
             cover_url: row.track.cover_id
               ? `${STATIC_IMAGES_PATH}/${row.track.cover_id}.jpg`
               : null,
@@ -1589,14 +1589,94 @@ class PlaylistManager {
     playlistId: string,
     index: number,
     userId: string,
+    search?: string,
   ): Promise<SuccessfulResult<PlaylistTrackModel | null>> {
+    let whereClause: sequelize.WhereOptions = {
+      playlist_id: playlistId,
+      user_id: userId,
+    };
+    if (search) {
+      whereClause = {
+        ...whereClause,
+        [Op.or]: [
+          { '$track.name$': { [Op.iLike]: `%${search}%` } },
+          { '$track.lyrics$': { [Op.iLike]: `%${search}%` } },
+          sequelize.literal(`
+          EXISTS (
+            SELECT 1
+            FROM "track_artists" ta
+            JOIN "users" u ON u.id = ta.artist_id
+            WHERE ta.track_id = "track"."id"
+            AND u.visible_username ILIKE ${database.sequelize.escape(`%${search}%`)}
+            )
+            `),
+        ],
+      };
+    }
     const playlistTrackRecord = await database.playlistTrackModel.findOne({
-      where: { playlist_id: playlistId, user_id: userId },
+      where: whereClause,
       order: [['order', 'ASC']],
       offset: index,
     });
     if (playlistTrackRecord === null) {
       return { success: true, data: playlistTrackRecord };
+    }
+
+    return { success: true, data: playlistTrackRecord };
+  }
+  async getRandomPlaylistTrackByIndex(playlistTrackInfo: {
+    playlistId: string;
+    currentTrackId: string;
+    index: number;
+    userId: string;
+    search?: string;
+  }): Promise<
+    Result<
+      PlaylistTrackModel | { track_id: string; id: string },
+      typeof errorMessages.playlist.TrackNotExistsByIndex
+    >
+  > {
+    const currentTrack = await this.getPlaylistTrackByIndex(
+      playlistTrackInfo.playlistId,
+      playlistTrackInfo.index,
+      playlistTrackInfo.userId,
+    );
+    if (!currentTrack.data) {
+      return { success: false, reason: errorMessages.playlist.TrackNotExistsByIndex };
+    }
+    let whereClause: sequelize.WhereOptions = {
+      playlist_id: playlistTrackInfo.playlistId,
+      user_id: playlistTrackInfo.userId,
+      track_id: { [Op.ne]: playlistTrackInfo.currentTrackId },
+    };
+    if (playlistTrackInfo.search) {
+      whereClause = {
+        ...whereClause,
+        [Op.or]: [
+          { '$track.name$': { [Op.iLike]: `%${playlistTrackInfo.search}%` } },
+          { '$track.lyrics$': { [Op.iLike]: `%${playlistTrackInfo.search}%` } },
+          sequelize.literal(`
+          EXISTS (
+            SELECT 1
+            FROM "track_artists" ta
+            JOIN "users" u ON u.id = ta.artist_id
+            WHERE ta.track_id = "track"."id"
+            AND u.visible_username ILIKE ${database.sequelize.escape(`%${playlistTrackInfo.search}%`)}
+            )
+            `),
+        ],
+      };
+    }
+    const playlistTrackRecord = await database.playlistTrackModel.findOne({
+      where: whereClause,
+      order: database.sequelize.random(),
+      offset: playlistTrackInfo.index,
+    });
+    if (playlistTrackRecord === null) {
+      return {
+        success: true,
+        data: { track_id: playlistTrackInfo.currentTrackId, id: currentTrack.data.id },
+      };
     }
 
     return { success: true, data: playlistTrackRecord };

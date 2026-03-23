@@ -3,6 +3,7 @@ import { z } from 'zod/v4';
 import { errorMessages } from './errors/error-messages.ts';
 import { AlbumSpecificSortBy, AlbumsSortBy } from './interfaces/album-interface.ts';
 import { LibrarySortBy, LibraryType } from './interfaces/library-interface.ts';
+import { SongContext } from './interfaces/next-song-interface.ts';
 import { Restrictions, Type, OrderBy, PlaylistSortBy } from './interfaces/playlist-interface.ts';
 import { LibrarySections } from './interfaces/user-interface.ts';
 import { Bitrate } from './types/bitrate-type.ts';
@@ -341,6 +342,36 @@ const getArtistTop = getArtistScheme;
 
 const searchScheme = z.object({ search: z.string(), userId: uuidScheme });
 const searchWithPaginationScheme = searchScheme.extend(paginationScheme.shape);
+
+const nextSongSchema = z.discriminatedUnion('context', [
+  z.object({
+    context: z.enum([
+      SongContext.Playlist,
+      SongContext.Album,
+      SongContext.Releases,
+      SongContext.ArtistTop10,
+      SongContext.Other,
+    ]),
+    id: z.string(),
+    search: z.string().optional(),
+    loop: z.boolean(),
+    shuffle: z.boolean(),
+    currentTrackId: z.string(),
+    index: z.number(),
+    userId: uuidScheme,
+  }),
+  z.object({
+    context: z.literal(SongContext.Liked),
+    id: z.string().optional(),
+    search: z.string().optional(),
+    loop: z.boolean(),
+    shuffle: z.boolean(),
+    currentTrackId: z.string(),
+    index: z.number(),
+    userId: uuidScheme,
+  }),
+]);
+
 export {
   uuidScheme,
   loginScheme,
@@ -400,4 +431,5 @@ export {
   singleFollowScheme,
   searchScheme,
   searchWithPaginationScheme,
+  nextSongSchema,
 };

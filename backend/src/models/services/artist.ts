@@ -8,6 +8,7 @@ import { ArtistAlbumsSortBy } from '../../interfaces/artist-interface.ts';
 import { OrderBy, Restrictions } from '../../interfaces/playlist-interface.ts';
 
 import type { IArtist, ArtistSinglesSortBy } from '../../interfaces/artist-interface.ts';
+import type { TrackWithAlbum, TrackWithRelations } from '../../interfaces/track-interface.ts';
 import type { Result } from '../../types/result-type.ts';
 import type { ArtistModel } from '../artists.ts';
 import type { PlaylistAlbumsModel } from '../playlist-albums.ts';
@@ -29,7 +30,6 @@ interface TrackCountAlbum extends PlaylistModel {
   playlist_followers?: PlaylistFollowersModel[];
   tracks?: TrackModel[];
 }
-
 class ArtistManager {
   async turnToArtist(
     artistInfo: IArtist & {
@@ -477,11 +477,7 @@ class ArtistManager {
       offset,
     })) as {
       count: number;
-      rows: (TrackModel & {
-        users: UserModel[];
-        playlists?: (PlaylistModel & { playlist_track: PlaylistTrackModel })[];
-        album?: PlaylistModel[];
-      })[];
+      rows: TrackWithRelations[];
     };
     const processedArtistLiked = artistTopTracks.rows.map((row) => {
       return {
@@ -518,6 +514,269 @@ class ArtistManager {
       };
     });
     return { success: true, data: { items: processedArtists, total: artists.count } };
+  }
+  async getRandomArtistTrack(
+    currentTrackId: string,
+    search?: string,
+  ): Promise<Result<TrackWithAlbum | null, typeof errorMessages.track.NotExistsById>> {
+    const currentTrack = await database.trackModel.findByPk(currentTrackId);
+    if (!currentTrack) {
+      return { success: false, reason: errorMessages.track.NotExistsById };
+    }
+    let whereClause: sequelize.WhereOptions = {
+      id: { [Op.ne]: currentTrackId },
+      admin_id: currentTrack.admin_id,
+      [Op.or]: [{ album_id: null }, { '$album.playlist_album.date_released$': { [Op.ne]: null } }],
+    };
+    if (search) {
+      whereClause = {
+        ...whereClause,
+        [Op.or]: [
+          { name: { [Op.iLike]: `%${search}%` } },
+          { lyrics: { [Op.iLike]: `%${search}%` } },
+          sequelize.literal(`
+          EXISTS (
+            SELECT 1
+            FROM "track_artists" ta
+            JOIN "users" u ON u.id = ta.artist_id
+            WHERE ta.track_id = "track"."id"
+            AND u.visible_username ILIKE ${database.sequelize.escape(`%${search}%`)}
+            )
+            `),
+        ],
+      };
+    }
+    const artistTrackCount = await database.trackModel.count({
+      where: whereClause,
+      include: [
+        {
+          association: 'album',
+          required: false,
+          include: [
+            {
+              model: database.playlistAlbumsModel,
+              required: false,
+            },
+          ],
+        },
+      ],
+    });
+
+    // eslint-disable-next-line sonarjs/pseudo-random
+    const randomOffset = Math.floor(Math.random() * artistTrackCount);
+    const randomTrack = (await database.trackModel.findOne({
+      where: whereClause,
+      include: [
+        {
+          association: 'album',
+          required: false,
+          include: [
+            {
+              model: database.playlistAlbumsModel,
+              required: false,
+            },
+          ],
+        },
+      ],
+      order: database.sequelize.random(),
+      offset: randomOffset,
+    })) as TrackWithAlbum | null;
+    return { success: true, data: randomTrack };
+  }
+  async getNextDiscographyTrack(
+    currentTrackId: string,
+    search?: string,
+  ): Promise<Result<TrackWithAlbum | null, typeof errorMessages.track.NotExistsById>> {
+    const currentTrack = await database.trackModel.findByPk(currentTrackId);
+    if (!currentTrack) {
+      return { success: false, reason: errorMessages.track.NotExistsById };
+    }
+
+    const baseDate = currentTrack.creation_date;
+    let whereClause: sequelize.WhereOptions = {
+      id: { [Op.ne]: currentTrackId },
+      admin_id: currentTrack.admin_id,
+      [Op.and]: [
+        {
+          [Op.or]: [
+            { album_id: null },
+            { '$album.playlist_album.date_released$': { [Op.ne]: null } },
+          ],
+        },
+      ],
+    };
+    if (search) {
+      whereClause = {
+        ...whereClause,
+        [Op.or]: [
+          { name: { [Op.iLike]: `%${search}%` } },
+          { lyrics: { [Op.iLike]: `%${search}%` } },
+          sequelize.literal(`
+          EXISTS (
+            SELECT 1
+            FROM "track_artists" ta
+            JOIN "users" u ON u.id = ta.artist_id
+            WHERE ta.track_id = "track"."id"
+            AND u.visible_username ILIKE ${database.sequelize.escape(`%${search}%`)}
+            )
+            `),
+        ],
+      };
+    }
+    const nextTrack = (await database.trackModel.findOne({
+      where: whereClause,
+      include: [
+        {
+          association: 'album',
+          required: false,
+          include: [
+            {
+              model: database.playlistAlbumsModel,
+              required: false,
+            },
+          ],
+        },
+      ],
+      order: [
+        [
+          database.sequelize.literal(`
+            LEAST(
+              COALESCE(
+                CASE 
+                  WHEN "track"."creation_date" <= DATE ${database.sequelize.escape(baseDate)}
+                  THEN DATE ${database.sequelize.escape(baseDate)} - "track"."creation_date"
+                END,
+                1000000
+              ),
+              COALESCE(
+                CASE             
+                  WHEN "album->playlist_album"."date_released" IS NOT NULL
+                    AND  DATE("album->playlist_album"."date_released") <= DATE ${database.sequelize.escape(baseDate)}
+                  THEN DATE ${database.sequelize.escape(baseDate)} -  DATE("album->playlist_album"."date_released")
+                END,
+                1000000
+              )
+            )
+          `),
+          'ASC',
+        ],
+      ],
+    })) as TrackWithAlbum | null;
+    return { success: true, data: nextTrack };
+  }
+  async getTheLatestArtistTrack(
+    currentTrackId: string,
+    search?: string,
+  ): Promise<Result<TrackWithAlbum | null, typeof errorMessages.track.NotExistsById>> {
+    const currentTrack = await database.trackModel.findByPk(currentTrackId);
+    if (!currentTrack) {
+      return { success: false, reason: errorMessages.track.NotExistsById };
+    }
+    const baseDate = currentTrack.creation_date;
+    let whereClause: sequelize.WhereOptions = {
+      id: { [Op.ne]: currentTrackId },
+      [Op.and]: [
+        {
+          [Op.or]: [
+            { album_id: null },
+            { '$album.playlist_album.date_released$': { [Op.ne]: null } },
+          ],
+        },
+      ],
+    };
+    if (search) {
+      whereClause = {
+        ...whereClause,
+        [Op.or]: [
+          { name: { [Op.iLike]: `%${search}%` } },
+          { lyrics: { [Op.iLike]: `%${search}%` } },
+          sequelize.literal(`
+          EXISTS (
+            SELECT 1
+            FROM "track_artists" ta
+            JOIN "users" u ON u.id = ta.artist_id
+            WHERE ta.track_id = "track"."id"
+            AND u.visible_username ILIKE ${database.sequelize.escape(`%${search}%`)}
+            )
+            `),
+        ],
+      };
+    }
+    const nextTrack = (await database.trackModel.findOne({
+      where: whereClause,
+      include: [
+        {
+          association: 'album',
+          required: false,
+          include: [
+            {
+              model: database.playlistAlbumsModel,
+              required: false,
+            },
+          ],
+        },
+      ],
+
+      order: [
+        [
+          database.sequelize.literal(`
+            LEAST(
+              COALESCE(
+                CASE 
+                  WHEN "track"."creation_date" >= DATE ${database.sequelize.escape(baseDate)}
+                  THEN "track"."creation_date" - DATE ${database.sequelize.escape(baseDate)}
+                END,
+                1000000
+              ),
+              COALESCE(
+                CASE 
+                  WHEN "album->playlist_album"."date_released" IS NOT NULL
+                   AND DATE("album->playlist_album"."date_released") >= DATE ${database.sequelize.escape(baseDate)}
+                  THEN DATE("album->playlist_album"."date_released") - DATE ${database.sequelize.escape(baseDate)}
+                END,
+                1000000
+              )
+            )
+          `),
+          'ASC',
+        ],
+      ],
+      logging: true,
+    })) as TrackWithAlbum | null;
+    return { success: true, data: nextTrack };
+  }
+  async artistTopNextTrack(
+    artistInfo: { artistId: string; userId: string; random?: boolean },
+    limit: number = DEFAULT_LIMIT,
+    offset: number = DEFAULT_OFFSET,
+  ): Promise<Result<TrackWithRelations | null, typeof errorMessages.artist.NotExistsById>> {
+    const artistRecord = await this.getArtistById(artistInfo.artistId);
+    if (!artistRecord.success) {
+      return artistRecord;
+    }
+    const nextTrack = (await database.trackModel.findOne({
+      where: {
+        id: {
+          [Op.in]: sequelize.literal(`(
+            SELECT track_artists.track_id
+            FROM track_artists 
+            WHERE track_artists.artist_id = '${artistInfo.artistId}'
+          )`),
+        },
+      },
+      order: artistInfo.random ? database.sequelize.random() : [['play_count', OrderBy.Desc]],
+      include: [
+        {
+          model: database.userModel,
+          attributes: ['id', 'visible_username'],
+          through: { attributes: [] },
+          required: false,
+        },
+      ],
+      limit,
+      offset,
+    })) as TrackWithRelations;
+    return { success: true, data: nextTrack };
   }
 }
 export default ArtistManager;

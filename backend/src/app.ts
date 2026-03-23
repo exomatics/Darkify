@@ -26,6 +26,7 @@ import dashboardRouter from './routes/dashboard-route.ts';
 import globalSearchRouter from './routes/global-search-route.ts';
 import libraryRouter from './routes/library-route.ts';
 import likedRouter from './routes/liked-route.ts';
+import nextSongRouter from './routes/next-song-route.ts';
 import playlistRouter from './routes/playlist-route.ts';
 import trackRouter from './routes/track-route.ts';
 import userRouter from './routes/user-route.ts';
@@ -66,6 +67,7 @@ app.use('/', albumRouter);
 app.use('/', artistRouter);
 app.use('/', dashboardRouter);
 app.use('/', globalSearchRouter);
+app.use('/', nextSongRouter);
 
 app.use(errorHandler);
 app.listen(3000, () => logger.info('server is running'));

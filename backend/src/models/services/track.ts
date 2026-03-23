@@ -183,7 +183,7 @@ class TrackManager {
           {
             [Op.or]: [
               { album_id: null },
-              { '$album.playlist_album.playlist_id$': { [Op.ne]: null } },
+              { '$album.playlist_album.date_released$': { [Op.ne]: null } },
             ],
           },
         ],
@@ -610,6 +610,7 @@ class TrackManager {
             lyrics: trackInfo.lyrics ?? null,
             duration: trackInfo.duration,
             cover_id: trackInfo.cover_id,
+            creation_date: database.sequelize.fn('NOW') as unknown as Date,
           },
           { transaction },
         );

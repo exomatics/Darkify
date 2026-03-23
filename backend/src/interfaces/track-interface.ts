@@ -1,3 +1,9 @@
+import type { PlaylistAlbumsModel } from '../models/playlist-albums.ts';
+import type { PlaylistTrackModel } from '../models/playlist-tracks.ts';
+import type { PlaylistModel } from '../models/playlist.ts';
+import type { TrackModel } from '../models/track.ts';
+import type { UserModel } from '../models/user.ts';
+
 interface ITrack {
   id: string;
   admin_id: string;
@@ -26,5 +32,13 @@ type TrackResult = Omit<ITrack, 'artists' | 'cover_id' | 'admin_id'> & {
   is_liked: boolean;
   cover_url: string | null;
 };
+export type TrackWithAlbum = TrackModel & {
+  album?: PlaylistModel & { playlist_album: PlaylistAlbumsModel };
+};
 
+export type TrackWithRelations = TrackModel & {
+  users: UserModel[];
+  playlists?: (PlaylistModel & { playlist_track: PlaylistTrackModel })[];
+  album?: PlaylistModel[];
+};
 export { ITrack, UpdateTrack, TrackResult };

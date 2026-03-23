@@ -268,13 +268,13 @@ router.put(
   passport.authenticate('access-token', { session: false }) as RequestHandler,
   asyncHandler(
     async (
-      request: Request<ParamsDictionary, unknown, { releaseDate: Date | null }>,
+      request: Request<ParamsDictionary, unknown, undefined | { releaseDate: Date | null }>,
       response: Response,
     ) => {
       const validation = releaseAlbumScheme.safeParse({
         albumId: request.params.albumId,
         userId: request.jwtPayload.user_id,
-        releaseDate: request.body.releaseDate ?? null,
+        releaseDate: request.body ? request.body.releaseDate : null,
       });
 
       if (!validation.success) {
