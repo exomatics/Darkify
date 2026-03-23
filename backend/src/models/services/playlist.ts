@@ -1667,10 +1667,16 @@ class PlaylistManager {
         ],
       };
     }
+    const playlistTrackCount = await database.playlistTrackModel.count({
+      where: whereClause,
+    });
+
+    // eslint-disable-next-line sonarjs/pseudo-random
+    const randomOffset = Math.floor(Math.random() * playlistTrackCount);
+
     const playlistTrackRecord = await database.playlistTrackModel.findOne({
       where: whereClause,
-      order: database.sequelize.random(),
-      offset: playlistTrackInfo.index,
+      offset: randomOffset,
     });
     if (playlistTrackRecord === null) {
       return {
