@@ -19,6 +19,7 @@ import {
   userBannerScheme,
   singleFollowScheme,
   userFollowingScheme,
+  changePasswordScheme,
 } from '../validator.ts';
 
 import { ROUTES } from './routes.ts';
@@ -38,7 +39,10 @@ router.get(
     if (!validation.success) {
       throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }
-    const databaseResponse = await userController.getUserInfo(validation.data.trim());
+    const databaseResponse = await userController.getUserInfo(
+      validation.data.trim(),
+      validation.data.trim(),
+    );
     response.status(200).json(databaseResponse);
   }),
 );
@@ -95,7 +99,12 @@ router.get(
     if (!validation.success) {
       throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }
-    const databaseResponse = await userController.getUserInfo(validation.data.trim());
+    const requestingUserId = (request as unknown as { jwtPayload?: { user_id?: string } })
+      .jwtPayload?.user_id;
+    const databaseResponse = await userController.getUserInfo(
+      validation.data.trim(),
+      requestingUserId,
+    );
     response.status(200).json(databaseResponse);
   }),
 );
@@ -326,6 +335,42 @@ router.post(
     response.status(200).json(databaseResponse);
   }),
 );
+router.post(
+  ROUTES.USERS.POST_FOLLOW_ARTIST,
+  passport.authenticate('access-token', { session: false }) as RequestHandler,
+  asyncHandler(async (request: Request, response: Response) => {
+    const validation = userFollowScheme.safeParse({
+      user_id: request.jwtPayload.user_id,
+      follow_id: request.params.artistId,
+    });
+    if (!validation.success) {
+      throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
+    }
+    const databaseResponse = await userController.followArtist(
+      validation.data.user_id,
+      validation.data.follow_id,
+    );
+    response.status(200).json(databaseResponse);
+  }),
+);
+router.post(
+  ROUTES.USERS.POST_UNFOLLOW_ARTIST,
+  passport.authenticate('access-token', { session: false }) as RequestHandler,
+  asyncHandler(async (request: Request, response: Response) => {
+    const validation = userFollowScheme.safeParse({
+      user_id: request.jwtPayload.user_id,
+      follow_id: request.params.artistId,
+    });
+    if (!validation.success) {
+      throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
+    }
+    const databaseResponse = await userController.unfollowArtist(
+      validation.data.user_id,
+      validation.data.follow_id,
+    );
+    response.status(200).json(databaseResponse);
+  }),
+);
 router.put(
   ROUTES.USERS.PUT_EVENTS_PLAYED,
   passport.authenticate('access-token', { session: false }) as RequestHandler,
@@ -341,7 +386,6 @@ router.put(
       if (!validation.success) {
         throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
       }
-      //pW9(_%1]
       const databaseResponse = await userController.updateLibraryPlayDate(
         validation.data.user_id,
         validation.data.event_data,
@@ -386,6 +430,54 @@ router.put(
     const databaseResponse = await userController.updateUserBanner(
       validation.data.user_id,
       validation.data.file,
+    );
+    response.status(200).json(databaseResponse);
+  }),
+);
+router.put(
+  ROUTES.USERS.PUT_ME_PASSWORD,
+  passport.authenticate('access-token', { session: false }) as RequestHandler,
+  asyncHandler(
+    async (
+      request: Request<
+        ParamsDictionary,
+        unknown,
+        { current_password: string; new_password: string }
+      >,
+      response: Response,
+    ) => {
+      const validation = changePasswordScheme.safeParse({
+        userId: request.jwtPayload.user_id,
+        ...request.body,
+      });
+      if (!validation.success) {
+        throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
+      }
+      const databaseResponse = await userController.changePassword(
+        validation.data.userId,
+        validation.data.current_password,
+        validation.data.new_password,
+      );
+      response.status(200).json(databaseResponse);
+    },
+  ),
+);
+router.get(
+  ROUTES.USERS.GET_ME_FOLLOWERS,
+  passport.authenticate('access-token', { session: false }) as RequestHandler,
+  asyncHandler(async (request: Request, response: Response) => {
+    const validation = userFollowingScheme.safeParse({
+      user_id: request.jwtPayload.user_id,
+      limit: +(request.query.limit ?? 20),
+      offset: +(request.query.offset ?? 0),
+    });
+    if (!validation.success) {
+      throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
+    }
+    const databaseResponse = await userController.getUserFollowers(
+      validation.data.user_id,
+      validation.data.limit,
+      validation.data.offset,
     );
     response.status(200).json(databaseResponse);
   }),

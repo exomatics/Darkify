@@ -498,10 +498,11 @@ class ArtistManager {
   async searchForArtists(searchString: string, offset = 0, limit = 9) {
     const searchPattern = `%${searchString}%`;
     const artists = (await database.artistModel.findAndCountAll({
+      distinct: true,
       include: {
         model: database.userModel,
         where: { visible_username: { [Op.iLike]: searchPattern } },
-        attributes: ['id', 'visible_username', 'cover_id'],
+        attributes: ['id', 'visible_username', 'avatar_url'],
       },
       offset,
       limit,
@@ -741,7 +742,6 @@ class ArtistManager {
           'ASC',
         ],
       ],
-      logging: true,
     })) as TrackWithAlbum | null;
     return { success: true, data: nextTrack };
   }

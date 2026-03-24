@@ -30,7 +30,7 @@ router.get(
   passport.authenticate('access-token', { session: false }) as RequestHandler,
   asyncHandler(async (request: Request, response: Response) => {
     const validation = getTrackScheme.safeParse({
-      trackId: request.params.trackId,
+      trackId: request.query.trackId,
       userId: request.jwtPayload.user_id,
     });
     if (!validation.success) {
@@ -53,7 +53,7 @@ router.get(
       response: Response,
     ) => {
       const validation = getTracksScheme.safeParse({
-        name: request.query.trackName,
+        name: request.params.trackName,
         userId: request.jwtPayload.user_id,
         limit: +(request.query.limit ?? 5),
         offset: +(request.query.offset ?? 0),
@@ -120,6 +120,18 @@ router.post(
       artists: processedArtists,
     });
 
+    response.status(200).json(databaseResponse);
+  }),
+);
+router.get(
+  ROUTES.TRACKS.GET_TRACK_LYRICS,
+  passport.authenticate('access-token', { session: false }) as RequestHandler,
+  asyncHandler(async (request: Request, response: Response) => {
+    const validation = uuidScheme.safeParse(request.params.trackId);
+    if (!validation.success) {
+      throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
+    }
+    const databaseResponse = await trackController.getTrackLyrics(validation.data);
     response.status(200).json(databaseResponse);
   }),
 );

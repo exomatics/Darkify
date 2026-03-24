@@ -11,6 +11,12 @@ const errorHandler: ErrorRequestHandler = (error, request, response) => {
     });
     return;
   }
+  const error_ = error as Error;
+  logger.error(`[UnhandledError] ${error_.message || 'Unknown error'}`, {
+    stack: error_.stack,
+    url: request.url,
+    method: request.method,
+  });
   response.status(500).json({
     message: 'Internal Server Error',
   });

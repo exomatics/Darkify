@@ -161,9 +161,10 @@ class TrackManager {
     });
     return { success: true, data: { rows: tracksWithArtists, count: totalRecordsNumber } };
   }
-  async searchForTracks(searchString: string, offset = 0, limit = 9) {
+  async searchForTracks(searchString: string, offset = 0, limit = 9, userId?: string) {
     const searchPattern = `%${searchString}%`;
     const trackRecords = (await database.trackModel.findAll({
+      subQuery: false,
       where: {
         deleted: false,
         [Op.or]: [
@@ -207,6 +208,16 @@ class TrackManager {
             },
           ],
         },
+        ...(userId
+          ? [
+              {
+                model: database.playlistModel,
+                where: { id: userId },
+                through: { attributes: ['id', 'date_added'] },
+                required: false,
+              },
+            ]
+          : []),
       ],
       offset,
       limit,
@@ -302,7 +313,6 @@ class TrackManager {
           ],
         },
       ],
-      logging: true,
       offset,
       limit,
     })) as { count: number; rows: (LibrarySinglesWithRelations | LibraryAlbumsWithRelations)[] };
@@ -619,7 +629,7 @@ class TrackManager {
             { track_id: trackInfo.id, is_admin: true, artist_id: trackInfo.admin_id },
             ...trackArtists,
           ],
-          { transaction, logging: true },
+          { transaction },
         );
       });
     } catch {

@@ -343,6 +343,12 @@ const getArtistTop = getArtistScheme;
 const searchScheme = z.object({ search: z.string(), userId: uuidScheme });
 const searchWithPaginationScheme = searchScheme.extend(paginationScheme.shape);
 
+const changePasswordScheme = z.object({
+  userId: uuidScheme,
+  current_password: passwordScheme,
+  new_password: passwordScheme,
+});
+
 const nextSongSchema = z.discriminatedUnion('context', [
   z.object({
     context: z.enum([
@@ -432,4 +438,5 @@ export {
   searchScheme,
   searchWithPaginationScheme,
   nextSongSchema,
+  changePasswordScheme,
 };
