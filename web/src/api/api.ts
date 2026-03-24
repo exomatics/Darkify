@@ -1,4 +1,4 @@
-import {ApiClient, OpenAPI} from './gen';
+import { ApiClient, OpenAPI } from './gen';
 
 let accessToken = '';
 
@@ -10,6 +10,7 @@ export function setToken(t: string) {
 }
 
 export function removeToken() {
+  accessToken = '';
   localStorage.removeItem('access_token');
 }
 
@@ -18,19 +19,24 @@ export function getStoredToken(): string | null {
 }
 
 OpenAPI.BASE = 'http://localhost:3000/api';
+OpenAPI.WITH_CREDENTIALS = true;
+OpenAPI.CREDENTIALS = 'include';
 OpenAPI.TOKEN = async () => {
   if (!accessToken) {
     accessToken = getStoredToken() || '';
   }
   return accessToken;
 };
-OpenAPI.CREDENTIALS = 'same-origin';
 
 export let api = new ApiClient();
 
 export function initApiClient(token: string) {
   setToken(token);
-  api = new ApiClient({BASE: 'http://localhost:3000/api', TOKEN: token});
+  api = new ApiClient({
+    BASE: 'http://localhost:3000/api',
+    TOKEN: token,
+    WITH_CREDENTIALS: true,
+    CREDENTIALS: 'include',
+    VERSION: '1.0.0',
+  });
 }
-
-api.auth.postUsersRefreshToken();
