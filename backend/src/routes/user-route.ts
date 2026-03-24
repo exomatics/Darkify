@@ -335,6 +335,42 @@ router.post(
     response.status(200).json(databaseResponse);
   }),
 );
+router.post(
+  ROUTES.USERS.POST_FOLLOW_ARTIST,
+  passport.authenticate('access-token', { session: false }) as RequestHandler,
+  asyncHandler(async (request: Request, response: Response) => {
+    const validation = userFollowScheme.safeParse({
+      user_id: request.jwtPayload.user_id,
+      follow_id: request.params.artistId,
+    });
+    if (!validation.success) {
+      throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
+    }
+    const databaseResponse = await userController.followArtist(
+      validation.data.user_id,
+      validation.data.follow_id,
+    );
+    response.status(200).json(databaseResponse);
+  }),
+);
+router.post(
+  ROUTES.USERS.POST_UNFOLLOW_ARTIST,
+  passport.authenticate('access-token', { session: false }) as RequestHandler,
+  asyncHandler(async (request: Request, response: Response) => {
+    const validation = userFollowScheme.safeParse({
+      user_id: request.jwtPayload.user_id,
+      follow_id: request.params.artistId,
+    });
+    if (!validation.success) {
+      throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
+    }
+    const databaseResponse = await userController.unfollowArtist(
+      validation.data.user_id,
+      validation.data.follow_id,
+    );
+    response.status(200).json(databaseResponse);
+  }),
+);
 router.put(
   ROUTES.USERS.PUT_EVENTS_PLAYED,
   passport.authenticate('access-token', { session: false }) as RequestHandler,

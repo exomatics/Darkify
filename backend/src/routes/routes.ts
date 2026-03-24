@@ -47,6 +47,9 @@ export const ROUTES = Object.freeze({
     PUT_ME_AVATAR: `${API_BASE}/users/me/avatar`,
     PUT_ME_PASSWORD: `${API_BASE}/users/me/password`,
     GET_ME_FOLLOWERS: `${API_BASE}/users/me/followers`,
+    POST_LOGOUT: `${API_BASE}/users/logout`,
+    POST_FOLLOW_ARTIST: `${API_BASE}/users/follow/artist/:artistId`,
+    POST_UNFOLLOW_ARTIST: `${API_BASE}/users/unfollow/artist/:artistId`,
   },
   PLAYLISTS: {
     GET_PLAYLIST: `${API_BASE}/playlists/:playlistId`,

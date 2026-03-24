@@ -92,4 +92,17 @@ router.post(
     },
   ),
 );
+router.post(
+  ROUTES.USERS.POST_LOGOUT,
+  passport.authenticate('access-token', { session: false }) as RequestHandler,
+  asyncHandler((_request: Request, response: Response) => {
+    response.clearCookie('refreshToken', {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+    });
+    response.status(200).end();
+  }),
+);
+
 export default router;

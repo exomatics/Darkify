@@ -15,7 +15,12 @@ export default {
     if (!isUserExists.success) {
       throw new NotFoundError(isUserExists.reason);
     }
-    const tracksResult = await track.searchForTracks(searchInfo.searchString);
+    const tracksResult = await track.searchForTracks(
+      searchInfo.searchString,
+      0,
+      9,
+      searchInfo.userId,
+    );
     const artistsResult = await artist.searchForArtists(searchInfo.searchString);
     const albumsResult = await playlist.searchForAlbums(searchInfo);
     const playlistsResult = await playlist.getPlaylistsByName(
@@ -41,7 +46,12 @@ export default {
     if (!isUserExists.success) {
       throw new NotFoundError(isUserExists.reason);
     }
-    const tracksResult = await track.searchForTracks(searchInfo.searchString, offset, limit);
+    const tracksResult = await track.searchForTracks(
+      searchInfo.searchString,
+      offset,
+      limit,
+      searchInfo.userId,
+    );
     return tracksResult;
   },
   async searchForArtists(

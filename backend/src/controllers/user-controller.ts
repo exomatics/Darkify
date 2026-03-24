@@ -1,4 +1,5 @@
 import { DEFAULT_LIMIT, DEFAULT_OFFSET, STATIC_IMAGES_PATH } from '../config/config.ts';
+import { errorMessages } from '../errors/error-messages.ts';
 import NotFoundError from '../errors/not-found-error.ts';
 import ValidationError from '../errors/validation-error.ts';
 import { LibrarySections } from '../interfaces/user-interface.ts';
@@ -161,6 +162,34 @@ export default {
   },
   async unfollowSingle(user_id: string, single_id: string) {
     const modelResponse = await track.unfollowSingle(user_id, single_id);
+    if (!modelResponse.success) {
+      throw new ValidationError(modelResponse.reason);
+    }
+    return modelResponse.data;
+  },
+  async followArtist(userId: string, artistId: string) {
+    const targetUser = await user.getUserById(artistId);
+    if (!targetUser.success) {
+      throw new NotFoundError(targetUser.reason);
+    }
+    if (!targetUser.data.is_artist) {
+      throw new ValidationError(errorMessages.artist.NotAnArtist);
+    }
+    const modelResponse = await user.followUser(userId, artistId);
+    if (!modelResponse.success) {
+      throw new ValidationError(modelResponse.reason);
+    }
+    return modelResponse.data;
+  },
+  async unfollowArtist(userId: string, artistId: string) {
+    const targetUser = await user.getUserById(artistId);
+    if (!targetUser.success) {
+      throw new NotFoundError(targetUser.reason);
+    }
+    if (!targetUser.data.is_artist) {
+      throw new ValidationError(errorMessages.artist.NotAnArtist);
+    }
+    const modelResponse = await user.unfollowUser(userId, artistId);
     if (!modelResponse.success) {
       throw new ValidationError(modelResponse.reason);
     }

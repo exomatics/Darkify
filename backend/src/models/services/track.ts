@@ -161,7 +161,7 @@ class TrackManager {
     });
     return { success: true, data: { rows: tracksWithArtists, count: totalRecordsNumber } };
   }
-  async searchForTracks(searchString: string, offset = 0, limit = 9) {
+  async searchForTracks(searchString: string, offset = 0, limit = 9, userId?: string) {
     const searchPattern = `%${searchString}%`;
     const trackRecords = (await database.trackModel.findAll({
       where: {
@@ -207,6 +207,16 @@ class TrackManager {
             },
           ],
         },
+        ...(userId
+          ? [
+              {
+                model: database.playlistModel,
+                where: { id: userId },
+                through: { attributes: ['id', 'date_added'] },
+                required: false,
+              },
+            ]
+          : []),
       ],
       offset,
       limit,

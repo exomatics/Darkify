@@ -96,6 +96,17 @@ paths:
         '400':
           $ref: '#/components/responses/ValidationError'
 
+  /users/logout:
+    post:
+      tags: [Auth]
+      summary: Logout current user
+      description: Clears the `refreshToken` httpOnly cookie. The access token will expire naturally.
+      responses:
+        '200':
+          $ref: '#/components/responses/SuccessStatus'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
   /users/me:
     get:
       tags: [User]
@@ -442,6 +453,48 @@ paths:
           $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/Unauthorized'
+
+  /users/follow/artist/{artistId}:
+    post:
+      tags: [User]
+      summary: Follow specified artist
+      parameters:
+        - name: artistId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          $ref: '#/components/responses/SuccessStatus'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /users/unfollow/artist/{artistId}:
+    post:
+      tags: [User]
+      summary: Unfollow specified artist
+      parameters:
+        - name: artistId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          $ref: '#/components/responses/SuccessStatus'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /users/me/events/played:
     put:
