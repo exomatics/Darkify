@@ -79,7 +79,6 @@ class DashboardManager {
           p.id,
           p.name,
           pa.date_released,
-          COUNT(pt.track_id) AS count,
           (lr.id IS NOT NULL) AS is_followed,
           CASE
             WHEN p.cover_id IS NOT NULL
@@ -88,7 +87,6 @@ class DashboardManager {
           END AS cover_url
         FROM playlists p
         INNER JOIN playlist_albums pa ON p.id = pa.playlist_id
-        LEFT JOIN playlist_tracks pt ON p.id = pt.playlist_id
         LEFT JOIN library_releases lr ON p.id = lr.album_id AND lr.user_id = ${database.sequelize.escape(userId)}
         WHERE p.type = ${database.sequelize.escape(Type.Album)} AND pa.date_released IS NOT NULL
         GROUP BY p.id, p.name, pa.date_released, p.cover_id, lr.id

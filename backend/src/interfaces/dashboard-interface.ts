@@ -25,7 +25,6 @@ export interface RecentlyPlayed {
 export interface RandomAlbum {
   id: string;
   name: string;
-  count: number;
   date_released: Date | null;
   is_followed: boolean;
   cover_url: string | null;
