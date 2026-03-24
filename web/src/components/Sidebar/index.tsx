@@ -21,56 +21,9 @@ type SidebarElementData = SidebarElementDataWithChildren | SidebarElementDataWit
 
 const sidebarElements: SidebarElementData[] = [
   {
-    label: 'Pins',
-    icon: 'Pin',
-    expandable: true,
-    to: '/',
-    children: [
-      {
-        icon: 'Playlist',
-        label: 'Your Top Songs 2024',
-      },
-      {
-        icon: 'Playlist',
-        label: 'Daily Mix 1',
-      },
-      {
-        icon: 'Album',
-        label: 'Minecraft - Volume Alpha',
-      },
-      {
-        icon: 'Playlist',
-        label: 'Programming Music',
-      },
-    ],
-  },
-  {
     label: 'Playlists',
     icon: 'Playlist',
-    expandable: true,
     to: '/playlists',
-    children: [
-      {
-        icon: 'Playlist',
-        label: 'Chill stuff',
-      },
-      {
-        icon: 'Playlist',
-        label: 'Rock n Roll',
-      },
-      {
-        icon: 'Playlist',
-        label: 'The Jux Box',
-      },
-      {
-        icon: 'Playlist',
-        label: 'Selected Linkin Park',
-      },
-      {
-        icon: 'Playlist',
-        label: 'Vibe',
-      },
-    ],
   },
   {
     label: 'Liked Songs',
@@ -78,24 +31,8 @@ const sidebarElements: SidebarElementData[] = [
     to: '/liked',
   },
   {
-    label: 'Saves',
-    icon: 'Save',
-  },
-  {
     label: 'Albums',
     icon: 'Album',
-  },
-  {
-    label: 'Folders',
-    icon: 'Folder',
-  },
-  {
-    label: 'Podcasts',
-    icon: 'Podcast',
-  },
-  {
-    label: 'Audiobooks',
-    icon: 'AudioBook',
   },
   {
     label: 'Artists',

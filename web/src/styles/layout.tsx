@@ -4,11 +4,11 @@ export const Layout = ({ children }: { children: ReactNode }) => (
   <div
     style={{
       gridTemplateAreas:
-        "'header header header'\n" +
-        "     'sidebar content right-sidebar'\n" +
-        "     'sidebar playbar playbar'",
+        "'header header'\n" +
+        "     'sidebar content'\n" +
+        "     'sidebar playbar'",
     }}
-    className="grid grid-rows-[54px_1fr_81px] grid-cols-[248px_1fr_358px] h-dvh p-3"
+    className="grid grid-rows-[54px_1fr_81px] grid-cols-[248px_1fr] h-dvh p-3"
   >
     {children}
   </div>

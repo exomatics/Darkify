@@ -13,20 +13,6 @@ export const Actions = () => {
       <IconButton
         className="text-fg-secondary"
         iconScale={1.5}
-        icon="Notifications"
-        onClick={() => {}}
-      />
-      <IconButton className="text-fg-secondary" iconScale={1.5} icon="Lock" onClick={() => {}} />
-      <IconButton
-        className="text-fg-secondary"
-        iconScale={1.8}
-        className="friends"
-        icon="Friends"
-        onClick={() => {}}
-      />
-      <IconButton
-        className="text-fg-secondary"
-        iconScale={1.5}
         icon="Settings"
         onClick={() => {}}
       />
