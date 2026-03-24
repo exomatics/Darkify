@@ -126,7 +126,7 @@ class TrackManager {
           through: { attributes: [] },
           attributes: ['id', 'visible_username'],
         },
-        { association: 'album', attributes: ['id', 'name'] },
+        { association: 'album', attributes: ['id', 'name'], required: false },
         {
           model: database.playlistModel,
           where: { id: searchInfo.userId },
@@ -185,6 +185,7 @@ class TrackManager {
             [Op.or]: [
               { album_id: null },
               { '$album.playlist_album.date_released$': { [Op.ne]: null } },
+              ...(userId ? [{ admin_id: userId }] : []),
             ],
           },
         ],

@@ -40,7 +40,7 @@ const openapiDocument = YAML.parse(openapiFile) as Record<string, unknown>;
 const app = express();
 app.disable('x-powered-by');
 
-const allowedOrigin = process.env.CORS_ORIGIN ?? 'http://localhost:5173';
+const allowedOrigin = process.env.CORS_ORIGIN ?? 'http://localhost:4000';
 app.use(
   cors({
     origin: allowedOrigin,
