@@ -11,17 +11,17 @@ export default {
     if (!isUserExists.success) {
       throw new NotFoundError(isUserExists.reason);
     }
-    const recentReleasedSingles = await dashboard.getRecentReleases();
-    const randomAlbums = await dashboard.getRandomAlbums();
+    const recentReleasedSingles = await dashboard.getRecentReleases(userId);
+    const randomAlbums = await dashboard.getRandomAlbums(userId);
     const randomArtists = await dashboard.getRandomArtists();
     const randomPlaylists = await dashboard.getRandomPlaylists();
     const recentlyPlayed = await dashboard.getRecentlyPlayed(userId);
     return {
-      recently_released: recentReleasedSingles,
-      random_albums: randomAlbums,
-      random_artists: randomArtists,
-      random_playlists: randomPlaylists,
-      recently_played: recentlyPlayed,
+      recently_released: recentReleasedSingles.data,
+      random_albums: randomAlbums.data,
+      random_artists: randomArtists.data,
+      random_playlists: randomPlaylists.data,
+      recently_played: recentlyPlayed.data,
     };
   },
 };

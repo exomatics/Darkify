@@ -12,19 +12,29 @@ export interface RecentRelease {
   date_released: Date | null;
 }
 
-export type RecentlyPlayed = RecentRelease & { date_played: Date };
+export interface RecentlyPlayed {
+  id: string;
+  name: string;
+  type: ReleaseType;
+  cover_url: string | null;
+  is_followed: boolean;
+  date_released: Date | null;
+  date_played: Date;
+}
 
 export interface RandomAlbum {
   id: string;
   name: string;
-  published: boolean;
   date_released: Date | null;
+  is_followed: boolean;
   cover_url: string | null;
 }
+
 export interface RandomArtist {
   id: string;
-  visible_username: string;
-  cover_url: string | null;
+  name: string;
+  avatar_url: string | null;
+  banner_url: string | null;
 }
 
 export interface RandomPlaylist {
