@@ -202,7 +202,9 @@ paths:
     get:
       tags: [User]
       summary: Get users followed by current user
-
+      parameters:
+        - $ref: '#/components/parameters/PaginationLimitParameter'
+        - $ref: '#/components/parameters/PaginationOffsetParameter'
       responses:
         '200':
           description: List of following users
@@ -226,7 +228,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
-  /users/{userId}:
+  /users/{user_id}:
     get:
       tags: [User]
       summary: Get user info by ID
@@ -246,7 +248,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFoundError'
 
-  /users/follow/user/{userId}:
+  /users/follow/user/{user_id}:
     post:
       tags: [User]
       summary: Follow specified user
@@ -261,7 +263,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
-  /users/unfollow/user/{userId}:
+  /users/unfollow/user/{user_id}:
     post:
       tags: [User]
       summary: Unfollow specified user
@@ -459,12 +461,7 @@ paths:
       tags: [User]
       summary: Follow specified artist
       parameters:
-        - name: artistId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/ArtistIdParameter'
       responses:
         '200':
           $ref: '#/components/responses/SuccessStatus'
@@ -473,19 +470,14 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
         '404':
-          $ref: '#/components/responses/NotFound'
+          $ref: '#/components/responses/NotFoundError'
 
   /users/unfollow/artist/{artistId}:
     post:
       tags: [User]
       summary: Unfollow specified artist
       parameters:
-        - name: artistId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/ArtistIdParameter'
       responses:
         '200':
           $ref: '#/components/responses/SuccessStatus'
@@ -494,7 +486,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
         '404':
-          $ref: '#/components/responses/NotFound'
+          $ref: '#/components/responses/NotFoundError'
 
   /users/me/events/played:
     put:
@@ -1307,7 +1299,7 @@ paths:
 
   /search/playlists/{playlistId}/tracks:
     get:
-      tags: [Playlist]
+      tags: [Search]
       parameters:
         - $ref: '#/components/parameters/PlaylistIdParameter'
         - in: query
@@ -1724,10 +1716,7 @@ paths:
               properties:
                 name:
                   type: string
-                  maximum: 100
-                date_released:
-                  type: [string, 'null']
-                  format: date
+                  maxLength: 100
       responses:
         '200':
           $ref: '#/components/responses/AlbumInfoResponse'
@@ -2660,7 +2649,7 @@ components:
   parameters:
     UserIdParameter:
       in: path
-      name: userId
+      name: user_id
       required: true
       schema:
         type: string

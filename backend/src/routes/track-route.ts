@@ -53,7 +53,7 @@ router.get(
       response: Response,
     ) => {
       const validation = getTracksScheme.safeParse({
-        name: request.query.trackName,
+        name: request.params.trackName,
         userId: request.jwtPayload.user_id,
         limit: +(request.query.limit ?? 5),
         offset: +(request.query.offset ?? 0),
