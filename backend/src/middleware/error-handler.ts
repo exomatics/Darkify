@@ -2,7 +2,7 @@ import logger from '../config/logger.ts';
 import OperationalError from '../errors/operational-error.ts';
 
 import type { ErrorRequestHandler } from 'express';
-const errorHandler: ErrorRequestHandler = (error, request, response, next) => {
+const errorHandler: ErrorRequestHandler = (error, request, response) => {
   if (error instanceof OperationalError) {
     logger.error(`[${error.name}]: ${error.message}`);
 
@@ -20,6 +20,5 @@ const errorHandler: ErrorRequestHandler = (error, request, response, next) => {
   response.status(500).json({
     message: 'Internal Server Error',
   });
-  next();
 };
 export default errorHandler;

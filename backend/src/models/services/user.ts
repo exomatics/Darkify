@@ -334,7 +334,7 @@ class UserManager {
             user_id,
             playlist_id,
           },
-          { transaction, logging: true },
+          { transaction },
         );
         await playlist.createLibraryRecord(user_id, playlist_id, transaction);
       });

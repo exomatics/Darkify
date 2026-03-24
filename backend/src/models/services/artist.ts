@@ -504,7 +504,6 @@ class ArtistManager {
         where: { visible_username: { [Op.iLike]: searchPattern } },
         attributes: ['id', 'visible_username', 'avatar_url'],
       },
-      logging: true,
       offset,
       limit,
     })) as { rows: (ArtistModel & { user: UserModel })[]; count: number };
@@ -743,7 +742,6 @@ class ArtistManager {
           'ASC',
         ],
       ],
-      logging: true,
     })) as TrackWithAlbum | null;
     return { success: true, data: nextTrack };
   }
