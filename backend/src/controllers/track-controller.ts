@@ -36,6 +36,13 @@ export default {
     }
     return modelResponse.data;
   },
+  async getTrackLyrics(trackId: string) {
+    const modelResponse = await track.getTrackRecordById(trackId);
+    if (!modelResponse.success) {
+      throw new NotFoundError(modelResponse.reason);
+    }
+    return { lyrics: modelResponse.data.lyrics ?? null };
+  },
   async getTracksByName(
     searchInfo: { userId: string; trackName: string },
     limit: number = DEFAULT_LIMIT,

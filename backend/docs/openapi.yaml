@@ -11,6 +11,39 @@ servers:
   - url: http://localhost:3000/api
 
 paths:
+  /health:
+    get:
+      tags: [System]
+      summary: Health check
+      security: []
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [ok, error]
+                  db:
+                    type: string
+                    enum: [connected, disconnected]
+        '503':
+          description: Service unavailable
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [error]
+                  db:
+                    type: string
+                    enum: [disconnected]
+
   /users/register:
     post:
       tags: [Auth]
@@ -186,7 +219,8 @@ paths:
     get:
       tags: [User]
       summary: Get user info by ID
-
+      security: []
+      description: Public endpoint. When called with a valid Bearer token, the response includes `is_following` indicating whether the caller follows this user.
       parameters:
         - $ref: '#/components/parameters/UserIdParameter'
       responses:
@@ -198,8 +232,8 @@ paths:
                 $ref: '#/components/schemas/UserInfo'
         '400':
           $ref: '#/components/responses/ValidationError'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
 
   /users/follow/user/{userId}:
     post:
@@ -457,7 +491,82 @@ paths:
           $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/Unauthorized'
+  /users/me/password:
+    put:
+      tags: [User]
+      summary: Change current user password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [current_password, new_password]
+              properties:
+                current_password:
+                  type: string
+                  minLength: 8
+                  maxLength: 20
+                new_password:
+                  type: string
+                  minLength: 8
+                  maxLength: 20
+      responses:
+        '200':
+          $ref: '#/components/responses/SuccessStatus'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /users/me/followers:
+    get:
+      tags: [User]
+      summary: Get users that follow the current user
+      parameters:
+        - $ref: '#/components/parameters/PaginationLimitParameter'
+        - $ref: '#/components/parameters/PaginationOffsetParameter'
+      responses:
+        '200':
+          description: List of followers
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  offset:
+                    type: integer
+                  next:
+                    type: ['integer', 'null']
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UserPreview'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
   /tracks/:
+    get:
+      tags: [Track]
+      summary: Get track info by ID
+      parameters:
+        - in: query
+          name: trackId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          $ref: '#/components/responses/TrackInfoResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
     post:
       tags: [Track]
       summary: Upload track
@@ -475,18 +584,6 @@ paths:
           $ref: '#/components/responses/Unauthorized'
 
   /tracks/{trackId}:
-    get:
-      tags: [Track]
-      summary: Get trackInfo by id
-      parameters:
-        - $ref: '#/components/parameters/TrackIdParameter'
-      responses:
-        '200':
-          $ref: '#/components/responses/TrackInfoResponse'
-        '400':
-          $ref: '#/components/responses/ValidationError'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
     put:
       tags: [Track]
       summary: Update trackInfo by id
@@ -563,6 +660,29 @@ paths:
               schema:
                 type: string
                 format: binary
+
+  /tracks/{trackId}/lyrics:
+    get:
+      tags: [Track]
+      summary: Get lyrics for a track
+      parameters:
+        - $ref: '#/components/parameters/TrackIdParameter'
+      responses:
+        '200':
+          description: Track lyrics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  lyrics:
+                    type: ['string', 'null']
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
 
   /tracks/next:
     post:
@@ -2083,6 +2203,9 @@ components:
         description:
           type: ['string', 'null']
           description: Artist bio. Only present when is_artist is true
+        is_following:
+          type: boolean
+          description: Whether the authenticated caller follows this user. Only present when request is authenticated and caller is not the profile owner.
     UserSettings:
       type: object
       properties:
@@ -2591,6 +2714,16 @@ components:
           schema:
             description: refresh token
             $ref: '#/components/schemas/Token'
+
+    NotFoundError:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
 
     SuccessStatus:
       description: Successful response with no data

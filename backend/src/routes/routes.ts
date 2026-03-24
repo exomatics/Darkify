@@ -19,6 +19,7 @@ export const ROUTES = Object.freeze({
     POST_TRACK: `${API_BASE}/tracks/`,
     DELETE_TRACK: `${API_BASE}/tracks/:trackId`,
     GET_STREAM_TRACK: `${API_BASE}/tracks/stream/:trackId`,
+    GET_TRACK_LYRICS: `${API_BASE}/tracks/:trackId/lyrics`,
   },
   USERS: {
     GET_ME: `${API_BASE}/users/me`,
@@ -44,6 +45,8 @@ export const ROUTES = Object.freeze({
     POST_FOLLOW_SINGLE: `${API_BASE}/users/follow/single/:single_id`,
     POST_UNFOLLOW_SINGLE: `${API_BASE}/users/unfollow/single/:single_id`,
     PUT_ME_AVATAR: `${API_BASE}/users/me/avatar`,
+    PUT_ME_PASSWORD: `${API_BASE}/users/me/password`,
+    GET_ME_FOLLOWERS: `${API_BASE}/users/me/followers`,
   },
   PLAYLISTS: {
     GET_PLAYLIST: `${API_BASE}/playlists/:playlistId`,

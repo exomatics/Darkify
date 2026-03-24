@@ -15,7 +15,7 @@ const track = new TrackManager();
 const artist = new ArtistManager();
 
 export default {
-  async getUserInfo(user_id: string) {
+  async getUserInfo(user_id: string, requesting_user_id?: string) {
     const userRecord = await user.getUserById(user_id);
     const followersCount = await user.getUserFollowersNumber(user_id);
     if (!userRecord.success) {
@@ -23,6 +23,10 @@ export default {
     }
     if (!followersCount.success) {
       throw new NotFoundError(followersCount.reason);
+    }
+    let is_following: boolean | undefined;
+    if (requesting_user_id && requesting_user_id !== user_id) {
+      is_following = await user.isFollowingUser(requesting_user_id, user_id);
     }
     const requiredUserInfo = {
       user_id: userRecord.data.id,
@@ -32,6 +36,7 @@ export default {
         : null,
       is_artist: userRecord.data.is_artist,
       followers: followersCount.data,
+      ...(is_following !== undefined && { is_following }),
     };
     if (userRecord.data.is_artist) {
       const artistData = await artist.getArtistById(user_id);
@@ -160,6 +165,30 @@ export default {
       throw new ValidationError(modelResponse.reason);
     }
     return modelResponse.data;
+  },
+  async changePassword(user_id: string, current_password: string, new_password: string) {
+    const modelResponse = await user.changePassword(user_id, current_password, new_password);
+    if (!modelResponse.success) {
+      throw new ValidationError(modelResponse.reason);
+    }
+    return modelResponse.data;
+  },
+  async getUserFollowers(
+    user_id: string,
+    limit: number = DEFAULT_LIMIT,
+    offset: number = DEFAULT_OFFSET,
+  ) {
+    const modelResponse = await user.getUserFollowers(user_id, limit, offset);
+    if (!modelResponse.success) {
+      throw new NotFoundError(modelResponse.reason);
+    }
+    const { rows, count } = modelResponse.data;
+    return {
+      next: offset + rows.length + 1 <= count ? offset + rows.length : null,
+      offset,
+      total: count,
+      items: rows,
+    };
   },
   async deleteUser(user_id: string) {
     const modelResponse = await user.deleteUser(user_id);

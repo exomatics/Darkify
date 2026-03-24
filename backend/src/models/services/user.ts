@@ -374,6 +374,72 @@ class UserManager {
     return { success: true, data: null };
   }
 
+  async isFollowingUser(user_id: string, target_id: string): Promise<boolean> {
+    const record = await database.userFollowingModel.findOne({
+      where: { user_id, following_id: target_id },
+    });
+    return !!record;
+  }
+  async changePassword(
+    user_id: string,
+    current_password: string,
+    new_password: string,
+  ): Promise<
+    Result<null, typeof errorMessages.user.NotExistsById | typeof errorMessages.user.WrongPassword>
+  > {
+    const userRecord = await this.getUserById(user_id);
+    if (!userRecord.success) {
+      return { success: false, reason: errorMessages.user.NotExistsById };
+    }
+    const isCorrectPassword = verifyPassword(
+      current_password,
+      userRecord.data.hash,
+      userRecord.data.salt,
+    );
+    if (!isCorrectPassword) {
+      return { success: false, reason: errorMessages.user.WrongPassword };
+    }
+    const { salt, hash } = generatePassword(new_password);
+    await userRecord.data.update({ salt, hash });
+    return { success: true, data: null };
+  }
+  async getUserFollowers(
+    user_id: string,
+    limit?: number,
+    offset?: number,
+  ): Promise<
+    Result<
+      {
+        rows: { id: string; visible_username: string; avatar_url: string | null }[];
+        count: number;
+      },
+      typeof errorMessages.user.NotExistsById
+    >
+  > {
+    const userRecord = await this.getUserById(user_id);
+    if (!userRecord.success) {
+      return { success: false, reason: errorMessages.user.NotExistsById };
+    }
+    const followersResult = await database.userFollowersModel.findAndCountAll({
+      attributes: ['follower_id'],
+      where: { user_id },
+      offset,
+      limit,
+    });
+    const followerIds = followersResult.rows
+      .map((row) => row.dataValues.follower_id)
+      .filter(Boolean) as string[];
+    const followerUsers = await database.userModel.findAll({
+      attributes: ['id', 'visible_username', 'avatar_url'],
+      where: { id: { [Op.in]: followerIds } },
+    });
+    const processedFollowers = followerUsers.map((u) => ({
+      id: u.id,
+      visible_username: u.visible_username,
+      avatar_url: u.avatar_url ? `${STATIC_IMAGES_PATH}/${u.avatar_url}.jpg` : null,
+    }));
+    return { success: true, data: { rows: processedFollowers, count: followersResult.count } };
+  }
   async deleteUser(
     user_id: string,
   ): Promise<Result<null, typeof errorMessages.user.NotExistsById>> {
