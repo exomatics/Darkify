@@ -164,6 +164,7 @@ class TrackManager {
   async searchForTracks(searchString: string, offset = 0, limit = 9, userId?: string) {
     const searchPattern = `%${searchString}%`;
     const trackRecords = (await database.trackModel.findAll({
+      subQuery: false,
       where: {
         deleted: false,
         [Op.or]: [
@@ -220,6 +221,7 @@ class TrackManager {
       ],
       offset,
       limit,
+      logging: true,
     })) as TrackModelWithUsers[] | [];
     const processedTracks = trackRecords.map((trackRecord) => {
       return {
