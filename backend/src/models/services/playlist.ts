@@ -94,7 +94,7 @@ class PlaylistManager {
             restrictions: playlistInfo.restrictions,
             type: playlistInfo.type ?? Type.General,
           },
-          { transaction: playlistInfo.transaction ?? transaction, logging: true },
+          { transaction: playlistInfo.transaction ?? transaction },
         );
         await this.createLibraryRecord(
           localPlaylistRecord.owner,
@@ -382,7 +382,7 @@ class PlaylistManager {
             track_id: playlistTrackInfo.trackId,
             order: typeof maxOrder === 'number' ? maxOrder + ORDER_NUMBER : ORDER_NUMBER,
           },
-          { transaction: playlistTrackInfo.transaction ?? transaction, logging: true },
+          { transaction: playlistTrackInfo.transaction ?? transaction },
         );
         await database.playlistModel.update(
           { tracks_count: (playlistRecord.data.tracks_count ?? 0) + 1 },
@@ -1384,7 +1384,6 @@ class PlaylistManager {
       ],
       offset,
       limit,
-      logging: true,
     })) as unknown as {
       id: string;
       playlist_id: string;
@@ -1446,7 +1445,7 @@ class PlaylistManager {
         user_id: userId,
         order: typeof maxOrder === 'number' ? maxOrder + ORDER_NUMBER : ORDER_NUMBER,
       },
-      { transaction, logging: true },
+      { transaction },
     );
   }
   async deleteLibraryRecord(userId: string, playlistId: string, transaction: Transaction) {
@@ -1752,7 +1751,6 @@ class PlaylistManager {
             ],
           },
         },
-        logging: true,
       });
       newOrder = typeof maxOrder === 'number' ? maxOrder + ORDER_NUMBER : 0;
     }

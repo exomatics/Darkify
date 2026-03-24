@@ -743,7 +743,6 @@ class ArtistManager {
           'ASC',
         ],
       ],
-      logging: true,
     })) as TrackWithAlbum | null;
     return { success: true, data: nextTrack };
   }

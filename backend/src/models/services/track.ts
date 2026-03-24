@@ -315,7 +315,6 @@ class TrackManager {
           ],
         },
       ],
-      logging: true,
       offset,
       limit,
     })) as { count: number; rows: (LibrarySinglesWithRelations | LibraryAlbumsWithRelations)[] };
@@ -632,7 +631,7 @@ class TrackManager {
             { track_id: trackInfo.id, is_admin: true, artist_id: trackInfo.admin_id },
             ...trackArtists,
           ],
-          { transaction, logging: true },
+          { transaction },
         );
       });
     } catch {
