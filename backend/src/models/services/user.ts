@@ -156,7 +156,7 @@ class UserManager {
     const searchPattern = `%${searchString}%`;
 
     const users = await database.userModel.findAndCountAll({
-      where: { visible_username: { [Op.iLike]: searchPattern } },
+      where: { visible_username: { [Op.iLike]: searchPattern }, is_artist: false },
       limit,
       offset,
     });

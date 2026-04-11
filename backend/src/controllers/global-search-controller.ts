@@ -30,11 +30,11 @@ export default {
     );
     const usersResult = await user.searchForUsers(searchInfo.searchString);
     return {
-      tracks: tracksResult,
-      artists: artistsResult,
-      albums: albumsResult,
-      playlists: playlistsResult,
-      users: usersResult,
+      tracks: tracksResult.data,
+      artists: artistsResult.data,
+      albums: albumsResult.data,
+      playlists: playlistsResult.data,
+      users: usersResult.data,
     };
   },
   async searchForTracks(
@@ -52,7 +52,7 @@ export default {
       limit,
       searchInfo.userId,
     );
-    return tracksResult;
+    return tracksResult.data;
   },
   async searchForArtists(
     searchInfo: { userId: string; searchString: string },
@@ -64,7 +64,7 @@ export default {
       throw new NotFoundError(isUserExists.reason);
     }
     const artistsResult = await artist.searchForArtists(searchInfo.searchString, offset, limit);
-    return artistsResult;
+    return artistsResult.data;
   },
   async searchForAlbums(
     searchInfo: { userId: string; searchString: string },
@@ -95,7 +95,7 @@ export default {
       limit,
       offset,
     );
-    return playlistsResult;
+    return playlistsResult.data;
   },
   async searchForUsers(
     searchInfo: { userId: string; searchString: string },
@@ -107,6 +107,6 @@ export default {
       throw new NotFoundError(isUserExists.reason);
     }
     const usersResult = await user.searchForUsers(searchInfo.searchString, limit, offset);
-    return usersResult;
+    return usersResult.data;
   },
 };
