@@ -238,6 +238,6 @@ export default {
     }
     const searchResponse = await playlist.searchForPlaylistTrack(searchInfo, limit, offset);
 
-    return searchResponse;
+    return searchResponse.data;
   },
 };

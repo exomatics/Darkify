@@ -1220,7 +1220,6 @@ class PlaylistManager {
       'cover_id',
       'name',
       'owner',
-      [database.sequelize.fn('COUNT', sequelize.col('library_playlists.id')), 'track_count'],
     ];
     if (libraryInfo.extended) {
       playlistAttributes.push([
@@ -1241,41 +1240,20 @@ class PlaylistManager {
       ]);
     }
     const playlistRecords = (await database.libraryPlaylists.findAll({
-      // // 'distinct_artist',
       where: { user_id: libraryInfo.userId },
       subQuery: false,
-      // raw: true,
-      // nest: true,
-      // distinct: true,
       order,
-      group: [
-        'library_playlists.id',
-        'playlist.id',
-        'playlist->user.id',
-        'playlist->tracks.id',
-        'playlist->tracks->playlist_track.id',
-        'playlist->tracks->playlist_track.playlist_id',
-        'playlist->tracks->playlist_track.track_id',
-        'playlist->tracks->playlist_track.order',
-      ],
       include: [
         {
           model: database.playlistModel,
-          // associationType:
           attributes: playlistAttributes,
           where: { type: Type.General },
           required: true,
-          // required: true,
-          // right: true,
-          // through: { attributes: ['playlist_id'] },
           include: [
             {
               model: database.userModel,
-              // required: true,
-              // right: true,
               attributes: ['id', 'visible_username'],
             },
-            { model: database.trackModel, attributes: ['id'] },
           ],
         },
       ],

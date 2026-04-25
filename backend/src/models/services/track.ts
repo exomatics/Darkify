@@ -240,7 +240,10 @@ class TrackManager {
           : null,
       };
     });
-    return { success: true, data: processedTracks };
+    return {
+      success: true,
+      data: { items: processedTracks, total: processedTracks.length },
+    };
   }
   async getLibrary(
     libraryInfo: {

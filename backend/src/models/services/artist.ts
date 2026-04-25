@@ -272,8 +272,10 @@ class ArtistManager {
       'tracks.play_count',
       'tracks->playlist_track.id',
       'tracks->playlist_track.playlist_id',
+      'tracks->playlist_track.user_id',
       'tracks->playlist_track.track_id',
       'tracks->playlist_track.order',
+      'tracks->playlist_track.date_added',
     ];
     if (sort.sortBy === ArtistAlbumsSortBy.Popularity) {
       attributes = [
@@ -296,8 +298,10 @@ class ArtistManager {
         'tracks.play_count',
         'tracks->playlist_track.id',
         'tracks->playlist_track.playlist_id',
+        'tracks->playlist_track.user_id',
         'tracks->playlist_track.track_id',
         'tracks->playlist_track.order',
+        'tracks->playlist_track.date_added',
       ];
       order = [['popularity', 'DESC']];
     }

@@ -5,8 +5,8 @@ import { ROUTES } from '../routes/routes.ts';
 
 export const rateLimiters = {
   globalLimiter: rateLimit({
-    windowMs: 3 * 60 * 1000,
-    max: 100,
+    windowMs: 60 * 1000,
+    max: 1000,
     standardHeaders: true,
     legacyHeaders: false,
     skip: (request, _response) => {
