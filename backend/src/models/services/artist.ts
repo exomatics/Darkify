@@ -502,7 +502,6 @@ class ArtistManager {
   async searchForArtists(searchString: string, offset = 0, limit = 9) {
     const searchPattern = `%${searchString}%`;
     const artists = (await database.artistModel.findAndCountAll({
-      distinct: true,
       include: {
         model: database.userModel,
         where: { visible_username: { [Op.iLike]: searchPattern } },
