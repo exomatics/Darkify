@@ -1215,12 +1215,7 @@ class PlaylistManager {
         ? [[{ model: database.playlistModel }, libraryInfo.sort.sortBy, libraryInfo.sort.order]]
         : [[libraryInfo.sort.sortBy, libraryInfo.sort.order]]
     ) as sequelize.Order;
-    const playlistAttributes: sequelize.FindAttributeOptions = [
-      'id',
-      'cover_id',
-      'name',
-      'owner',
-    ];
+    const playlistAttributes: sequelize.FindAttributeOptions = ['id', 'cover_id', 'name', 'owner'];
     if (libraryInfo.extended) {
       playlistAttributes.push([
         database.sequelize.literal(`
@@ -1270,7 +1265,6 @@ class PlaylistManager {
         user: { id: string; visible_username: string };
         dataValues: PlaylistModel['dataValues'] & {
           artists_usernames?: string[];
-          track_count: number;
         };
       };
     }[];
