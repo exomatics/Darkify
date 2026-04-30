@@ -305,10 +305,10 @@ class ArtistManager {
       ];
       order = [['popularity', 'DESC']];
     }
-    const artistAlbumsCount = await database.playlistModel.count({
+    const artistAlbumsCount = await database.playlistModel.scope('albumOnly').count({
       where: { owner: artistInfo.artistId, restrictions: Restrictions.Public },
     });
-    const artistAlbumsRecords = (await database.playlistModel.findAll({
+    const artistAlbumsRecords = (await database.playlistModel.scope('albumOnly').findAll({
       where: { owner: artistInfo.artistId, restrictions: Restrictions.Public },
       subQuery: false,
       group,

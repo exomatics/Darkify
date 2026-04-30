@@ -978,7 +978,9 @@ class PlaylistManager {
   ): Promise<
     Result<
       IPlaylistInfo,
-      typeof errorMessages.playlist.NotExistsById | typeof errorMessages.playlist.IsNotAnOwner
+      | typeof errorMessages.playlist.NotExistsById
+      | typeof errorMessages.playlist.IsNotAnOwner
+      | typeof errorMessages.liked.CantMakePublic
     >
   > {
     const playlistRecord = await this.getPlaylistRecordById(
@@ -991,6 +993,9 @@ class PlaylistManager {
 
     if (playlistRecord.data.owner !== playlistInfo.userId) {
       return { success: false, reason: errorMessages.playlist.IsNotAnOwner };
+    }
+    if (playlistRecord.data.type === Type.Liked) {
+      return { success: false, reason: errorMessages.liked.CantMakePublic };
     }
 
     await playlistRecord.data.update({
