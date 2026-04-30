@@ -50,6 +50,7 @@ export const errorMessages = {
     NotExistsById: 'Liked does not exist',
     CantDelete: 'You cant delete liked songs',
     TrackMustBeUnique: 'Songs in Liked must be unique',
+    CantMakePublic: 'You cant make liked songs public',
   }),
   track: Object.freeze({
     NotExistsById: 'Track with this id does not exist',
