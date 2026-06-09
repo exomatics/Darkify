@@ -9,6 +9,7 @@ import { rateLimiters } from '../middleware/rate-limiter.ts';
 import { FileUploader } from '../models/services/file-management.ts';
 import {
   createTrackScheme,
+  deleteTrackScheme,
   getTrackScheme,
   getTracksScheme,
   streamTrackScheme,
@@ -157,11 +158,14 @@ router.delete(
   ROUTES.TRACKS.DELETE_TRACK,
   passport.authenticate('access-token', { session: false }) as RequestHandler,
   asyncHandler(async (request: Request, response: Response) => {
-    const validation = uuidScheme.safeParse(request.params.trackId);
+    const validation = deleteTrackScheme.safeParse({
+      trackId: request.params.trackId,
+      userId: request.jwtPayload.user_id,
+    });
     if (!validation.success) {
       throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }
-    await trackController.deleteTrack(validation.data);
+    await trackController.deleteTrack(validation.data.trackId, validation.data.userId);
     response.status(200).end();
   }),
 );

@@ -75,7 +75,7 @@ class TrackManager {
       return { success: false, reason: errorMessages.track.NotExistsById };
     }
     const trackWithArtists = {
-      ..._.omit(trackRecord.dataValues, 'cover_id', 'users', 'admin_id', 'playlists'),
+      ..._.omit(trackRecord.dataValues, 'cover_id', 'users', 'playlists'),
       artists: trackRecord.dataValues.users.map((trackArtists) => {
         return { id: trackArtists.id, visible_username: trackArtists.visible_username };
       }),
@@ -116,7 +116,10 @@ class TrackManager {
     limit: number = DEFAULT_LIMIT,
     offset: number = DEFAULT_OFFSET,
   ): Promise<
-    Result<{ rows: TrackResult[]; count: number }, typeof errorMessages.track.NotExistsByName>
+    Result<
+      { rows: Omit<TrackResult, 'admin_id'>[]; count: number },
+      typeof errorMessages.track.NotExistsByName
+    >
   > {
     const trackRecords = (await database.trackModel.findAll({
       where: { name: { [Op.iLike]: `%${searchInfo.trackName}%` }, deleted: false },
@@ -608,7 +611,7 @@ class TrackManager {
       ITrack,
       'cover_id' | 'id' | 'admin_id' | 'artists' | 'album_id' | 'name' | 'lyrics' | 'duration'
     >,
-  ): Promise<Result<TrackResult, typeof errorMessages.track.NotExistsById>> {
+  ): Promise<Result<Omit<TrackResult, 'admin_id'>, typeof errorMessages.track.NotExistsById>> {
     try {
       const trackArtists = trackInfo.artists.map((value) => {
         return { track_id: trackInfo.id, is_admin: false, artist_id: value };
@@ -647,7 +650,7 @@ class TrackManager {
     if (!trackArtistsRecord.success) {
       return trackArtistsRecord;
     }
-    return { success: true, data: trackArtistsRecord.data };
+    return { success: true, data: _.omit(trackArtistsRecord.data, 'admin_id') };
   }
   async createTrack(
     trackInfo: Pick<
@@ -656,7 +659,7 @@ class TrackManager {
     >,
   ): Promise<
     Result<
-      TrackResult,
+      Omit<TrackResult, 'admin_id'>,
       typeof errorMessages.track.FfmpegError | typeof errorMessages.track.NotExistsById
     >
   > {

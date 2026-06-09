@@ -26,7 +26,7 @@ interface UpdateTrack {
   file: Express.Multer.File | null;
 }
 
-type TrackResult = Omit<ITrack, 'artists' | 'cover_id' | 'admin_id'> & {
+type TrackResult = Omit<ITrack, 'artists' | 'cover_id'> & {
   artists: { id: string; visible_username: string }[];
   album: { id: string; name: string };
   is_liked: boolean;

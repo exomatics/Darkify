@@ -12,6 +12,7 @@ import database from '../config/database.ts';
 import { errorMessages } from '../errors/error-messages.ts';
 import InternalError from '../errors/internal-error.ts';
 import NotFoundError from '../errors/not-found-error.ts';
+import UnauthorizedError from '../errors/unauthorized-error.ts';
 import ValidationError from '../errors/validation-error.ts';
 import { FileUploader } from '../models/services/file-management.ts';
 import PlaylistManager from '../models/services/playlist.ts';
@@ -156,6 +157,10 @@ export default {
     return result.data;
   },
   async updateTrack(trackInfo: UpdateTrack) {
+    const trackData = await this.getTrackInfo({ trackId: trackInfo.id, userId: trackInfo.userId });
+    if (trackInfo.userId !== trackData.admin_id) {
+      throw new UnauthorizedError(errorMessages.track.CanNotUpdate);
+    }
     let coverId;
     if (trackInfo.file) {
       coverId = await fileUploader.uploadImage(trackInfo.file);
@@ -167,7 +172,11 @@ export default {
     }
     return modelResponse.data;
   },
-  async deleteTrack(trackId: string) {
+  async deleteTrack(trackId: string, userId: string) {
+    const trackData = await this.getTrackInfo({ trackId, userId });
+    if (userId !== trackData.admin_id) {
+      throw new UnauthorizedError(errorMessages.track.CanNotUpdate);
+    }
     const modelResponse = await track.deleteTrack(trackId);
     if (!modelResponse.success) {
       throw new NotFoundError(modelResponse.reason);

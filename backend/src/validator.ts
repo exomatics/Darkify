@@ -141,7 +141,10 @@ const updateTrackScheme = trackScheme
   .refine(({ name, artists, lyrics, file }) => {
     return requireAtLeastOneCheck({ name, artists, lyrics, file });
   }, errorMessages.validation.SpecifyWhatToUpdate);
-
+const deleteTrackScheme = z.object({
+  trackId: uuidScheme,
+  userId: uuidScheme,
+});
 const playlistScheme = z.object({
   playlistId: uuidScheme,
   name: z.string().max(100).nonempty(),
@@ -394,6 +397,7 @@ export {
   getTracksScheme,
   createTrackScheme,
   updateTrackScheme,
+  deleteTrackScheme,
   streamTrackScheme,
   getPlaylistsScheme,
   getPlaylistInfoScheme,

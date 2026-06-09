@@ -55,6 +55,7 @@ export const errorMessages = {
   track: Object.freeze({
     NotExistsById: 'Track with this id does not exist',
     NotExistsByName: 'There is no tracks with such name',
+    CanNotUpdate: 'You can not update this track',
     FfmpegError: 'Error while converting to hls',
     FailedToCreate: 'Failed to create track',
     LibraryNotExistsByIndex: 'Library single or album with this index doesnt exist in this library',
