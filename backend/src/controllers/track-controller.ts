@@ -20,7 +20,7 @@ import TrackManager from '../models/services/track.ts';
 import UserManager from '../models/services/user.ts';
 import { Bitrate } from '../types/bitrate-type.ts';
 
-import type { ITrack, UpdateTrack } from '../interfaces/track-interface.ts';
+import type { AllowedAudioExtensions, ITrack, UpdateTrack } from '../interfaces/track-interface.ts';
 import type { SuccessfulResult } from '../types/result-type.ts';
 
 const track = new TrackManager();
@@ -108,6 +108,7 @@ export default {
     trackInfo: Omit<ITrack, 'cover_id' | 'duration' | 'play_count'> & {
       cover: Express.Multer.File[] | null;
       track: Express.Multer.File[] | null;
+      audioExtension: AllowedAudioExtensions;
     },
   ) {
     if (!trackInfo.track) {
@@ -138,6 +139,7 @@ export default {
       const trackResponse = await track.createTrack({
         ...trackInfo,
         cover_id: coverId,
+        audioExtension: trackInfo.audioExtension,
       });
       if (!trackResponse.success) {
         throw new InternalError(trackResponse.reason);

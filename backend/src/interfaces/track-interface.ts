@@ -4,7 +4,7 @@ import type { PlaylistModel } from '../models/playlist.ts';
 import type { TrackModel } from '../models/track.ts';
 import type { UserModel } from '../models/user.ts';
 
-interface ITrack {
+export interface ITrack {
   id: string;
   admin_id: string;
   name: string;
@@ -16,7 +16,7 @@ interface ITrack {
   duration: number;
   cover_id: string | null;
 }
-interface UpdateTrack {
+export interface UpdateTrack {
   id: string;
   userId: string;
   name?: string;
@@ -26,7 +26,7 @@ interface UpdateTrack {
   file: Express.Multer.File | null;
 }
 
-type TrackResult = Omit<ITrack, 'artists' | 'cover_id'> & {
+export type TrackResult = Omit<ITrack, 'artists' | 'cover_id'> & {
   artists: { id: string; visible_username: string }[];
   album: { id: string; name: string };
   is_liked: boolean;
@@ -41,4 +41,11 @@ export type TrackWithRelations = TrackModel & {
   playlists?: (PlaylistModel & { playlist_track: PlaylistTrackModel })[];
   album?: PlaylistModel[];
 };
-export { ITrack, UpdateTrack, TrackResult };
+export type AllowedAudioMimetypes =
+  | 'audio/mpeg'
+  | 'audio/flac'
+  | 'audio/x-flac'
+  | 'audio/wav'
+  | 'audio/ogg'
+  | 'audio/mp4';
+export type AllowedAudioExtensions = '.mp3' | '.wav' | '.flac' | '.ogg' | '.m4a';

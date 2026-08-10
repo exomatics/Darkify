@@ -79,6 +79,10 @@ export const errorMessages = {
   database: Object.freeze({
     BothOrNone: 'only album_id or track_id must be defined',
   }),
+  fileUpload: Object.freeze({
+    ExtensionNotSupported: 'file extension is not supported',
+    UnexpectedField: 'Unexpected field',
+  }),
   init: Object.freeze({
     KeysAlreadyGenerated: 'Key pair already exists. Skipping generation.',
   }),
