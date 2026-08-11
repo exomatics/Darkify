@@ -502,7 +502,7 @@ class TrackManager {
 
     let originalBitrate = undefined;
     let pathToLosslessHls = undefined;
-    if (audioExtension !== '.mp3') {
+    if (audioExtension === '.flac' || audioExtension === '.wav') {
       const originalTrackMetadata = await parseFile(pathToTrack);
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       originalBitrate = originalTrackMetadata.format.bitrate!;

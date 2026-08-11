@@ -1,3 +1,6 @@
+import fs from 'node:fs';
+import path from 'node:path';
+
 import {
   DEFAULT_LIMIT,
   DEFAULT_OFFSET,
@@ -7,6 +10,7 @@ import {
   PATH_TO_96m3u8,
   PATH_TO_AUDIO,
   PATH_TO_AUTO_BITRATE,
+  PATH_TO_losslessm3u8,
 } from '../config/config.ts';
 import database from '../config/database.ts';
 import { errorMessages } from '../errors/error-messages.ts';
@@ -78,6 +82,13 @@ export default {
     await track.increasePlayCount(streamInfo.trackId);
     let pathToFile;
     switch (userRecord.data.bitrate) {
+      case Bitrate.Lossless: {
+        pathToFile = `${PATH_TO_AUDIO}/${modelResponse.data.id}/${PATH_TO_losslessm3u8}`;
+        if (fs.existsSync(path.normalize(pathToFile))) {
+          break;
+        }
+      }
+      // eslint-disable-next-line no-fallthrough
       case Bitrate.VeryHigh: {
         pathToFile = `${PATH_TO_AUDIO}/${modelResponse.data.id}/${PATH_TO_320m3u8}`;
         break;
