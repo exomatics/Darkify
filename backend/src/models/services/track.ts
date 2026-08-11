@@ -3,6 +3,8 @@ import path from 'node:path';
 
 import ffmpeg from 'fluent-ffmpeg';
 import _ from 'lodash';
+// eslint-disable-next-line import/no-unresolved
+import { parseFile } from 'music-metadata';
 import sequelize, { Op } from 'sequelize';
 
 import {
@@ -23,7 +25,12 @@ import { Type, type OrderBy, type IPlaylist } from '../../interfaces/playlist-in
 import PlaylistManager from './playlist.ts';
 
 import type { IReleasesReorder } from '../../interfaces/library-interface.ts';
-import type { ITrack, TrackResult, UpdateTrack } from '../../interfaces/track-interface.ts';
+import type {
+  AllowedAudioExtensions,
+  ITrack,
+  TrackResult,
+  UpdateTrack,
+} from '../../interfaces/track-interface.ts';
 import type { Result, SuccessfulResult } from '../../types/result-type.ts';
 import type { LibraryReleasesModel } from '../library-releases.ts';
 import type { PlaylistModel } from '../playlist.ts';
@@ -75,7 +82,7 @@ class TrackManager {
       return { success: false, reason: errorMessages.track.NotExistsById };
     }
     const trackWithArtists = {
-      ..._.omit(trackRecord.dataValues, 'cover_id', 'users', 'admin_id', 'playlists'),
+      ..._.omit(trackRecord.dataValues, 'cover_id', 'users', 'playlists'),
       artists: trackRecord.dataValues.users.map((trackArtists) => {
         return { id: trackArtists.id, visible_username: trackArtists.visible_username };
       }),
@@ -116,7 +123,10 @@ class TrackManager {
     limit: number = DEFAULT_LIMIT,
     offset: number = DEFAULT_OFFSET,
   ): Promise<
-    Result<{ rows: TrackResult[]; count: number }, typeof errorMessages.track.NotExistsByName>
+    Result<
+      { rows: Omit<TrackResult, 'admin_id'>[]; count: number },
+      typeof errorMessages.track.NotExistsByName
+    >
   > {
     const trackRecords = (await database.trackModel.findAll({
       where: { name: { [Op.iLike]: `%${searchInfo.trackName}%` }, deleted: false },
@@ -126,7 +136,7 @@ class TrackManager {
           through: { attributes: [] },
           attributes: ['id', 'visible_username'],
         },
-        { association: 'album', attributes: ['id', 'name'] },
+        { association: 'album', attributes: ['id', 'name'], required: false },
         {
           model: database.playlistModel,
           where: { id: searchInfo.userId },
@@ -185,6 +195,7 @@ class TrackManager {
             [Op.or]: [
               { album_id: null },
               { '$album.playlist_album.date_released$': { [Op.ne]: null } },
+              ...(userId ? [{ admin_id: userId }] : []),
             ],
           },
         ],
@@ -221,6 +232,7 @@ class TrackManager {
       ],
       offset,
       limit,
+      logging: true,
     })) as TrackModelWithUsers[] | [];
     const processedTracks = trackRecords.map((trackRecord) => {
       return {
@@ -238,7 +250,10 @@ class TrackManager {
           : null,
       };
     });
-    return { success: true, data: processedTracks };
+    return {
+      success: true,
+      data: { items: processedTracks, total: processedTracks.length },
+    };
   }
   async getLibrary(
     libraryInfo: {
@@ -474,8 +489,9 @@ class TrackManager {
   }
   async convertToHls(
     trackFilename: string,
+    audioExtension: AllowedAudioExtensions,
   ): Promise<Result<number, typeof errorMessages.track.FfmpegError>> {
-    const pathToTrack = path.join(PATH_TO_AUDIO, `${trackFilename}.mp3`);
+    const pathToTrack = path.join(PATH_TO_AUDIO, trackFilename + audioExtension);
 
     const pathToHls = path.join(PATH_TO_AUDIO, trackFilename);
 
@@ -483,6 +499,16 @@ class TrackManager {
     const pathTo160Hls = path.resolve(pathToHls, '160kbps');
     const pathTo96Hls = path.resolve(pathToHls, '96kbps');
     const pathTo24Hls = path.resolve(pathToHls, '24kbps');
+
+    let originalBitrate = undefined;
+    let pathToLosslessHls = undefined;
+    if (audioExtension === '.flac' || audioExtension === '.wav') {
+      const originalTrackMetadata = await parseFile(pathToTrack);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      originalBitrate = originalTrackMetadata.format.bitrate!;
+      pathToLosslessHls = path.resolve(pathToHls, 'lossless');
+      fs.mkdirSync(pathToLosslessHls, { recursive: true });
+    }
 
     fs.mkdirSync(pathToHls, { recursive: true });
     fs.mkdirSync(pathTo320Hls, { recursive: true });
@@ -493,6 +519,38 @@ class TrackManager {
     let trackDurationInSeconds = 0;
 
     const command = new Promise((resolve, reject) => {
+      if (pathToLosslessHls && originalBitrate) {
+        ffmpeg(pathToTrack)
+          .audioCodec('aac')
+          .audioChannels(2)
+          .output(path.join(pathToLosslessHls, 'lossless.m3u8'))
+          .toFormat('hls')
+          .outputOption('-map', 'a:0')
+          .audioBitrate(originalBitrate)
+          .outputOption('-hls_segment_filename', path.resolve(pathToLosslessHls, 'data%03d.ts'))
+          .outputOptions([
+            '-hls_time 5',
+            '-hls_playlist_type vod',
+            '-hls_flags independent_segments',
+            '-hls_segment_type mpegts',
+            '-hls_list_size 0',
+          ])
+          .on('codecData', function (data) {
+            const trackDuration = data.duration.split(':');
+            const hours = Number(trackDuration[0]) * 60 * 60;
+            const minutes = Number(trackDuration[1]) * 60;
+            const seconds = Number(trackDuration[2]);
+            trackDurationInSeconds = Math.trunc(hours + minutes + seconds);
+          })
+          .on('error', (error) => {
+            reject(error);
+            return { success: false, reason: errorMessages.track.FfmpegError };
+          })
+          .on('end', () => {
+            resolve('resolved');
+          })
+          .run();
+      }
       ffmpeg(pathToTrack)
         .audioCodec('aac')
         .audioChannels(2)
@@ -603,7 +661,7 @@ class TrackManager {
       ITrack,
       'cover_id' | 'id' | 'admin_id' | 'artists' | 'album_id' | 'name' | 'lyrics' | 'duration'
     >,
-  ): Promise<Result<TrackResult, typeof errorMessages.track.NotExistsById>> {
+  ): Promise<Result<Omit<TrackResult, 'admin_id'>, typeof errorMessages.track.NotExistsById>> {
     try {
       const trackArtists = trackInfo.artists.map((value) => {
         return { track_id: trackInfo.id, is_admin: false, artist_id: value };
@@ -642,20 +700,20 @@ class TrackManager {
     if (!trackArtistsRecord.success) {
       return trackArtistsRecord;
     }
-    return { success: true, data: trackArtistsRecord.data };
+    return { success: true, data: _.omit(trackArtistsRecord.data, 'admin_id') };
   }
   async createTrack(
     trackInfo: Pick<
       ITrack,
       'cover_id' | 'id' | 'admin_id' | 'artists' | 'album_id' | 'name' | 'lyrics'
-    >,
+    > & { audioExtension: AllowedAudioExtensions },
   ): Promise<
     Result<
-      TrackResult,
+      Omit<TrackResult, 'admin_id'>,
       typeof errorMessages.track.FfmpegError | typeof errorMessages.track.NotExistsById
     >
   > {
-    const fileData = await this.convertToHls(trackInfo.id);
+    const fileData = await this.convertToHls(trackInfo.id, trackInfo.audioExtension);
     if (!fileData.success) {
       return fileData;
     }

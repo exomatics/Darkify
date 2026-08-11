@@ -2,7 +2,6 @@ import { PlayButton } from '../UI/PlayButton';
 import { IconButton } from '../UI/IconButton';
 import { PlayRange } from '../UI/PlayRange';
 import { CurrentTrack } from './ui/CurrentTrack';
-import djIcon from './assets/dj.png';
 import AudioPlayer from '../../features/hls-stream/Player.tsx';
 import { LoopMode, useAudioStore } from '@/features/hls-stream/store.ts';
 import { formatDuration } from '../Track/lib.ts';
@@ -100,16 +99,6 @@ export const Playbar = () => {
           iconScale={1.6}
           onClick={() => console.log('lyrics')}
         />
-        <IconButton
-          className="text-fg-secondary"
-          icon="More"
-          iconScale={1.6}
-          onClick={() => console.log('more')}
-        />
-        <div className="bg-[#89898933] h-9 w-[2px]" />
-        <div className="w-8 h-8">
-          <img src={djIcon} />
-        </div>
         <IconButton icon="Queue" iconScale={1.6} onClick={() => console.log('queue')} />
       </div>
     </div>

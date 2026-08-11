@@ -6,10 +6,14 @@ export type PostTrackRequest = {
     name?: string;
     cover?: Blob;
     track?: Blob;
-    artists?: Array<{
-        id?: string;
-        visible_username?: string;
-    }>;
+    /**
+     * JSON-encoded array of artist UUIDs (excluding the uploader, who is added automatically). Example: ["uuid1","uuid2"]
+     */
+    artists?: string;
+    /**
+     * Optional album to associate the track with at upload time.
+     */
+    albumId?: string;
     lyrics?: string | null;
 };
 

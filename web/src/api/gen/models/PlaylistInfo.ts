@@ -9,7 +9,15 @@ export type PlaylistInfo = {
     };
     name?: string;
     description?: string | null;
-    coverUrl?: string;
+    /**
+     * only one or 4 urls or null if no covers on tracks
+     */
+    placeholder_url_covers?: any[] | null;
+    album?: Array<{
+        id?: string;
+        name?: string;
+    }>;
+    cover_url?: string | null;
     totalDuration?: number;
     songsCount?: number;
     isOwner?: boolean;

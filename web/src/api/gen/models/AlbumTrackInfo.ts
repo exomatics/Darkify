@@ -2,7 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type PlaylistTrackInfo = {
+export type AlbumTrackInfo = {
     total?: number;
     items?: Array<{
         name?: string;
@@ -11,16 +11,13 @@ export type PlaylistTrackInfo = {
          * Duration of a song in seconds
          */
         duration?: number;
-        album?: Array<{
-            id?: string;
-            name?: string;
-        }>;
         cover_url?: string | null;
         lyrics?: string | null;
         trackId?: string;
-        playlistTrackId?: string;
-        dateAdded?: string;
         is_liked?: boolean;
+        album_track_id?: string;
+        dateAdded?: string;
+        play_count?: number;
         artists?: Array<{
             id?: string;
             visible_username?: string;

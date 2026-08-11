@@ -1,3 +1,6 @@
+import fs from 'node:fs';
+import path from 'node:path';
+
 import {
   DEFAULT_LIMIT,
   DEFAULT_OFFSET,
@@ -7,11 +10,13 @@ import {
   PATH_TO_96m3u8,
   PATH_TO_AUDIO,
   PATH_TO_AUTO_BITRATE,
+  PATH_TO_losslessm3u8,
 } from '../config/config.ts';
 import database from '../config/database.ts';
 import { errorMessages } from '../errors/error-messages.ts';
 import InternalError from '../errors/internal-error.ts';
 import NotFoundError from '../errors/not-found-error.ts';
+import UnauthorizedError from '../errors/unauthorized-error.ts';
 import ValidationError from '../errors/validation-error.ts';
 import { FileUploader } from '../models/services/file-management.ts';
 import PlaylistManager from '../models/services/playlist.ts';
@@ -19,7 +24,7 @@ import TrackManager from '../models/services/track.ts';
 import UserManager from '../models/services/user.ts';
 import { Bitrate } from '../types/bitrate-type.ts';
 
-import type { ITrack, UpdateTrack } from '../interfaces/track-interface.ts';
+import type { AllowedAudioExtensions, ITrack, UpdateTrack } from '../interfaces/track-interface.ts';
 import type { SuccessfulResult } from '../types/result-type.ts';
 
 const track = new TrackManager();
@@ -77,6 +82,13 @@ export default {
     await track.increasePlayCount(streamInfo.trackId);
     let pathToFile;
     switch (userRecord.data.bitrate) {
+      case Bitrate.Lossless: {
+        pathToFile = `${PATH_TO_AUDIO}/${modelResponse.data.id}/${PATH_TO_losslessm3u8}`;
+        if (fs.existsSync(path.normalize(pathToFile))) {
+          break;
+        }
+      }
+      // eslint-disable-next-line no-fallthrough
       case Bitrate.VeryHigh: {
         pathToFile = `${PATH_TO_AUDIO}/${modelResponse.data.id}/${PATH_TO_320m3u8}`;
         break;
@@ -107,6 +119,7 @@ export default {
     trackInfo: Omit<ITrack, 'cover_id' | 'duration' | 'play_count'> & {
       cover: Express.Multer.File[] | null;
       track: Express.Multer.File[] | null;
+      audioExtension: AllowedAudioExtensions;
     },
   ) {
     if (!trackInfo.track) {
@@ -137,6 +150,7 @@ export default {
       const trackResponse = await track.createTrack({
         ...trackInfo,
         cover_id: coverId,
+        audioExtension: trackInfo.audioExtension,
       });
       if (!trackResponse.success) {
         throw new InternalError(trackResponse.reason);
@@ -156,6 +170,10 @@ export default {
     return result.data;
   },
   async updateTrack(trackInfo: UpdateTrack) {
+    const trackData = await this.getTrackInfo({ trackId: trackInfo.id, userId: trackInfo.userId });
+    if (trackInfo.userId !== trackData.admin_id) {
+      throw new UnauthorizedError(errorMessages.track.CanNotUpdate);
+    }
     let coverId;
     if (trackInfo.file) {
       coverId = await fileUploader.uploadImage(trackInfo.file);
@@ -167,7 +185,11 @@ export default {
     }
     return modelResponse.data;
   },
-  async deleteTrack(trackId: string) {
+  async deleteTrack(trackId: string, userId: string) {
+    const trackData = await this.getTrackInfo({ trackId, userId });
+    if (userId !== trackData.admin_id) {
+      throw new UnauthorizedError(errorMessages.track.CanNotUpdate);
+    }
     const modelResponse = await track.deleteTrack(trackId);
     if (!modelResponse.success) {
       throw new NotFoundError(modelResponse.reason);

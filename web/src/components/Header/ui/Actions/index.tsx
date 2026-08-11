@@ -4,31 +4,19 @@ import { ProfileCard } from '../../../ProfileCard';
 import { useUserStore } from '@/features/auth/useUserStore.ts';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/UI/popover.tsx';
 import * as RadixPopover from '@radix-ui/react-popover';
+import { useNavigate } from 'react-router';
 
 export const Actions = () => {
   const avatarUrl = useUserStore((store) => store.currentUser?.avatar_url);
+  const navigate = useNavigate();
 
   return (
     <div className="ml-auto flex items-center gap-3">
       <IconButton
         className="text-fg-secondary"
         iconScale={1.5}
-        icon="Notifications"
-        onClick={() => {}}
-      />
-      <IconButton className="text-fg-secondary" iconScale={1.5} icon="Lock" onClick={() => {}} />
-      <IconButton
-        className="text-fg-secondary"
-        iconScale={1.8}
-        className="friends"
-        icon="Friends"
-        onClick={() => {}}
-      />
-      <IconButton
-        className="text-fg-secondary"
-        iconScale={1.5}
         icon="Settings"
-        onClick={() => {}}
+        onClick={() => navigate('/settings')}
       />
       <Popover>
         <PopoverTrigger>

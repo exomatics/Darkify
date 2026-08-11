@@ -9,6 +9,7 @@ import { rateLimiters } from '../middleware/rate-limiter.ts';
 import { FileUploader } from '../models/services/file-management.ts';
 import {
   createTrackScheme,
+  deleteTrackScheme,
   getTrackScheme,
   getTracksScheme,
   streamTrackScheme,
@@ -18,7 +19,7 @@ import {
 
 import { ROUTES } from './routes.ts';
 
-import type { ITrack } from '../interfaces/track-interface.ts';
+import type { AllowedAudioExtensions, ITrack } from '../interfaces/track-interface.ts';
 import type { Request, Response } from 'express';
 import type { ParamsDictionary, RequestHandler } from 'express-serve-static-core';
 
@@ -92,7 +93,11 @@ export type PostTrackRequest = Request<
   ParamsDictionary,
   unknown,
   Pick<ITrack, 'lyrics' | 'name'> & { artists?: string; albumId?: string }
-> & { trackId?: string; files?: { track?: Express.Multer.File; cover?: Express.Multer.File } };
+> & {
+  audioExtension?: AllowedAudioExtensions;
+  trackId?: string;
+  files?: { track?: Express.Multer.File; cover?: Express.Multer.File };
+};
 router.post(
   ROUTES.TRACKS.POST_TRACK,
   passport.authenticate('access-token', { session: false }) as RequestHandler,
@@ -118,6 +123,8 @@ router.post(
       album_id: validation.data.albumId,
       id: request.trackId ?? '',
       artists: processedArtists,
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      audioExtension: request.audioExtension!,
     });
 
     response.status(200).json(databaseResponse);
@@ -157,11 +164,14 @@ router.delete(
   ROUTES.TRACKS.DELETE_TRACK,
   passport.authenticate('access-token', { session: false }) as RequestHandler,
   asyncHandler(async (request: Request, response: Response) => {
-    const validation = uuidScheme.safeParse(request.params.trackId);
+    const validation = deleteTrackScheme.safeParse({
+      trackId: request.params.trackId,
+      userId: request.jwtPayload.user_id,
+    });
     if (!validation.success) {
       throw new ValidationError(JSON.stringify(z.treeifyError(validation.error)));
     }
-    await trackController.deleteTrack(validation.data);
+    await trackController.deleteTrack(validation.data.trackId, validation.data.userId);
     response.status(200).end();
   }),
 );

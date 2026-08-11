@@ -19,7 +19,6 @@ export const ProfileCard = () => {
             className="flex items-center justify-center gap-2 p-3 w-full rounded-md cursor-pointer transition-colors hover:bg-bg-primary text-left text-primary border border-primary"
             onClick={() => {
               navigate('/upload');
-              onClick();
             }}
           >
             <Upload />

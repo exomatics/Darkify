@@ -978,7 +978,9 @@ class PlaylistManager {
   ): Promise<
     Result<
       IPlaylistInfo,
-      typeof errorMessages.playlist.NotExistsById | typeof errorMessages.playlist.IsNotAnOwner
+      | typeof errorMessages.playlist.NotExistsById
+      | typeof errorMessages.playlist.IsNotAnOwner
+      | typeof errorMessages.liked.CantMakePublic
     >
   > {
     const playlistRecord = await this.getPlaylistRecordById(
@@ -991,6 +993,9 @@ class PlaylistManager {
 
     if (playlistRecord.data.owner !== playlistInfo.userId) {
       return { success: false, reason: errorMessages.playlist.IsNotAnOwner };
+    }
+    if (playlistRecord.data.type === Type.Liked) {
+      return { success: false, reason: errorMessages.liked.CantMakePublic };
     }
 
     await playlistRecord.data.update({
@@ -1215,13 +1220,7 @@ class PlaylistManager {
         ? [[{ model: database.playlistModel }, libraryInfo.sort.sortBy, libraryInfo.sort.order]]
         : [[libraryInfo.sort.sortBy, libraryInfo.sort.order]]
     ) as sequelize.Order;
-    const playlistAttributes: sequelize.FindAttributeOptions = [
-      'id',
-      'cover_id',
-      'name',
-      'owner',
-      [database.sequelize.fn('COUNT', sequelize.col('library_playlists.id')), 'track_count'],
-    ];
+    const playlistAttributes: sequelize.FindAttributeOptions = ['id', 'cover_id', 'name', 'owner'];
     if (libraryInfo.extended) {
       playlistAttributes.push([
         database.sequelize.literal(`
@@ -1241,41 +1240,20 @@ class PlaylistManager {
       ]);
     }
     const playlistRecords = (await database.libraryPlaylists.findAll({
-      // // 'distinct_artist',
       where: { user_id: libraryInfo.userId },
       subQuery: false,
-      // raw: true,
-      // nest: true,
-      // distinct: true,
       order,
-      group: [
-        'library_playlists.id',
-        'playlist.id',
-        'playlist->user.id',
-        'playlist->tracks.id',
-        'playlist->tracks->playlist_track.id',
-        'playlist->tracks->playlist_track.playlist_id',
-        'playlist->tracks->playlist_track.track_id',
-        'playlist->tracks->playlist_track.order',
-      ],
       include: [
         {
           model: database.playlistModel,
-          // associationType:
           attributes: playlistAttributes,
           where: { type: Type.General },
           required: true,
-          // required: true,
-          // right: true,
-          // through: { attributes: ['playlist_id'] },
           include: [
             {
               model: database.userModel,
-              // required: true,
-              // right: true,
               attributes: ['id', 'visible_username'],
             },
-            { model: database.trackModel, attributes: ['id'] },
           ],
         },
       ],
@@ -1292,7 +1270,6 @@ class PlaylistManager {
         user: { id: string; visible_username: string };
         dataValues: PlaylistModel['dataValues'] & {
           artists_usernames?: string[];
-          track_count: number;
         };
       };
     }[];

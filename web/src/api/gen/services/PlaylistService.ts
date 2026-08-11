@@ -4,6 +4,7 @@
 /* eslint-disable */
 import type { PlaylistInfo } from '../models/PlaylistInfo';
 import type { PlaylistTrackInfo } from '../models/PlaylistTrackInfo';
+import type { ReorderRequestBody } from '../models/ReorderRequestBody';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import type { BaseHttpRequest } from '../core/BaseHttpRequest';
 export class PlaylistService {
@@ -31,7 +32,7 @@ export class PlaylistService {
     /**
      * @param playlistId
      * @param requestBody
-     * @returns any Successful response with no data
+     * @returns PlaylistInfo Playlist information
      * @throws ApiError
      */
     public putPlaylists(
@@ -40,7 +41,7 @@ export class PlaylistService {
             name?: string;
             description?: string | null;
         },
-    ): CancelablePromise<any> {
+    ): CancelablePromise<PlaylistInfo> {
         return this.httpRequest.request({
             method: 'PUT',
             url: '/playlists/{playlistId}',
@@ -77,17 +78,31 @@ export class PlaylistService {
     }
     /**
      * @param playlistId
+     * @param limit
+     * @param offset
+     * @param sort
+     * @param order
      * @returns PlaylistTrackInfo array of playlist tracks information
      * @throws ApiError
      */
     public getPlaylistsTracks(
         playlistId: string,
+        limit: number = 5,
+        offset?: number,
+        sort: 'name' | 'date_added' | 'album' | 'duration' | 'artist' | 'order' = 'order',
+        order: 'ASC' | 'DESC' = 'DESC',
     ): CancelablePromise<PlaylistTrackInfo> {
         return this.httpRequest.request({
             method: 'GET',
             url: '/playlists/{playlistId}/tracks',
             path: {
                 'playlistId': playlistId,
+            },
+            query: {
+                'limit': limit,
+                'offset': offset,
+                'sort': sort,
+                'order': order,
             },
             errors: {
                 400: `Validation failed`,
@@ -140,24 +155,33 @@ export class PlaylistService {
         });
     }
     /**
-     * @param trackName
+     * @param search name of the playlist
+     * @param limit
+     * @param offset
      * @returns any Data of all playlists with playlistName. ILIKE
      * @throws ApiError
      */
-    public getPlaylistsSearch(
-        trackName: string,
+    public getPlaylists1(
+        search?: string,
+        limit: number = 5,
+        offset?: number,
     ): CancelablePromise<{
-        owner?: string;
-        name?: string;
-        description?: string | null;
-        coverId?: string;
-        ownerName?: string;
+        total?: number;
+        items?: Array<{
+            owner?: string;
+            name?: string;
+            description?: string | null;
+            cover_url?: string | null;
+            ownerName?: string;
+        }>;
     }> {
         return this.httpRequest.request({
             method: 'GET',
-            url: '/playlists/search/{playlistName}',
-            path: {
-                'trackName': trackName,
+            url: '/playlists',
+            query: {
+                'search': search,
+                'limit': limit,
+                'offset': offset,
             },
             errors: {
                 400: `Validation failed`,
@@ -167,17 +191,22 @@ export class PlaylistService {
     }
     /**
      * @param formData
-     * @returns PlaylistInfo Playlist information
+     * @returns any Playlist information
      * @throws ApiError
      */
     public postPlaylists(
         formData?: {
-            name?: string;
+            name?: string | null;
+            cover?: Blob | null;
             description?: string | null;
+            /**
+             * default restriction is private
+             */
             restrictions?: 'private' | 'unlisted' | 'public';
-            cover?: Blob;
         },
-    ): CancelablePromise<PlaylistInfo> {
+    ): CancelablePromise<(PlaylistInfo & {
+        id?: string;
+    })> {
         return this.httpRequest.request({
             method: 'POST',
             url: '/playlists',
@@ -219,9 +248,9 @@ export class PlaylistService {
      * @throws ApiError
      */
     public postPlaylistsRemoveTrack(
-        requestBody?: {
-            trackId?: string;
-            playlistTrackId?: string;
+        requestBody: {
+            playlistId: string;
+            playlistTrackId: string;
         },
     ): CancelablePromise<any> {
         return this.httpRequest.request({
@@ -262,19 +291,16 @@ export class PlaylistService {
         });
     }
     /**
-     * Reorder playlist`s custom order. Indexes must be exactly indexes, in other words start from 0. To reorder to 0 index, need to send toIndex 0. To reored to the last index, need to send toIndex -1 or the last existing index.
+     * Reorder playlist`s custom order. Indexes must be exactly indexes, in other words start from 0. To reorder to 0 index, need to send toIndex 0. To reorder to the last index, need to send toIndex -1 or the last existing index.
      * @param playlistId
      * @param requestBody
-     * @returns PlaylistInfo Playlist information
+     * @returns any Successful response with no data
      * @throws ApiError
      */
     public putPlaylistsReorder(
         playlistId: string,
-        requestBody?: {
-            fromIndex?: number;
-            toIndex?: number;
-        },
-    ): CancelablePromise<PlaylistInfo> {
+        requestBody: ReorderRequestBody,
+    ): CancelablePromise<any> {
         return this.httpRequest.request({
             method: 'PUT',
             url: '/playlists/{playlistId}/reorder',

@@ -10,6 +10,27 @@ import type { BaseHttpRequest } from '../core/BaseHttpRequest';
 export class TrackService {
     constructor(public readonly httpRequest: BaseHttpRequest) {}
     /**
+     * Get track info by ID
+     * @param trackId
+     * @returns TrackInfo trackInfo
+     * @throws ApiError
+     */
+    public getTracks(
+        trackId: string,
+    ): CancelablePromise<TrackInfo> {
+        return this.httpRequest.request({
+            method: 'GET',
+            url: '/tracks/',
+            query: {
+                'trackId': trackId,
+            },
+            errors: {
+                400: `Validation failed`,
+                401: `Unauthorized or invalid token`,
+            },
+        });
+    }
+    /**
      * Upload track
      * @param formData
      * @returns TrackInfo trackInfo
@@ -23,27 +44,6 @@ export class TrackService {
             url: '/tracks/',
             formData: formData,
             mediaType: 'multipart/form-data',
-            errors: {
-                400: `Validation failed`,
-                401: `Unauthorized or invalid token`,
-            },
-        });
-    }
-    /**
-     * Get trackInfo by id
-     * @param trackId
-     * @returns TrackInfo trackInfo
-     * @throws ApiError
-     */
-    public getTracks(
-        trackId: string,
-    ): CancelablePromise<TrackInfo> {
-        return this.httpRequest.request({
-            method: 'GET',
-            url: '/tracks/{trackId}',
-            path: {
-                'trackId': trackId,
-            },
             errors: {
                 400: `Validation failed`,
                 401: `Unauthorized or invalid token`,
@@ -144,6 +144,90 @@ export class TrackService {
             url: '/tracks/stream/{trackId}',
             path: {
                 'trackId': trackId,
+            },
+        });
+    }
+    /**
+     * Get lyrics for a track
+     * @param trackId
+     * @returns any Track lyrics
+     * @throws ApiError
+     */
+    public getTracksLyrics(
+        trackId: string,
+    ): CancelablePromise<{
+        lyrics?: string | null;
+    }> {
+        return this.httpRequest.request({
+            method: 'GET',
+            url: '/tracks/{trackId}/lyrics',
+            path: {
+                'trackId': trackId,
+            },
+            errors: {
+                400: `Validation failed`,
+                401: `Unauthorized or invalid token`,
+                404: `Resource not found`,
+            },
+        });
+    }
+    /**
+     * Get the next song based on context (playlist, album, liked, artist-top10, releases, other)
+     * @param requestBody
+     * @returns any Next track info
+     * @throws ApiError
+     */
+    public postTracksNext(
+        requestBody: {
+            /**
+             * Playback context
+             */
+            context: 'playlist' | 'album' | 'liked' | 'artist-top10' | 'releases' | 'other';
+            /**
+             * Context entity ID (playlistId, albumId, or artistId). Optional for liked context.
+             */
+            id?: string;
+            /**
+             * Optional search string to filter tracks within context
+             */
+            search?: string;
+            /**
+             * Whether to loop back to the beginning when end is reached
+             */
+            loop: boolean;
+            /**
+             * Whether to pick a random next track
+             */
+            shuffle: boolean;
+            /**
+             * The current track's ID
+             */
+            currentTrackId: string;
+            /**
+             * Current track's index in the queue
+             */
+            index: number;
+        },
+    ): CancelablePromise<{
+        track_id?: string;
+        /**
+         * Playlist track ID or album ID depending on context
+         */
+        local_id?: string | null;
+        new_context?: 'playlist' | 'album' | 'liked' | 'artist-top10' | 'releases' | 'other';
+        /**
+         * Whether playback should stop (end of queue with no loop)
+         */
+        stopped?: boolean;
+    }> {
+        return this.httpRequest.request({
+            method: 'POST',
+            url: '/tracks/next',
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                400: `Validation failed`,
+                401: `Unauthorized or invalid token`,
             },
         });
     }

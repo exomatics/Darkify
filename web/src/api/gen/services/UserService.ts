@@ -33,6 +33,10 @@ export class UserService {
     public putUsersMe(
         requestBody: {
             visible_username?: string;
+            /**
+             * Artist bio. Only applicable when the user is an artist.
+             */
+            description?: string;
         },
     ): CancelablePromise<UserPreview> {
         return this.httpRequest.request({
@@ -98,10 +102,15 @@ export class UserService {
     }
     /**
      * Get users followed by current user
+     * @param limit
+     * @param offset
      * @returns any List of following users
      * @throws ApiError
      */
-    public getUsersMeFollowing(): CancelablePromise<{
+    public getUsersMeFollowing(
+        limit: number = 5,
+        offset?: number,
+    ): CancelablePromise<{
         total?: number;
         offset?: number;
         next?: number | null;
@@ -110,6 +119,10 @@ export class UserService {
         return this.httpRequest.request({
             method: 'GET',
             url: '/users/me/following',
+            query: {
+                'limit': limit,
+                'offset': offset,
+            },
             errors: {
                 400: `Validation failed`,
                 401: `Unauthorized or invalid token`,
@@ -118,6 +131,7 @@ export class UserService {
     }
     /**
      * Get user info by ID
+     * Public endpoint. When called with a valid Bearer token, the response includes `is_following` indicating whether the caller follows this user.
      * @param userId
      * @returns UserInfo User info
      * @throws ApiError
@@ -127,13 +141,13 @@ export class UserService {
     ): CancelablePromise<UserInfo> {
         return this.httpRequest.request({
             method: 'GET',
-            url: '/users/{userId}',
+            url: '/users/{user_id}',
             path: {
                 'user_id': userId,
             },
             errors: {
                 400: `Validation failed`,
-                401: `Unauthorized or invalid token`,
+                404: `Resource not found`,
             },
         });
     }
@@ -148,7 +162,7 @@ export class UserService {
     ): CancelablePromise<any> {
         return this.httpRequest.request({
             method: 'POST',
-            url: '/users/follow/user/{userId}',
+            url: '/users/follow/user/{user_id}',
             path: {
                 'user_id': userId,
             },
@@ -169,7 +183,7 @@ export class UserService {
     ): CancelablePromise<any> {
         return this.httpRequest.request({
             method: 'POST',
-            url: '/users/unfollow/user/{userId}',
+            url: '/users/unfollow/user/{user_id}',
             path: {
                 'user_id': userId,
             },
@@ -237,16 +251,279 @@ export class UserService {
     /**
      * Change avatar for current user
      * @param formData
+     * @returns any Updated avatar url
      * @throws ApiError
      */
     public putUsersMeAvatar(
         formData?: any,
-    ): CancelablePromise<void> {
+    ): CancelablePromise<{
+        avatar_url?: string | null;
+    }> {
         return this.httpRequest.request({
             method: 'PUT',
             url: '/users/me/avatar',
             formData: formData,
             mediaType: 'multipart/form-data',
+            errors: {
+                400: `Validation failed`,
+                401: `Unauthorized or invalid token`,
+            },
+        });
+    }
+    /**
+     * Change banner for current user (artists only)
+     * @param formData
+     * @returns any Updated banner url
+     * @throws ApiError
+     */
+    public putUsersMeBanner(
+        formData?: any,
+    ): CancelablePromise<{
+        banner_url?: string | null;
+    }> {
+        return this.httpRequest.request({
+            method: 'PUT',
+            url: '/users/me/banner',
+            formData: formData,
+            mediaType: 'multipart/form-data',
+            errors: {
+                400: `Validation failed`,
+                401: `Unauthorized or invalid token`,
+            },
+        });
+    }
+    /**
+     * Convert current user account to an artist account
+     * @param formData
+     * @returns any Successful response with no data
+     * @throws ApiError
+     */
+    public postUsersMeTurnToArtist(
+        formData?: {
+            description?: string;
+            banner?: Blob | null;
+        },
+    ): CancelablePromise<any> {
+        return this.httpRequest.request({
+            method: 'POST',
+            url: '/users/me/turn-to-artist',
+            formData: formData,
+            mediaType: 'multipart/form-data',
+            errors: {
+                400: `Validation failed`,
+                401: `Unauthorized or invalid token`,
+            },
+        });
+    }
+    /**
+     * Follow specified album
+     * @param albumId
+     * @returns any Successful response with no data
+     * @throws ApiError
+     */
+    public postUsersFollowAlbum(
+        albumId: string,
+    ): CancelablePromise<any> {
+        return this.httpRequest.request({
+            method: 'POST',
+            url: '/users/follow/album/{albumId}',
+            path: {
+                'albumId': albumId,
+            },
+            errors: {
+                400: `Validation failed`,
+                401: `Unauthorized or invalid token`,
+            },
+        });
+    }
+    /**
+     * Unfollow specified album
+     * @param albumId
+     * @returns any Successful response with no data
+     * @throws ApiError
+     */
+    public postUsersUnfollowAlbum(
+        albumId: string,
+    ): CancelablePromise<any> {
+        return this.httpRequest.request({
+            method: 'POST',
+            url: '/users/unfollow/album/{albumId}',
+            path: {
+                'albumId': albumId,
+            },
+            errors: {
+                400: `Validation failed`,
+                401: `Unauthorized or invalid token`,
+            },
+        });
+    }
+    /**
+     * Follow specified single
+     * @param singleId
+     * @returns any Successful response with no data
+     * @throws ApiError
+     */
+    public postUsersFollowSingle(
+        singleId: string,
+    ): CancelablePromise<any> {
+        return this.httpRequest.request({
+            method: 'POST',
+            url: '/users/follow/single/{singleId}',
+            path: {
+                'singleId': singleId,
+            },
+            errors: {
+                400: `Validation failed`,
+                401: `Unauthorized or invalid token`,
+            },
+        });
+    }
+    /**
+     * Unfollow specified single
+     * @param singleId
+     * @returns any Successful response with no data
+     * @throws ApiError
+     */
+    public postUsersUnfollowSingle(
+        singleId: string,
+    ): CancelablePromise<any> {
+        return this.httpRequest.request({
+            method: 'POST',
+            url: '/users/unfollow/single/{singleId}',
+            path: {
+                'singleId': singleId,
+            },
+            errors: {
+                400: `Validation failed`,
+                401: `Unauthorized or invalid token`,
+            },
+        });
+    }
+    /**
+     * Follow specified artist
+     * @param artistId
+     * @returns any Successful response with no data
+     * @throws ApiError
+     */
+    public postUsersFollowArtist(
+        artistId: string,
+    ): CancelablePromise<any> {
+        return this.httpRequest.request({
+            method: 'POST',
+            url: '/users/follow/artist/{artistId}',
+            path: {
+                'artistId': artistId,
+            },
+            errors: {
+                400: `Validation failed`,
+                401: `Unauthorized or invalid token`,
+                404: `Resource not found`,
+            },
+        });
+    }
+    /**
+     * Unfollow specified artist
+     * @param artistId
+     * @returns any Successful response with no data
+     * @throws ApiError
+     */
+    public postUsersUnfollowArtist(
+        artistId: string,
+    ): CancelablePromise<any> {
+        return this.httpRequest.request({
+            method: 'POST',
+            url: '/users/unfollow/artist/{artistId}',
+            path: {
+                'artistId': artistId,
+            },
+            errors: {
+                400: `Validation failed`,
+                401: `Unauthorized or invalid token`,
+                404: `Resource not found`,
+            },
+        });
+    }
+    /**
+     * Record that the user played something (updates last-played date)
+     * @param requestBody
+     * @returns any Successful response with no data
+     * @throws ApiError
+     */
+    public putUsersMeEventsPlayed(
+        requestBody: {
+            event_data: ({
+                section: 'playlists';
+                playlist_id: string;
+            } | {
+                section: 'albums';
+                album_id: string;
+            } | {
+                section: 'singles';
+                track_id: string;
+            });
+        },
+    ): CancelablePromise<any> {
+        return this.httpRequest.request({
+            method: 'PUT',
+            url: '/users/me/events/played',
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                400: `Validation failed`,
+                401: `Unauthorized or invalid token`,
+            },
+        });
+    }
+    /**
+     * Change current user password
+     * @param requestBody
+     * @returns any Successful response with no data
+     * @throws ApiError
+     */
+    public putUsersMePassword(
+        requestBody: {
+            current_password: string;
+            new_password: string;
+        },
+    ): CancelablePromise<any> {
+        return this.httpRequest.request({
+            method: 'PUT',
+            url: '/users/me/password',
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                400: `Validation failed`,
+                401: `Unauthorized or invalid token`,
+            },
+        });
+    }
+    /**
+     * Get users that follow the current user
+     * @param limit
+     * @param offset
+     * @returns any List of followers
+     * @throws ApiError
+     */
+    public getUsersMeFollowers(
+        limit: number = 5,
+        offset?: number,
+    ): CancelablePromise<{
+        total?: number;
+        offset?: number;
+        next?: number | null;
+        items?: Array<UserPreview>;
+    }> {
+        return this.httpRequest.request({
+            method: 'GET',
+            url: '/users/me/followers',
+            query: {
+                'limit': limit,
+                'offset': offset,
+            },
+            errors: {
+                400: `Validation failed`,
+                401: `Unauthorized or invalid token`,
+            },
         });
     }
 }

@@ -50,6 +50,7 @@ export class AuthService {
     }
     /**
      * Issue new access token using refresh token
+     * Requires a valid `refreshToken` cookie (httpOnly) set during login or register.
      * @returns AccessToken Access token returned
      * @throws ApiError
      */
@@ -59,6 +60,21 @@ export class AuthService {
             url: '/users/refresh-token',
             errors: {
                 400: `Validation failed`,
+            },
+        });
+    }
+    /**
+     * Logout current user
+     * Clears the `refreshToken` httpOnly cookie. The access token will expire naturally.
+     * @returns any Successful response with no data
+     * @throws ApiError
+     */
+    public postUsersLogout(): CancelablePromise<any> {
+        return this.httpRequest.request({
+            method: 'POST',
+            url: '/users/logout',
+            errors: {
+                401: `Unauthorized or invalid token`,
             },
         });
     }

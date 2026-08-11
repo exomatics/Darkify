@@ -50,10 +50,12 @@ export const errorMessages = {
     NotExistsById: 'Liked does not exist',
     CantDelete: 'You cant delete liked songs',
     TrackMustBeUnique: 'Songs in Liked must be unique',
+    CantMakePublic: 'You cant make liked songs public',
   }),
   track: Object.freeze({
     NotExistsById: 'Track with this id does not exist',
     NotExistsByName: 'There is no tracks with such name',
+    CanNotUpdate: 'You can not update this track',
     FfmpegError: 'Error while converting to hls',
     FailedToCreate: 'Failed to create track',
     LibraryNotExistsByIndex: 'Library single or album with this index doesnt exist in this library',
@@ -76,6 +78,10 @@ export const errorMessages = {
   }),
   database: Object.freeze({
     BothOrNone: 'only album_id or track_id must be defined',
+  }),
+  fileUpload: Object.freeze({
+    ExtensionNotSupported: 'file extension is not supported',
+    UnexpectedField: 'Unexpected field',
   }),
   init: Object.freeze({
     KeysAlreadyGenerated: 'Key pair already exists. Skipping generation.',

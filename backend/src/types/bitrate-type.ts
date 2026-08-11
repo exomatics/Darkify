@@ -3,6 +3,7 @@ enum Bitrate {
   Normal = 'normal',
   High = 'high',
   VeryHigh = 'veryHigh',
+  Lossless = 'lossless',
   Auto = 'auto',
 }
 export { Bitrate };

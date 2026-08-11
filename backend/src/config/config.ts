@@ -21,6 +21,7 @@ export const PATH_TO_UPLOADS = path.join(PROJECT_ROOT, 'uploads');
 export const PATH_TO_AUDIO = path.join(PATH_TO_UPLOADS, 'audio');
 export const PATH_TO_IMAGES = path.join(PATH_TO_UPLOADS, 'images');
 
+export const PATH_TO_losslessm3u8 = path.join('lossless', 'lossless.m3u8');
 export const PATH_TO_320m3u8 = path.join('320kbps', '320kbps.m3u8');
 export const PATH_TO_160m3u8 = path.join('160kbps', '160kbps.m3u8');
 export const PATH_TO_96m3u8 = path.join('96kbps', '96kbps.m3u8');

@@ -112,7 +112,7 @@ export const useAudioStore = create(
 
         const trackInfo = await api.track.getTracks(trackId);
         const m3u8Content = await api.track.getTracksStream(trackId);
-        set({ duration: timeToSeconds(trackInfo?.duration ?? '') });
+        set({ duration: trackInfo?.duration ?? 0 });
 
         const processedHlsContent = processHLSContent(String(m3u8Content));
 

@@ -272,8 +272,10 @@ class ArtistManager {
       'tracks.play_count',
       'tracks->playlist_track.id',
       'tracks->playlist_track.playlist_id',
+      'tracks->playlist_track.user_id',
       'tracks->playlist_track.track_id',
       'tracks->playlist_track.order',
+      'tracks->playlist_track.date_added',
     ];
     if (sort.sortBy === ArtistAlbumsSortBy.Popularity) {
       attributes = [
@@ -296,15 +298,17 @@ class ArtistManager {
         'tracks.play_count',
         'tracks->playlist_track.id',
         'tracks->playlist_track.playlist_id',
+        'tracks->playlist_track.user_id',
         'tracks->playlist_track.track_id',
         'tracks->playlist_track.order',
+        'tracks->playlist_track.date_added',
       ];
       order = [['popularity', 'DESC']];
     }
-    const artistAlbumsCount = await database.playlistModel.count({
+    const artistAlbumsCount = await database.playlistModel.scope('albumOnly').count({
       where: { owner: artistInfo.artistId, restrictions: Restrictions.Public },
     });
-    const artistAlbumsRecords = (await database.playlistModel.findAll({
+    const artistAlbumsRecords = (await database.playlistModel.scope('albumOnly').findAll({
       where: { owner: artistInfo.artistId, restrictions: Restrictions.Public },
       subQuery: false,
       group,
@@ -503,6 +507,7 @@ class ArtistManager {
         where: { visible_username: { [Op.iLike]: searchPattern } },
         attributes: ['id', 'visible_username', 'avatar_url'],
       },
+      logging: true,
       offset,
       limit,
     })) as { rows: (ArtistModel & { user: UserModel })[]; count: number };
